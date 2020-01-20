@@ -25,6 +25,7 @@ import com.sun.org.apache.xerces.internal.jaxp.JAXPConstants;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,7 @@ import org.bremersee.xml.model3.Company;
 import org.bremersee.xml.model3.ObjectFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -248,6 +250,28 @@ class XmlDocumentBuilderTest {
    */
   @Test
   void buildDocumentFromFile() {
+    File file;
+    try {
+      file = File.createTempFile("test", ".xsd", new File(System.getProperty("java.io.tmpdir")));
+      file.deleteOnExit();
+      FileCopyUtils.copy(
+          new DefaultResourceLoader().getResource("classpath:common-xml-test-model-1.xsd")
+              .getInputStream(),
+          new FileOutputStream(file));
+
+    } catch (Exception ignored) {
+      return;
+    }
+    Document document = XmlDocumentBuilder.builder()
+        .buildDocument(file);
+    assertNotNull(document);
+  }
+
+  /**
+   * Build document from file and expect exception.
+   */
+  @Test
+  void buildDocumentFromFileAndExpectException() {
     assertThrows(
         IllegalArgumentException.class,
         () -> XmlDocumentBuilder.builder().buildDocument((File) null));

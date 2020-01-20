@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.net.URL;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
@@ -30,6 +31,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * The schema builder test.
@@ -91,9 +93,21 @@ class SchemaBuilderTest {
   @Test
   void buildSchemaWithFile() {
 
-    Schema schema = SchemaBuilder.builder()
-        .buildSchema((File) null); // we have no file ...
-    assertNotNull(schema); // empty schema
+    File file;
+    try {
+      file = File.createTempFile("test", ".xsd", new File(System.getProperty("java.io.tmpdir")));
+      file.deleteOnExit();
+      FileCopyUtils.copy(
+          new DefaultResourceLoader().getResource("classpath:common-xml-test-model-1.xsd")
+              .getInputStream(),
+          new FileOutputStream(file));
+
+    } catch (Exception ignored) {
+      return;
+    }
+
+    Schema schema = SchemaBuilder.builder().buildSchema(file);
+    assertNotNull(schema);
   }
 
   /**
