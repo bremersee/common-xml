@@ -141,7 +141,11 @@ public interface JaxbContextBuilder {
    */
   String buildSchemaLocation(String... nameSpaces);
 
-  Schema buildSchema(final SchemaBuilder schemaBuilder, final String... nameSpaces);
+  default Schema buildSchema(String... nameSpaces) {
+    return buildSchema(null, nameSpaces);
+  }
+
+  Schema buildSchema(SchemaBuilder schemaBuilder, String... nameSpaces);
 
   /**
    * Build marshaller properties.
@@ -383,12 +387,12 @@ public interface JaxbContextBuilder {
       return buildDataDetails(nameSpaces).getSchemaLocation();
     }
 
+    @Override
     public Schema buildSchema(final SchemaBuilder schemaBuilder, final String... nameSpaces) {
+      final SchemaBuilder sb = schemaBuilder != null ? schemaBuilder : SchemaBuilder.builder();
       final DataDetails dataDetails = buildDataDetails(nameSpaces);
       final Set<String> locations = dataDetails.getSchemaLocations();
-      final List<Source> sources = new ArrayList<>(schemaBuilder.buildSchemaSources(locations));
-      // TODO
-      /*
+      final List<Source> sources = new ArrayList<>(sb.buildSchemaSources(locations));
       final JAXBContext jaxbContext = jaxbContextMap
           .computeIfAbsent(
               dataDetails.getKey(),
@@ -400,9 +404,7 @@ public interface JaxbContextBuilder {
         throw new JaxbRuntimeException(e);
       }
       sources.addAll(resolver.toSources());
-
-       */
-      return schemaBuilder.buildSchema(sources);
+      return sb.buildSchema(sources);
     }
 
     @Override
