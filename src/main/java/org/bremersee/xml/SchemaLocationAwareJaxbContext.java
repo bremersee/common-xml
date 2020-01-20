@@ -26,6 +26,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.Validator;
+import javax.xml.validation.Schema;
 
 /**
  * This {@link JAXBContext} will be returned by the {@link JaxbContextBuilder}.
@@ -42,6 +43,8 @@ class SchemaLocationAwareJaxbContext extends JAXBContext implements JaxbContextD
   private final String schemaLocation;
 
   private boolean formattedOutput;
+
+  private Schema schema;
 
   /**
    * Instantiates a new schema location aware jaxb context.
@@ -90,9 +93,31 @@ class SchemaLocationAwareJaxbContext extends JAXBContext implements JaxbContextD
     this.formattedOutput = formattedOutput;
   }
 
+  /**
+   * Gets schema.
+   *
+   * @return the schema
+   */
+  public Schema getSchema() {
+    return schema;
+  }
+
+  /**
+   * Sets schema.
+   *
+   * @param schema the schema
+   */
+  void setSchema(Schema schema) {
+    this.schema = schema;
+  }
+
   @Override
   public Unmarshaller createUnmarshaller() throws JAXBException {
-    return jaxbContext.createUnmarshaller();
+    Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+    if (schema != null) {
+      unmarshaller.setSchema(schema);
+    }
+    return unmarshaller;
   }
 
   @Override
@@ -102,6 +127,9 @@ class SchemaLocationAwareJaxbContext extends JAXBContext implements JaxbContextD
     marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formattedOutput);
     if (schemaLocation != null && schemaLocation.trim().length() > 0) {
       marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, schemaLocation);
+    }
+    if (schema != null) {
+      marshaller.setSchema(schema);
     }
     return marshaller;
   }

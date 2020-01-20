@@ -25,12 +25,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.security.PrivilegedAction;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.regex.Pattern;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.MarshalException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.ValidationEvent;
+import javax.xml.bind.ValidationEventHandler;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
+import javax.xml.validation.Validator;
+import org.bremersee.xml.model1.ObjectFactory;
 import org.bremersee.xml.model1.Person;
 import org.bremersee.xml.model2.Vehicle;
 import org.bremersee.xml.model3.Company;
@@ -38,6 +48,9 @@ import org.bremersee.xml.model4.Address;
 import org.bremersee.xml.provider.ExampleJaxbContextDataProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.StringUtils;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  * The jaxb context builder test.
@@ -249,6 +262,163 @@ class JaxbContextBuilderTest {
     jaxbContext.createMarshaller().marshal(person, out);
     String xml = out.toString();
     schema.newValidator().validate(new StreamSource(new StringReader(xml)));
+  }
+
+  @Test
+  void buildSchemaWithPattern() throws Exception {
+    List<JaxbContextData> ctxData = Arrays.asList(
+        new JaxbContextData(ObjectFactory.class.getPackage()),
+        new JaxbContextData(
+            org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
+            "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd")
+    );
+
+    JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder.builder()
+        .addAll(ctxData);
+
+    JAXBContext jaxbContext = jaxbContextBuilder.buildJaxbContext();
+    // BufferSchemaOutputResolver resolver = new BufferSchemaOutputResolver();
+    // jaxbContext.generateSchema(resolver);
+    // System.out.println("Jaxb scheme:\n" + resolver);
+
+    Person person = new Person();
+    person.setLastName("Joyce");
+    person.setFirstName("James");
+
+    StringWriter personWriter = new StringWriter();
+    jaxbContext.createMarshaller().marshal(person, new StreamResult(personWriter));
+
+    Vehicle vehicle = new Vehicle();
+    vehicle.setBrand("VW");
+    vehicle.setModel("Golf");
+
+    StringWriter vehicleWriter = new StringWriter();
+    jaxbContext.createMarshaller().marshal(vehicle, new StreamResult(vehicleWriter));
+
+    Schema schema = jaxbContextBuilder.buildSchema();
+    Validator validator = schema.newValidator();
+    validator.validate(new StreamSource(new StringReader(personWriter.toString())));
+    validator.validate(new StreamSource(new StringReader(vehicleWriter.toString())));
+  }
+
+  @Test
+  void buildSchemaWithPatternAndExpectValidationFails() throws Exception {
+    List<JaxbContextData> ctxData = Arrays.asList(
+        new JaxbContextData(ObjectFactory.class.getPackage()),
+        new JaxbContextData(
+            org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
+            "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd")
+    );
+
+    JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder.builder()
+        .addAll(ctxData);
+
+    JAXBContext jaxbContext = jaxbContextBuilder.buildJaxbContext();
+    // BufferSchemaOutputResolver resolver = new BufferSchemaOutputResolver();
+    // jaxbContext.generateSchema(resolver);
+    // System.out.println("Jaxb scheme:\n" + resolver);
+
+    Person person = new Person();
+    person.setLastName("Joyce");
+    person.setFirstName("James");
+
+    StringWriter personWriter = new StringWriter();
+    jaxbContext.createMarshaller().marshal(person, new StreamResult(personWriter));
+
+    Vehicle vehicle = new Vehicle();
+    vehicle.setBrand("VW");
+    vehicle.setModel("Golf1"); // is not allowed
+
+    StringWriter vehicleWriter = new StringWriter();
+    jaxbContext.createMarshaller().marshal(vehicle, new StreamResult(vehicleWriter));
+    // Marshaller m = jaxbContext.createMarshaller();
+    // m.setSchema(jaxbContextBuilder.buildSchema());
+    // m.marshal(vehicle, new StreamResult(vehicleWriter)); // fails as expected
+    String vehicleXml = vehicleWriter.toString();
+    System.out.println(vehicleXml);
+
+    Schema schema = jaxbContextBuilder.buildSchema();
+    Validator validator = schema.newValidator();
+    validator.validate(new StreamSource(new StringReader(personWriter.toString())));
+
+    assertThrows(
+        SAXParseException.class,
+        () -> validator.validate(new StreamSource(new StringReader(vehicleXml))));
+  }
+
+  @Test
+  void buildJaxbContextWithSchema() throws Exception {
+
+    Pattern pattern = Pattern.compile("[a-zA-Z]*");
+    System.out.println(pattern.matcher("Golf").matches());
+    System.out.println(pattern.matcher("Golf1").matches());
+
+    List<JaxbContextData> ctxData = Arrays.asList(
+        new JaxbContextData(ObjectFactory.class.getPackage()),
+        new JaxbContextData(
+            org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
+            "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd")
+    );
+
+    JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder.builder()
+        .addAll(ctxData);
+
+    JAXBContext jaxbContext = jaxbContextBuilder
+        .buildJaxbContextWithSchema(SchemaBuilder.builder().errorHandler(new ErrorHandler() {
+          @Override
+          public void warning(SAXParseException exception) throws SAXException {
+            System.out.println("Warning: " + exception);
+          }
+
+          @Override
+          public void error(SAXParseException exception) throws SAXException {
+            System.out.println("Error: " + exception);
+          }
+
+          @Override
+          public void fatalError(SAXParseException exception) throws SAXException {
+            System.out.println("Fatal: " + exception);
+          }
+        }));
+
+    Person person = new Person();
+    person.setLastName("Joyce");
+    person.setFirstName("James");
+
+    StringWriter personWriter = new StringWriter();
+    jaxbContext.createMarshaller().marshal(person, new StreamResult(personWriter));
+
+    Vehicle vehicle = new Vehicle();
+    vehicle.setBrand("VW");
+    vehicle.setModel("Golf"); // is allowed
+
+    StringWriter vehicleWriter = new StringWriter();
+    jaxbContext.createMarshaller().marshal(vehicle, new StreamResult(vehicleWriter));
+
+    vehicle.setModel("Golf1"); // is not allowed
+    try {
+      Marshaller m = jaxbContext.createMarshaller();
+      m.setEventHandler(new ValidationEventHandler() { // TODO add setter in builder
+        @Override
+        public boolean handleEvent(ValidationEvent event) {
+          System.out.println("Event: " + event);
+          return false;
+        }
+      });
+      m.marshal(vehicle, new StreamResult(new StringWriter()));
+    } catch (Exception e) {
+      System.out.println(e.getClass().getName());
+    }
+  }
+
+  @Test
+  void buildMarshallerWithSchema() {
+
+  }
+
+  @Test
+  void buildUnmarshallerWithSchema() {
+
   }
 
 }

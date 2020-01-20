@@ -19,9 +19,13 @@ package org.bremersee.xml;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -33,12 +37,13 @@ import javax.xml.transform.stream.StreamSource;
  *
  * @author Christian Bremer
  */
-public class SchemaSourcesResolver extends SchemaOutputResolver {
+class SchemaSourcesResolver extends SchemaOutputResolver {
 
   private final Map<String, StreamResult> buffers = new LinkedHashMap<>();
 
   @Override
   public Result createOutput(final String namespaceUri, final String suggestedFileName) {
+    System.out.println("namespaceUri = " + namespaceUri);
     final StringWriter out = new StringWriter();
     final StreamResult res = new StreamResult(out);
     res.setSystemId(suggestedFileName);
@@ -49,15 +54,21 @@ public class SchemaSourcesResolver extends SchemaOutputResolver {
   /**
    * To sources.
    *
+   * @param excludedNameSpaces the excluded name spaces
    * @return the list with the schema sources
    */
-  public List<Source> toSources() {
+  List<Source> toSources(Collection<String> excludedNameSpaces) {
+    final Set<String> excluded = Optional.ofNullable(excludedNameSpaces)
+        .map(HashSet::new)
+        .orElseGet(HashSet::new);
     final List<Source> sources = new ArrayList<>(buffers.size());
     for (final Map.Entry<String, StreamResult> result : buffers.entrySet()) {
-      final String systemId = result.getValue().getSystemId();
-      final String schema = result.getValue().getWriter().toString();
-      final StreamSource source = new StreamSource(new StringReader(schema), systemId);
-      sources.add(source);
+      if (!excluded.contains(result.getKey())) {
+        final String systemId = result.getValue().getSystemId();
+        final String schema = result.getValue().getWriter().toString();
+        final StreamSource source = new StreamSource(new StringReader(schema), systemId);
+        sources.add(source);
+      }
     }
     return sources;
   }
