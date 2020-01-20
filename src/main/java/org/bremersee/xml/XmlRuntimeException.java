@@ -36,7 +36,7 @@ public class XmlRuntimeException extends RuntimeException {
    * Instantiates a new xml runtime exception.
    *
    * @param message the message
-   * @param cause   the cause
+   * @param cause the cause
    */
   public XmlRuntimeException(String message, Throwable cause) {
     super(message, cause);

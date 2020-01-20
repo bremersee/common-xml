@@ -51,13 +51,13 @@ public interface XmlDocumentBuilder {
   /**
    * Configure factory xml document builder.
    *
-   * @param coalescing                       the coalescing
-   * @param expandEntityReferences           the expand entity references
-   * @param ignoringComments                 the ignoring comments
+   * @param coalescing the coalescing
+   * @param expandEntityReferences the expand entity references
+   * @param ignoringComments the ignoring comments
    * @param ignoringElementContentWhitespace the ignoring element content whitespace
-   * @param namespaceAware                   the namespace aware
-   * @param validating                       the validating
-   * @param xIncludeAware                    the x include aware
+   * @param namespaceAware the namespace aware
+   * @param validating the validating
+   * @param xIncludeAware the x include aware
    * @return the xml document builder
    */
   XmlDocumentBuilder configureFactory(
@@ -72,7 +72,7 @@ public interface XmlDocumentBuilder {
   /**
    * Configure factory attribute xml document builder.
    *
-   * @param name  the name
+   * @param name the name
    * @param value the value
    * @return the xml document builder
    */
@@ -81,7 +81,7 @@ public interface XmlDocumentBuilder {
   /**
    * Configure factory feature xml document builder.
    *
-   * @param name  the name
+   * @param name the name
    * @param value the value
    * @return the xml document builder
    */
@@ -160,7 +160,7 @@ public interface XmlDocumentBuilder {
   /**
    * Build document from input stream and system ID.
    *
-   * @param is       the input stream
+   * @param is the input stream
    * @param systemId the system id
    * @return the document
    */
@@ -179,7 +179,7 @@ public interface XmlDocumentBuilder {
    * Build document from an object that can be processed with {@link Marshaller}.
    *
    * @param jaxbElement the jaxb element
-   * @param marshaller  the marshaller
+   * @param marshaller the marshaller
    * @return the document
    */
   Document buildDocument(Object jaxbElement, Marshaller marshaller);

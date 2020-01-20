@@ -30,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
@@ -47,84 +48,225 @@ import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 
 /**
+ * The schema builder interface.
+ *
  * @author Christian Bremer
  */
 public interface SchemaBuilder {
 
+  /**
+   * Specifies the schema language (see {@link SchemaFactory#newInstance(String)}).
+   *
+   * <p>Default is {@code javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI}
+   * ("http://www.w3.org/2001/XMLSchema").
+   *
+   * @param schemaLanguage specifies the schema language which the used schema factory will
+   *     understand
+   * @return the schema builder
+   */
   SchemaBuilder schemaLanguage(String schemaLanguage);
 
+  /**
+   * Specifies the factory class to use (see {@link SchemaFactory#newInstance(String, String,
+   * ClassLoader)}*).
+   *
+   * @param factoryClassName the factory class name
+   * @return the schema builder
+   */
   SchemaBuilder factoryClassName(String factoryClassName);
 
+  /**
+   * Specifies the class loader to use (see {@link SchemaFactory#newInstance(String, String,
+   * ClassLoader)}*).
+   *
+   * @param classLoader the class loader
+   * @return the schema builder
+   */
   SchemaBuilder classLoader(ClassLoader classLoader);
 
+  /**
+   * Specifies the resource loader to use. The resource loader is used to retrieve the xsd files
+   * that are specified in the schema location (see {@link #fetchSchemaSources(String...)}).
+   *
+   * @param resourceLoader the resource loader
+   * @return the schema builder
+   */
   SchemaBuilder resourceLoader(ResourceLoader resourceLoader);
 
+  /**
+   * Specifies the resource resolver to use.
+   *
+   * @param resourceResolver the resource resolver
+   * @return the schema builder
+   */
   SchemaBuilder resourceResolver(LSResourceResolver resourceResolver);
 
+  /**
+   * Specifies the error handler to use (see {@link SchemaFactory#setErrorHandler(ErrorHandler)}).
+   *
+   * @param errorHandler the error handler
+   * @return the schema builder
+   */
   SchemaBuilder errorHandler(ErrorHandler errorHandler);
 
+  /**
+   * Adds a feature schema factory (see {@link SchemaFactory#setFeature(String, boolean)}).
+   *
+   * @param name the name
+   * @param value the value
+   * @return the schema builder
+   */
   SchemaBuilder feature(String name, Boolean value);
 
+  /**
+   * Adds a property to the schema factory (see {@link SchemaFactory#setProperty(String, Object)}).
+   *
+   * @param name the name
+   * @param value the value
+   * @return the schema builder
+   */
   SchemaBuilder property(String name, Object value);
 
-  default List<Source> buildSchemaSources(String... locations) {
-    if (locations == null || locations.length == 0) {
-      return Collections.emptyList();
-    }
-    return buildSchemaSources(Arrays.asList(locations));
+  /**
+   * Retrieves the schema files with the specified locations.
+   *
+   * @param locations the locations
+   * @return the list
+   */
+  default List<Source> fetchSchemaSources(String... locations) {
+    return Optional.ofNullable(locations)
+        .map(a -> fetchSchemaSources(Arrays.asList(a)))
+        .orElseGet(Collections::emptyList);
   }
 
-  List<Source> buildSchemaSources(Collection<String> locations);
+  /**
+   * Retrieves the schema files with the specified locations.
+   *
+   * @param locations the locations
+   * @return the schema files as source list
+   */
+  List<Source> fetchSchemaSources(Collection<String> locations);
 
+  /**
+   * Retrieves the schema files with the specified locations and builds the schema (see {@link
+   * #buildSchema(Collection)}*).
+   *
+   * @param locations the locations
+   * @return the schema
+   */
   default Schema buildSchema(String... locations) {
-    if (locations == null || locations.length == 0) {
-      return buildSchema((Source) null);
-    }
-    return buildSchema(buildSchemaSources(locations));
+    return Optional.ofNullable(locations)
+        .map(c -> buildSchema(fetchSchemaSources(c)))
+        .orElseGet(() -> buildSchema((Source[]) null));
   }
 
+  /**
+   * Build schema (see {@link SchemaFactory#newSchema(URL)}).
+   *
+   * @param url the url
+   * @return the schema
+   */
   Schema buildSchema(URL url);
 
+  /**
+   * Build schema (see {@link SchemaFactory#newSchema(File)}).
+   *
+   * @param file the file
+   * @return the schema
+   */
   Schema buildSchema(File file);
 
+  /**
+   * Build schema (see {@link SchemaFactory#newSchema(Source)}).
+   *
+   * @param source the source
+   * @return the schema
+   */
   default Schema buildSchema(Source source) {
-    if (source == null) {
-      return buildSchema((Source[]) null);
-    }
-    return buildSchema(new Source[]{source});
+    return Optional.ofNullable(source)
+        .map(s -> buildSchema(new Source[]{s}))
+        .orElseGet(() -> buildSchema((Source[]) null));
   }
 
+  /**
+   * Build schema (see {@link SchemaFactory#newSchema(Source[])}).
+   *
+   * @param sources the sources
+   * @return the schema
+   */
   Schema buildSchema(Source[] sources);
 
+  /**
+   * Build schema (see {@link SchemaFactory#newSchema(Source[])}).
+   *
+   * @param sources the sources
+   * @return the schema
+   */
   default Schema buildSchema(Collection<? extends Source> sources) {
-    if (sources == null || sources.isEmpty()) {
-      return buildSchema((Source) null);
-    }
-    return buildSchema(sources.toArray(new Source[0]));
+    return Optional.ofNullable(sources)
+        .map(c -> buildSchema(c.toArray(new Source[0])))
+        .orElseGet(() -> buildSchema((Source[]) null));
   }
 
+  /**
+   * Builder schema builder.
+   *
+   * @return the schema builder
+   */
   static SchemaBuilder builder() {
     return new DefaultBuilder();
   }
 
+  /**
+   * The default builder implementation.
+   */
   class DefaultBuilder implements SchemaBuilder {
 
+    /**
+     * The schema language.
+     */
     String schemaLanguage = XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
+    /**
+     * The factory class name.
+     */
     String factoryClassName;
 
+    /**
+     * The class loader.
+     */
     ClassLoader classLoader;
 
+    /**
+     * The resource loader.
+     */
     ResourceLoader resourceLoader = new DefaultResourceLoader();
 
+    /**
+     * The resource resolver.
+     */
     LSResourceResolver resourceResolver;
 
+    /**
+     * The error handler.
+     */
     ErrorHandler errorHandler;
 
+    /**
+     * The features.
+     */
     final Map<String, Boolean> features = new LinkedHashMap<>();
 
+    /**
+     * The properties.
+     */
     final Map<String, Object> properties = new LinkedHashMap<>();
 
+    /**
+     * Creates a new schema factory.
+     *
+     * @return the schema factory
+     */
     SchemaFactory createSchemaFactory() {
       final SchemaFactory schemaFactory;
       if (factoryClassName != null) {
@@ -162,7 +304,7 @@ public interface SchemaBuilder {
     }
 
     @Override
-    public SchemaBuilder schemaLanguage(String schemaLanguage) {
+    public SchemaBuilder schemaLanguage(final String schemaLanguage) {
       if (StringUtils.hasText(schemaLanguage)) {
         this.schemaLanguage = schemaLanguage;
       }
@@ -170,19 +312,19 @@ public interface SchemaBuilder {
     }
 
     @Override
-    public SchemaBuilder factoryClassName(String factoryClassName) {
+    public SchemaBuilder factoryClassName(final String factoryClassName) {
       this.factoryClassName = factoryClassName;
       return this;
     }
 
     @Override
-    public SchemaBuilder classLoader(ClassLoader classLoader) {
+    public SchemaBuilder classLoader(final ClassLoader classLoader) {
       this.classLoader = classLoader;
       return this;
     }
 
     @Override
-    public SchemaBuilder resourceLoader(ResourceLoader resourceLoader) {
+    public SchemaBuilder resourceLoader(final ResourceLoader resourceLoader) {
       if (resourceLoader != null) {
         this.resourceLoader = resourceLoader;
       }
@@ -190,51 +332,43 @@ public interface SchemaBuilder {
     }
 
     @Override
-    public SchemaBuilder resourceResolver(LSResourceResolver resourceResolver) {
+    public SchemaBuilder resourceResolver(final LSResourceResolver resourceResolver) {
       this.resourceResolver = resourceResolver;
       return this;
     }
 
     @Override
-    public SchemaBuilder errorHandler(ErrorHandler errorHandler) {
+    public SchemaBuilder errorHandler(final ErrorHandler errorHandler) {
       this.errorHandler = errorHandler;
       return this;
     }
 
     @Override
-    public SchemaBuilder feature(String name, Boolean value) {
+    public SchemaBuilder feature(final String name, final Boolean value) {
       if (StringUtils.hasText(name)) {
-        if (value == null) {
-          features.remove(name);
-        } else {
-          features.put(name, value);
-        }
+        features.put(name, value);
       }
       return this;
     }
 
     @Override
-    public SchemaBuilder property(String name, Object value) {
+    public SchemaBuilder property(final String name, final Object value) {
       if (StringUtils.hasText(name)) {
-        if (value == null) {
-          properties.remove(name);
-        } else {
-          properties.put(name, value);
-        }
+        properties.put(name, value);
       }
       return this;
     }
 
     @Override
-    public List<Source> buildSchemaSources(Collection<String> locations) {
+    public List<Source> fetchSchemaSources(final Collection<String> locations) {
       if (locations == null || locations.size() == 0) {
         return Collections.emptyList();
       }
-      Set<String> locationSet = new LinkedHashSet<>(locations);
-      List<Source> sources = new ArrayList<>(locationSet.size());
-      for (String location : locationSet) {
-        try (InputStream is = resourceLoader.getResource(location).getInputStream()) {
-          byte[] bytes = FileCopyUtils.copyToByteArray(is);
+      final Set<String> locationSet = new LinkedHashSet<>(locations);
+      final List<Source> sources = new ArrayList<>(locationSet.size());
+      for (final String location : locationSet) {
+        try (final InputStream is = resourceLoader.getResource(location).getInputStream()) {
+          final byte[] bytes = FileCopyUtils.copyToByteArray(is);
           sources.add(new StreamSource(new ByteArrayInputStream(bytes)));
         } catch (IOException e) {
           throw new XmlRuntimeException(e);
@@ -244,7 +378,7 @@ public interface SchemaBuilder {
     }
 
     @Override
-    public Schema buildSchema(URL url) {
+    public Schema buildSchema(final URL url) {
       try {
         if (url == null) {
           return createSchemaFactory().newSchema();
@@ -256,7 +390,7 @@ public interface SchemaBuilder {
     }
 
     @Override
-    public Schema buildSchema(File file) {
+    public Schema buildSchema(final File file) {
       try {
         if (file == null) {
           return createSchemaFactory().newSchema();
@@ -268,7 +402,7 @@ public interface SchemaBuilder {
     }
 
     @Override
-    public Schema buildSchema(Source[] sources) {
+    public Schema buildSchema(final Source[] sources) {
       try {
         if (sources == null || sources.length == 0) {
           return createSchemaFactory().newSchema();

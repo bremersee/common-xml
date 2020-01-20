@@ -19,32 +19,35 @@ package org.bremersee.xml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.sun.org.apache.xerces.internal.jaxp.JAXPConstants;
-import com.sun.org.apache.xerces.internal.xni.parser.XMLDTDSource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ServiceLoader;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.UnmarshalException;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import org.bremersee.xml.model1.Person;
 import org.bremersee.xml.model3.Company;
 import org.bremersee.xml.model3.ObjectFactory;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 /**
- * The type Xml document builder test.
+ * The xml document builder test.
  *
  * @author Christian Bremer
  */
@@ -73,8 +76,6 @@ class XmlDocumentBuilderTest {
     StringWriter sw = new StringWriter();
     StreamResult streamResult = new StreamResult(sw);
     transformer.transform(domSource, streamResult);
-    String xml = sw.toString();
-    System.out.println(xml);
 
     Person actual = (Person) jaxbContextBuilder.buildUnmarshaller().unmarshal(document);
     assertEquals(expected, actual);
@@ -114,8 +115,6 @@ class XmlDocumentBuilderTest {
       StringWriter sw = new StringWriter();
       StreamResult streamResult = new StreamResult(sw);
       transformer.transform(domSource, streamResult);
-      String xml = sw.toString();
-      System.out.println(xml);
 
       Person actual = (Person) jaxbContextBuilder.buildUnmarshaller().unmarshal(document);
       assertEquals(expected, actual);
@@ -167,33 +166,134 @@ class XmlDocumentBuilderTest {
     StringWriter sw = new StringWriter();
     StreamResult streamResult = new StreamResult(sw);
     transformer.transform(domSource, streamResult);
-    String xml = sw.toString();
-    System.out.println(xml);
+    assertTrue(StringUtils.hasText(sw.toString()));
 
     Company actual = (Company) jaxbContextBuilder.buildUnmarshaller().unmarshal(document);
     assertEquals(expected, actual);
   }
 
+  /**
+   * Build document builder.
+   */
   @Test
-  void configureFactoryAttribute() throws Exception {
-
-    JaxbContextBuilder.builder()
-        .add(new JaxbContextData(
-            org.bremersee.xml.model2.ObjectFactory.class.getPackage().getName()))
-        .buildJaxbContext();
-
-    // javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI ("http://www.w3.org/2001/XMLSchema")
-    Schema schema = SchemaFactory .newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema();
-    // Schema schema;
+  void buildDocumentBuilder() {
 
     DocumentBuilder builder = XmlDocumentBuilder.builder()
         .configureFactoryAttribute(JAXPConstants.JAXP_SCHEMA_LANGUAGE, JAXPConstants.W3C_XML_SCHEMA)
         .configureFactoryFeature(XMLConstants.FEATURE_SECURE_PROCESSING, false)
         .configureFactorySchema(null)
-        .configureEntityResolver(null)
-        .configureErrorHandler(null)
+        .configureEntityResolver(new TestEntityResolver())
+        .configureErrorHandler(new TestErrorHandler())
         .buildDocumentBuilder();
     assertNotNull(builder);
+  }
+
+  /**
+   * Build document.
+   */
+  @Test
+  void buildDocument() {
+    Document document = XmlDocumentBuilder.builder()
+        .buildDocument();
+    assertNotNull(document);
+  }
+
+  /**
+   * Build document with input stream.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  void buildDocumentWithInputStream() throws Exception {
+    Document document = XmlDocumentBuilder.builder()
+        .configureFactorySchema(SchemaBuilder.builder()
+            .buildSchema("classpath:common-xml-test-model-1.xsd"))
+        .buildDocument(new DefaultResourceLoader()
+            .getResource("classpath:person.xml").getInputStream());
+    assertNotNull(document);
+
+    document = XmlDocumentBuilder.builder()
+        .configureFactorySchema(SchemaBuilder.builder()
+            .buildSchema("classpath:common-xml-test-model-1.xsd"))
+        .buildDocument(new DefaultResourceLoader()
+            .getResource("classpath:person.xml").getInputStream(), "systemId");
+    assertNotNull(document);
+  }
+
+  /**
+   * Build document from input source.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  void buildDocumentFromInputSource() throws Exception {
+    Document document = XmlDocumentBuilder.builder()
+        .buildDocument(new InputSource(new DefaultResourceLoader()
+            .getResource("classpath:person.xml").getInputStream()));
+    assertNotNull(document);
+  }
+
+  /**
+   * Build document from uri.
+   */
+  @Test
+  void buildDocumentFromUri() {
+    Document document = XmlDocumentBuilder.builder()
+        .buildDocument("http://bremersee.github.io/xmlschemas/common-xml-test-model-2.xsd");
+    assertNotNull(document);
+  }
+
+  /**
+   * Build document from file.
+   */
+  @Test
+  void buildDocumentFromFile() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> XmlDocumentBuilder.builder().buildDocument((File) null));
+  }
+
+  /**
+   * Build document with marshaller.
+   */
+  @Test
+  void buildDocumentWithMarshaller() {
+    Person person = new Person();
+    person.setFirstName("Anna Livia");
+    person.setLastName("Plurabelle");
+
+    JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder
+        .builder()
+        .processAll(ServiceLoader.load(JaxbContextDataProvider.class));
+
+    Document document = XmlDocumentBuilder.builder()
+        .buildDocument(person, jaxbContextBuilder
+            .buildMarshaller("http://bremersee.org/xmlschemas/common-xml-test-model-1"));
+    assertNotNull(document);
+  }
+
+  /**
+   * Build document with jaxb context.
+   */
+  @Test
+  void buildDocumentWithJaxbContext() {
+    Person person = new Person();
+    person.setFirstName("Anna Livia");
+    person.setLastName("Plurabelle");
+
+    List<JaxbContextData> ctxData = new ArrayList<>();
+    ctxData.add(new JaxbContextData(
+        org.bremersee.xml.model1.ObjectFactory.class.getPackage().getName()));
+    ctxData.add(new JaxbContextData(
+        org.bremersee.xml.model2.ObjectFactory.class.getPackage().getName()));
+
+    JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder
+        .builder()
+        .addAll(ctxData.iterator());
+
+    Document document = XmlDocumentBuilder.builder()
+        .buildDocument(person, jaxbContextBuilder.buildJaxbContext());
+    assertNotNull(document);
   }
 
 }

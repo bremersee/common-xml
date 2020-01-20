@@ -37,7 +37,7 @@ public class JaxbRuntimeException extends RuntimeException {
    * Instantiates a new jaxb runtime exception.
    *
    * @param message the message
-   * @param cause   the cause
+   * @param cause the cause
    */
   public JaxbRuntimeException(String message, Throwable cause) {
     super(message, cause);

@@ -16,21 +16,29 @@
 
 package org.bremersee.xml;
 
-import java.util.Collection;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
- * This provider describes a java xml model and should be loadable by the {@link
- * java.util.ServiceLoader}*.
+ * The test error handler.
  *
  * @author Christian Bremer
  */
-public interface JaxbContextDataProvider {
+public class TestErrorHandler implements ErrorHandler {
 
-  /**
-   * Get a collection of the xml meta data.
-   *
-   * @return a collection of the xml meta data
-   */
-  Collection<JaxbContextData> getJaxbContextData();
+  @Override
+  public void warning(SAXParseException exception) throws SAXException {
+    throw exception;
+  }
 
+  @Override
+  public void error(SAXParseException exception) throws SAXException {
+    throw exception;
+  }
+
+  @Override
+  public void fatalError(SAXParseException exception) throws SAXException {
+    throw exception;
+  }
 }

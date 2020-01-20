@@ -222,8 +222,8 @@ public abstract class ConverterUtils {
   /**
    * Date to xml calendar.
    *
-   * @param date   the date
-   * @param zone   the zone
+   * @param date the date
+   * @param zone the zone
    * @param locale the locale
    * @return the xml gregorian calendar
    */
@@ -256,7 +256,7 @@ public abstract class ConverterUtils {
    * Millis to xml calendar.
    *
    * @param millis the millis
-   * @param zone   the zone
+   * @param zone the zone
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar millisToXmlCalendar(Long millis, TimeZone zone) {
@@ -267,7 +267,7 @@ public abstract class ConverterUtils {
    * Millis to xml calendar.
    *
    * @param millis the millis
-   * @param zone   the zone
+   * @param zone the zone
    * @param locale the locale
    * @return the xml gregorian calendar
    */
@@ -294,7 +294,7 @@ public abstract class ConverterUtils {
    * Instant to xml calendar.
    *
    * @param instant the instant
-   * @param zoneId  the zone id
+   * @param zoneId the zone id
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar instantToXmlCalendar(Instant instant, ZoneId zoneId) {
@@ -305,8 +305,8 @@ public abstract class ConverterUtils {
    * Instant to xml calendar.
    *
    * @param instant the instant
-   * @param zoneId  the zone id
-   * @param locale  the locale
+   * @param zoneId the zone id
+   * @param locale the locale
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar instantToXmlCalendar(Instant instant, ZoneId zoneId,

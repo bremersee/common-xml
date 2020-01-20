@@ -27,13 +27,17 @@ import java.io.StringWriter;
 import java.security.PrivilegedAction;
 import java.util.Map;
 import java.util.ServiceLoader;
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
 import org.bremersee.xml.model1.Person;
 import org.bremersee.xml.model2.Vehicle;
 import org.bremersee.xml.model3.Company;
 import org.bremersee.xml.model4.Address;
 import org.bremersee.xml.provider.ExampleJaxbContextDataProvider;
 import org.junit.jupiter.api.Test;
+import org.springframework.util.StringUtils;
 
 /**
  * The jaxb context builder test.
@@ -118,11 +122,25 @@ class JaxbContextBuilderTest {
         Person.class,
         "http://bremersee.org/xmlschemas/common-xml-test-model-2"));
 
+    JAXBContext jaxbContext = jaxbContextBuilder.buildJaxbContext();
+    assertNotNull(jaxbContext);
+    assertTrue(jaxbContext instanceof SchemaLocationAwareJaxbContext);
+    SchemaLocationAwareJaxbContext ctx = (SchemaLocationAwareJaxbContext) jaxbContext;
+    assertNotNull(ctx.createJAXBIntrospector());
+    assertNotNull(ctx.createMarshaller());
+    assertNotNull(ctx.createUnmarshaller());
+    assertNotNull(ctx.getSchemaLocation());
+
+    assertTrue(ctx.isFormattedOutput());
+    assertEquals(jaxbContextBuilder.buildContextPath(), ctx.getContextPath());
+
+    assertNotNull(ctx.createBinder());
+    assertThrows(UnsupportedOperationException.class, () -> ctx.createBinder(null));
+    assertThrows(UnsupportedOperationException.class, ctx::createValidator);
+
     final BufferSchemaOutputResolver res = new BufferSchemaOutputResolver();
     jaxbContextBuilder.buildJaxbContext().generateSchema(res);
-    System.out.print(res);
-
-    System.out.println("OK\n");
+    assertTrue(StringUtils.hasText(res.toString()));
   }
 
   /**
@@ -148,9 +166,6 @@ class JaxbContextBuilderTest {
         .marshal(vehicle, sw);
 
     String xml = sw.toString();
-    System.out.println(xml);
-    System.out.print("\n");
-
     Vehicle readVehicle = (Vehicle) jaxbContextBuilder
         .buildUnmarshaller()
         .unmarshal(new StringReader(xml));
@@ -180,15 +195,15 @@ class JaxbContextBuilderTest {
           .marshal(company, sw);
 
       String xml = sw.toString();
-      System.out.println(xml);
-      System.out.print("\n");
-
       jaxbContextBuilder
           .buildUnmarshaller("http://bremersee.org/xmlschemas/common-xml-test-model-1")
           .unmarshal(new StringReader(xml));
     });
   }
 
+  /**
+   * Build marshaller properties.
+   */
   @Test
   void buildMarshallerProperties() {
     ClassLoader classLoader;
@@ -205,6 +220,35 @@ class JaxbContextBuilderTest {
         .buildMarshallerProperties();
     assertNotNull(properties);
     assertEquals("UTF-8", properties.get("jaxb.encoding"));
+  }
+
+  /**
+   * Build schema.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  void buildSchema() throws Exception {
+
+    JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder
+        .builder()
+        .processAll(ServiceLoader.load(JaxbContextDataProvider.class));
+
+    JAXBContext jaxbContext = jaxbContextBuilder.buildJaxbContext();
+
+    Schema schema = jaxbContextBuilder.buildSchema();
+    assertNotNull(schema);
+
+    schema = jaxbContextBuilder.buildSchema(SchemaBuilder.builder());
+    assertNotNull(schema);
+
+    Person person = new Person();
+    person.setFirstName("Anna Livia");
+    person.setLastName("Plurabelle");
+    StringWriter out = new StringWriter();
+    jaxbContext.createMarshaller().marshal(person, out);
+    String xml = out.toString();
+    schema.newValidator().validate(new StreamSource(new StringReader(xml)));
   }
 
 }

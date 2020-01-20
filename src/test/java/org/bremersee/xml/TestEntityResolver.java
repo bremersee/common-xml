@@ -16,21 +16,18 @@
 
 package org.bremersee.xml;
 
-import java.util.Collection;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
 
 /**
- * This provider describes a java xml model and should be loadable by the {@link
- * java.util.ServiceLoader}*.
+ * The test entity resolver.
  *
  * @author Christian Bremer
  */
-public interface JaxbContextDataProvider {
+public class TestEntityResolver implements EntityResolver {
 
-  /**
-   * Get a collection of the xml meta data.
-   *
-   * @return a collection of the xml meta data
-   */
-  Collection<JaxbContextData> getJaxbContextData();
-
+  @Override
+  public InputSource resolveEntity(String publicId, String systemId) {
+    throw new UnsupportedOperationException();
+  }
 }

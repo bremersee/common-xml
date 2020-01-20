@@ -45,7 +45,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * The jaxb context builder creates a {@link JAXBContext} from the provided meta data {@link
- * JaxbContextData}.
+ * JaxbContextData}*.
  *
  * @author Christian Bremer
  */
@@ -89,7 +89,6 @@ public interface JaxbContextBuilder {
    * @param data the data
    * @return the jaxb context builder
    */
-  @SuppressWarnings("unused")
   JaxbContextBuilder addAll(Iterator<? extends JaxbContextData> data);
 
   /**
@@ -101,7 +100,7 @@ public interface JaxbContextBuilder {
   JaxbContextBuilder process(JaxbContextDataProvider dataProvider);
 
   /**
-   * Process the jaxb context meta data providers and add it's data to this builder.
+   * Process the jaxb context meta data providers and add their data to this builder.
    *
    * @param dataProviders the data providers
    * @return the jaxb context builder
@@ -109,7 +108,7 @@ public interface JaxbContextBuilder {
   JaxbContextBuilder processAll(Iterable<? extends JaxbContextDataProvider> dataProviders);
 
   /**
-   * Process the jaxb context meta data providers and add it's data to this builder.
+   * Process the jaxb context meta data providers and add their data to this builder.
    *
    * @param dataProviders the data providers
    * @return the jaxb context builder
@@ -126,25 +125,47 @@ public interface JaxbContextBuilder {
   boolean supports(Class<?> clazz, String... nameSpaces);
 
   /**
-   * Build context path string.
+   * Build context path, normally the package names of the model separated by colon.
    *
    * @param nameSpaces the name spaces
-   * @return the string
+   * @return the context path (the package names of the model separated by colon)
    */
   String buildContextPath(String... nameSpaces);
 
   /**
-   * Build schema location string.
+   * Builds schema location as it appears in the generated xml file. Name space and location (url)
+   * are separated by space. The pairs of name space and location is also separated by space.
+   * <pre>
+   * http://example.org/namesspace1 http://example.org/ns1.xsd
+   * </pre>
+   * In the xml file it looks like:
+   * <pre>
+   * xsi:schemaLocation="http://example.org/namesspace1 http://example.org/ns1.xsd"
+   * </pre>
    *
    * @param nameSpaces the name spaces
-   * @return the string
+   * @return the schema location as it appears in the generated xml file
    */
   String buildSchemaLocation(String... nameSpaces);
 
+  /**
+   * Build schema with a default {@link SchemaBuilder}.
+   *
+   * @param nameSpaces the name spaces
+   * @return the schema
+   */
   default Schema buildSchema(String... nameSpaces) {
     return buildSchema(null, nameSpaces);
   }
 
+  /**
+   * Build schema. The schema is generated from the present schema locations (xsd files) and the
+   * jaxb context.
+   *
+   * @param schemaBuilder the schema builder
+   * @param nameSpaces the name spaces
+   * @return the schema
+   */
   Schema buildSchema(SchemaBuilder schemaBuilder, String... nameSpaces);
 
   /**
@@ -208,12 +229,12 @@ public interface JaxbContextBuilder {
   }
 
   /**
-   * The type Builder.
+   * The builder implementation.
    */
   class Builder implements JaxbContextBuilder {
 
     /**
-     * Key is name space concatenation (delimiter is {@code :}), value is JAXB context.
+     * Key is name space concatenation separated by colon, value is JAXB context.
      */
     private final Map<String, JAXBContext> jaxbContextMap = new ConcurrentHashMap<>();
 
@@ -392,7 +413,7 @@ public interface JaxbContextBuilder {
       final SchemaBuilder sb = schemaBuilder != null ? schemaBuilder : SchemaBuilder.builder();
       final DataDetails dataDetails = buildDataDetails(nameSpaces);
       final Set<String> locations = dataDetails.getSchemaLocations();
-      final List<Source> sources = new ArrayList<>(sb.buildSchemaSources(locations));
+      final List<Source> sources = new ArrayList<>(sb.fetchSchemaSources(locations));
       final JAXBContext jaxbContext = jaxbContextMap
           .computeIfAbsent(
               dataDetails.getKey(),
@@ -446,17 +467,17 @@ public interface JaxbContextBuilder {
 
     private static class DataDetails {
 
-      private String key;
+      private final String key;
 
-      private String contextPath;
+      private final String contextPath;
 
-      private String schemaLocation;
+      private final String schemaLocation;
 
       /**
-       * Instantiates a data details.
+       * Instantiates data details.
        *
-       * @param key the key
-       * @param contextPath the context path
+       * @param key the key, a concatenation of name spaces separated by colon
+       * @param contextPath the context path, normally package names separated by colon
        * @param schemaLocation the schema location
        */
       DataDetails(String key, String contextPath, String schemaLocation) {
@@ -466,7 +487,7 @@ public interface JaxbContextBuilder {
       }
 
       /**
-       * Gets key.
+       * Gets key, the key is a concatenation of name spaces separated by colon.
        *
        * @return the key
        */
@@ -475,7 +496,7 @@ public interface JaxbContextBuilder {
       }
 
       /**
-       * Gets context path.
+       * Gets context path of JAXB, normally package names separated by colon.
        *
        * @return the context path
        */
@@ -484,14 +505,31 @@ public interface JaxbContextBuilder {
       }
 
       /**
-       * Gets schema location.
+       * Builds schema location as it appears in the generated xml file. Name space and location
+       * (url) are separated by space. The pairs of name space and location is also separated by
+       * space.
+       * <pre>
+       * http://example.org/namesspace1 http://example.org/ns1.xsd
+       * </pre>
+       * In the xml file it looks like:
+       * <pre>
+       * xsi:schemaLocation="http://example.org/namesspace1 http://example.org/ns1.xsd"
+       * </pre>
        *
-       * @return the schema location
+       * @return the schema location as it appears in the generated xml file
        */
       String getSchemaLocation() {
         return schemaLocation;
       }
 
+      /**
+       * Gets a set of schema locations, normally as URL.
+       * <pre>
+       * http://example.org/model.xsd, http://example.org/another-model.xsd
+       * </pre>
+       *
+       * @return the schema locations
+       */
       Set<String> getSchemaLocations() {
         String[] parts = StringUtils.delimitedListToStringArray(schemaLocation, " ");
         if (parts.length == 0) {

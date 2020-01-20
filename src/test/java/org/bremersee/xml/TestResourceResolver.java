@@ -16,21 +16,19 @@
 
 package org.bremersee.xml;
 
-import java.util.Collection;
+import org.w3c.dom.ls.LSInput;
+import org.w3c.dom.ls.LSResourceResolver;
 
 /**
- * This provider describes a java xml model and should be loadable by the {@link
- * java.util.ServiceLoader}*.
+ * The test resource resolver.
  *
  * @author Christian Bremer
  */
-public interface JaxbContextDataProvider {
+public class TestResourceResolver implements LSResourceResolver {
 
-  /**
-   * Get a collection of the xml meta data.
-   *
-   * @return a collection of the xml meta data
-   */
-  Collection<JaxbContextData> getJaxbContextData();
-
+  @Override
+  public LSInput resolveResource(String type, String namespaceURI, String publicId,
+      String systemId, String baseURI) {
+    throw new UnsupportedOperationException();
+  }
 }

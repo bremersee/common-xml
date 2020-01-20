@@ -46,9 +46,9 @@ class SchemaLocationAwareJaxbContext extends JAXBContext implements JaxbContextD
   /**
    * Instantiates a new schema location aware jaxb context.
    *
-   * @param jaxbContext     the jaxb context
-   * @param contextPath     the context path
-   * @param schemaLocation  the schema location
+   * @param jaxbContext the jaxb context
+   * @param contextPath the context path
+   * @param schemaLocation the schema location
    * @param formattedOutput the formatted output
    */
   SchemaLocationAwareJaxbContext(

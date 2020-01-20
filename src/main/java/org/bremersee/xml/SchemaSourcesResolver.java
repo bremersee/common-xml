@@ -29,6 +29,8 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 /**
+ * The schema sources resolver.
+ *
  * @author Christian Bremer
  */
 public class SchemaSourcesResolver extends SchemaOutputResolver {
@@ -44,6 +46,11 @@ public class SchemaSourcesResolver extends SchemaOutputResolver {
     return res;
   }
 
+  /**
+   * To sources.
+   *
+   * @return the list with the schema sources
+   */
   public List<Source> toSources() {
     final List<Source> sources = new ArrayList<>(buffers.size());
     for (final Map.Entry<String, StreamResult> result : buffers.entrySet()) {
