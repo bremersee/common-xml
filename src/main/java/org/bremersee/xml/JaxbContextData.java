@@ -16,6 +16,7 @@
 
 package org.bremersee.xml;
 
+import java.io.Serializable;
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlSchema;
 
@@ -24,13 +25,15 @@ import javax.xml.bind.annotation.XmlSchema;
  *
  * @author Christian Bremer
  */
-public class JaxbContextData {
+public class JaxbContextData implements Serializable {
 
-  private final String nameSpace;
+  private static final long serialVersionUID = 1L;
 
-  private final String schemaLocation;
+  private String nameSpace;
 
-  private final String packageName;
+  private String schemaLocation;
+
+  private String packageName;
 
   /**
    * Instantiates new jaxb meta data.

@@ -18,6 +18,7 @@ package org.bremersee.xml;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import javax.xml.bind.Binder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -25,7 +26,11 @@ import javax.xml.bind.JAXBIntrospector;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.Validator;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.attachment.AttachmentMarshaller;
+import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.validation.Schema;
 
 /**
@@ -34,7 +39,7 @@ import javax.xml.validation.Schema;
  * @author Christian Bremer
  */
 @SuppressWarnings({"unused", "deprecation"})
-class SchemaLocationAwareJaxbContext extends JAXBContext implements JaxbContextDetailsAware {
+class JaxbContextWrapper extends JAXBContext implements JaxbContextDetailsAware {
 
   private final JAXBContext jaxbContext;
 
@@ -44,25 +49,30 @@ class SchemaLocationAwareJaxbContext extends JAXBContext implements JaxbContextD
 
   private boolean formattedOutput;
 
+  private List<XmlAdapter<?, ?>> xmlAdapters;
+
+  private AttachmentMarshaller attachmentMarshaller;
+
+  private AttachmentUnmarshaller attachmentUnmarshaller;
+
   private Schema schema;
 
+  private ValidationEventHandler validationEventHandler;
+
   /**
-   * Instantiates a new schema location aware jaxb context.
+   * Instantiates a new jaxb context wrapper.
    *
    * @param jaxbContext the jaxb context
    * @param contextPath the context path
    * @param schemaLocation the schema location
-   * @param formattedOutput the formatted output
    */
-  SchemaLocationAwareJaxbContext(
+  JaxbContextWrapper(
       final JAXBContext jaxbContext,
       final String contextPath,
-      final String schemaLocation,
-      final boolean formattedOutput) {
+      final String schemaLocation) {
     this.jaxbContext = jaxbContext;
     this.contextPath = contextPath;
     this.schemaLocation = schemaLocation;
-    this.formattedOutput = formattedOutput;
   }
 
   @Override
@@ -89,8 +99,67 @@ class SchemaLocationAwareJaxbContext extends JAXBContext implements JaxbContextD
    *
    * @param formattedOutput the formatted output
    */
-  public void setFormattedOutput(boolean formattedOutput) {
+  JaxbContextWrapper withFormattedOutput(boolean formattedOutput) {
     this.formattedOutput = formattedOutput;
+    return this;
+  }
+
+  /**
+   * Gets xml adapters.
+   *
+   * @return the xml adapters
+   */
+  public List<XmlAdapter<?, ?>> getXmlAdapters() {
+    return xmlAdapters;
+  }
+
+  /**
+   * Sets xml adapters.
+   *
+   * @param xmlAdapters the xml adapters
+   */
+  JaxbContextWrapper withXmlAdapters(
+      List<XmlAdapter<?, ?>> xmlAdapters) {
+    this.xmlAdapters = xmlAdapters;
+    return this;
+  }
+
+  /**
+   * Gets attachment marshaller.
+   *
+   * @return the attachment marshaller
+   */
+  public AttachmentMarshaller getAttachmentMarshaller() {
+    return attachmentMarshaller;
+  }
+
+  /**
+   * Sets attachment marshaller.
+   *
+   * @param attachmentMarshaller the attachment marshaller
+   */
+  JaxbContextWrapper withAttachmentMarshaller(AttachmentMarshaller attachmentMarshaller) {
+    this.attachmentMarshaller = attachmentMarshaller;
+    return this;
+  }
+
+  /**
+   * Gets attachment unmarshaller.
+   *
+   * @return the attachment unmarshaller
+   */
+  public AttachmentUnmarshaller getAttachmentUnmarshaller() {
+    return attachmentUnmarshaller;
+  }
+
+  /**
+   * Sets attachment unmarshaller.
+   *
+   * @param attachmentUnmarshaller the attachment unmarshaller
+   */
+  JaxbContextWrapper withAttachmentUnmarshaller(AttachmentUnmarshaller attachmentUnmarshaller) {
+    this.attachmentUnmarshaller = attachmentUnmarshaller;
+    return this;
   }
 
   /**
@@ -107,15 +176,44 @@ class SchemaLocationAwareJaxbContext extends JAXBContext implements JaxbContextD
    *
    * @param schema the schema
    */
-  void setSchema(Schema schema) {
+  JaxbContextWrapper withSchema(Schema schema) {
     this.schema = schema;
+    return this;
+  }
+
+  /**
+   * Gets validation event handler.
+   *
+   * @return the validation event handler
+   */
+  public ValidationEventHandler getValidationEventHandler() {
+    return validationEventHandler;
+  }
+
+  /**
+   * Sets validation event handler.
+   *
+   * @param validationEventHandler the validation event handler
+   */
+  JaxbContextWrapper withValidationEventHandler(ValidationEventHandler validationEventHandler) {
+    this.validationEventHandler = validationEventHandler;
+    return this;
   }
 
   @Override
   public Unmarshaller createUnmarshaller() throws JAXBException {
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+    if (xmlAdapters != null) {
+      xmlAdapters.forEach(unmarshaller::setAdapter);
+    }
+    if (attachmentUnmarshaller != null) {
+      unmarshaller.setAttachmentUnmarshaller(attachmentUnmarshaller);
+    }
     if (schema != null) {
       unmarshaller.setSchema(schema);
+    }
+    if (validationEventHandler != null) {
+      unmarshaller.setEventHandler(validationEventHandler);
     }
     return unmarshaller;
   }
@@ -128,8 +226,17 @@ class SchemaLocationAwareJaxbContext extends JAXBContext implements JaxbContextD
     if (schemaLocation != null && schemaLocation.trim().length() > 0) {
       marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, schemaLocation);
     }
+    if (xmlAdapters != null) {
+      xmlAdapters.forEach(marshaller::setAdapter);
+    }
+    if (attachmentMarshaller != null) {
+      marshaller.setAttachmentMarshaller(attachmentMarshaller);
+    }
     if (schema != null) {
       marshaller.setSchema(schema);
+    }
+    if (validationEventHandler != null) {
+      marshaller.setEventHandler(validationEventHandler);
     }
     return marshaller;
   }

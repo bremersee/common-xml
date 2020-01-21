@@ -29,13 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.regex.Pattern;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.MarshalException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.ValidationEvent;
-import javax.xml.bind.ValidationEventHandler;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
@@ -48,8 +44,6 @@ import org.bremersee.xml.model4.Address;
 import org.bremersee.xml.provider.ExampleJaxbContextDataProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.StringUtils;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 /**
@@ -137,8 +131,8 @@ class JaxbContextBuilderTest {
 
     JAXBContext jaxbContext = jaxbContextBuilder.buildJaxbContext();
     assertNotNull(jaxbContext);
-    assertTrue(jaxbContext instanceof SchemaLocationAwareJaxbContext);
-    SchemaLocationAwareJaxbContext ctx = (SchemaLocationAwareJaxbContext) jaxbContext;
+    assertTrue(jaxbContext instanceof JaxbContextWrapper);
+    JaxbContextWrapper ctx = (JaxbContextWrapper) jaxbContext;
     assertNotNull(ctx.createJAXBIntrospector());
     assertNotNull(ctx.createMarshaller());
     assertNotNull(ctx.createUnmarshaller());
@@ -170,7 +164,7 @@ class JaxbContextBuilderTest {
 
     JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder
         .builder()
-        .formattedOutput(true)
+        .withFormattedOutput(true)
         .process(new ExampleJaxbContextDataProvider());
 
     StringWriter sw = new StringWriter();
@@ -197,7 +191,7 @@ class JaxbContextBuilderTest {
 
       JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder
           .builder()
-          .formattedOutput(true)
+          .withFormattedOutput(true)
           .add(new JaxbContextData(org.bremersee.xml.model1.ObjectFactory.class.getPackage()))
           .add(new JaxbContextData(org.bremersee.xml.model3.ObjectFactory.class.getPackage()
               .getName()));
@@ -228,7 +222,7 @@ class JaxbContextBuilderTest {
           (PrivilegedAction) () -> Thread.currentThread().getContextClassLoader());
     }
     Map<String, ?> properties = JaxbContextBuilder.builder()
-        .contextClassLoader(classLoader)
+        .withContextClassLoader(classLoader)
         .processAll(ServiceLoader.load(JaxbContextDataProvider.class).iterator())
         .buildMarshallerProperties();
     assertNotNull(properties);
@@ -348,11 +342,6 @@ class JaxbContextBuilderTest {
 
   @Test
   void buildJaxbContextWithSchema() throws Exception {
-
-    Pattern pattern = Pattern.compile("[a-zA-Z]*");
-    System.out.println(pattern.matcher("Golf").matches());
-    System.out.println(pattern.matcher("Golf1").matches());
-
     List<JaxbContextData> ctxData = Arrays.asList(
         new JaxbContextData(ObjectFactory.class.getPackage()),
         new JaxbContextData(
@@ -364,22 +353,7 @@ class JaxbContextBuilderTest {
         .addAll(ctxData);
 
     JAXBContext jaxbContext = jaxbContextBuilder
-        .buildJaxbContextWithSchema(SchemaBuilder.builder().errorHandler(new ErrorHandler() {
-          @Override
-          public void warning(SAXParseException exception) throws SAXException {
-            System.out.println("Warning: " + exception);
-          }
-
-          @Override
-          public void error(SAXParseException exception) throws SAXException {
-            System.out.println("Error: " + exception);
-          }
-
-          @Override
-          public void fatalError(SAXParseException exception) throws SAXException {
-            System.out.println("Fatal: " + exception);
-          }
-        }));
+        .buildJaxbContextWithSchema(SchemaBuilder.builder());
 
     Person person = new Person();
     person.setLastName("Joyce");
@@ -396,19 +370,19 @@ class JaxbContextBuilderTest {
     jaxbContext.createMarshaller().marshal(vehicle, new StreamResult(vehicleWriter));
 
     vehicle.setModel("Golf1"); // is not allowed
-    try {
-      Marshaller m = jaxbContext.createMarshaller();
-      m.setEventHandler(new ValidationEventHandler() { // TODO add setter in builder
-        @Override
-        public boolean handleEvent(ValidationEvent event) {
-          System.out.println("Event: " + event);
-          return false;
-        }
-      });
-      m.marshal(vehicle, new StreamResult(new StringWriter()));
-    } catch (Exception e) {
-      System.out.println(e.getClass().getName());
-    }
+    assertThrows(
+        MarshalException.class,
+        () -> jaxbContext.createMarshaller()
+            .marshal(vehicle, new StreamResult(new StringWriter())));
+
+    assertThrows(
+        XmlRuntimeException.class,
+        () -> jaxbContextBuilder.withValidationEventHandler(
+            event -> {
+              throw new XmlRuntimeException(event.getLinkedException());
+            })
+            .buildMarshallerWithSchema(null)
+            .marshal(vehicle, new StreamResult(new StringWriter())));
   }
 
   @Test

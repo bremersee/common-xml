@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
@@ -38,27 +40,25 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.attachment.AttachmentMarshaller;
+import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.validation.Schema;
 import org.springframework.util.StringUtils;
 
 /**
  * The jaxb context builder creates a {@link JAXBContext} from the provided meta data {@link
- * JaxbContextData}**.
+ * JaxbContextData}*****.
  *
  * @author Christian Bremer
  */
 public interface JaxbContextBuilder {
 
-  /**
-   * Specify whether the xml output should be formatted or not.
-   *
-   * @param formattedOutput the formatted output
-   * @return the jaxb context builder
-   */
-  JaxbContextBuilder formattedOutput(boolean formattedOutput);
+  JaxbContextBuilder copy();
 
   /**
    * Specify the class loader.
@@ -66,7 +66,47 @@ public interface JaxbContextBuilder {
    * @param classLoader the class loader
    * @return the jaxb context builder
    */
-  JaxbContextBuilder contextClassLoader(ClassLoader classLoader);
+  JaxbContextBuilder withContextClassLoader(ClassLoader classLoader);
+
+  /**
+   * Specify whether the xml output should be formatted or not.
+   *
+   * @param formattedOutput the formatted output
+   * @return the jaxb context builder
+   */
+  JaxbContextBuilder withFormattedOutput(boolean formattedOutput);
+
+  /**
+   * Sets xml adapters to marshaller and unmarshaller.
+   *
+   * @param xmlAdapters the xml adapters
+   * @return the jaxb context builder
+   */
+  JaxbContextBuilder withXmlAdapters(Collection<? extends XmlAdapter<?, ?>> xmlAdapters);
+
+  /**
+   * Set attachment marshaller.
+   *
+   * @param attachmentMarshaller the attachment marshaller
+   * @return the jaxb context builder
+   */
+  JaxbContextBuilder withAttachmentMarshaller(AttachmentMarshaller attachmentMarshaller);
+
+  /**
+   * Set attachment unmarshaller.
+   *
+   * @param attachmentUnmarshaller the attachment unmarshaller
+   * @return the jaxb context builder
+   */
+  JaxbContextBuilder withAttachmentUnmarshaller(AttachmentUnmarshaller attachmentUnmarshaller);
+
+  /**
+   * Set validation event handler on marshaller and unmarshaller.
+   *
+   * @param validationEventHandler the validation event handler
+   * @return the jaxb context builder
+   */
+  JaxbContextBuilder withValidationEventHandler(ValidationEventHandler validationEventHandler);
 
   /**
    * Add jaxb context meta data to this builder.
@@ -205,9 +245,7 @@ public interface JaxbContextBuilder {
   default Marshaller buildMarshaller(final String... nameSpaces) {
     try {
       return buildJaxbContext(nameSpaces).createMarshaller();
-    } catch (JaxbRuntimeException e) {
-      throw e;
-    } catch (Exception e) {
+    } catch (JAXBException e) {
       throw new JaxbRuntimeException(e);
     }
   }
@@ -222,9 +260,11 @@ public interface JaxbContextBuilder {
   default Marshaller buildMarshallerWithSchema(
       final SchemaBuilder schemaBuilder,
       final String... nameSpaces) {
-    Marshaller marshaller = buildMarshaller(nameSpaces);
-    marshaller.setSchema(buildSchema(schemaBuilder, nameSpaces));
-    return marshaller;
+    try {
+      return buildJaxbContextWithSchema(schemaBuilder, nameSpaces).createMarshaller();
+    } catch (JAXBException e) {
+      throw new JaxbRuntimeException(e);
+    }
   }
 
   /**
@@ -237,9 +277,7 @@ public interface JaxbContextBuilder {
   default Unmarshaller buildUnmarshaller(final String... nameSpaces) {
     try {
       return buildJaxbContext(nameSpaces).createUnmarshaller();
-    } catch (JaxbRuntimeException e) {
-      throw e;
-    } catch (Exception e) {
+    } catch (JAXBException e) {
       throw new JaxbRuntimeException(e);
     }
   }
@@ -254,9 +292,11 @@ public interface JaxbContextBuilder {
   default Unmarshaller buildUnmarshallerWithSchema(
       final SchemaBuilder schemaBuilder,
       final String... nameSpaces) {
-    Unmarshaller unmarshaller = buildUnmarshaller(nameSpaces);
-    unmarshaller.setSchema(buildSchema(schemaBuilder, nameSpaces));
-    return unmarshaller;
+    try {
+      return buildJaxbContextWithSchema(schemaBuilder, nameSpaces).createUnmarshaller();
+    } catch (JAXBException e) {
+      throw new JaxbRuntimeException(e);
+    }
   }
 
   /**
@@ -276,8 +316,12 @@ public interface JaxbContextBuilder {
     /**
      * Key is name space concatenation separated by colon, value is JAXB context.
      */
-    private final Map<String, SchemaLocationAwareJaxbContext> jaxbContextMap
-        = new ConcurrentHashMap<>();
+    private final Map<String, JAXBContext> jaxbContextMap = new ConcurrentHashMap<>();
+
+    /**
+     * Key is name space concatenation separated by colon, value is Schema.
+     */
+    private final Map<String, Schema> schemaMap = new ConcurrentHashMap<>();
 
     /**
      * Key is name space, value is a data set.
@@ -286,9 +330,17 @@ public interface JaxbContextBuilder {
      */
     private final Map<String, Set<JaxbContextData>> jaxbContextDataMap = new ConcurrentHashMap<>();
 
+    private ClassLoader classLoader;
+
     private boolean formattedOutput = true;
 
-    private ClassLoader classLoader;
+    private List<XmlAdapter<?, ?>> xmlAdapters = null;
+
+    private AttachmentMarshaller attachmentMarshaller;
+
+    private AttachmentUnmarshaller attachmentUnmarshaller;
+
+    private ValidationEventHandler validationEventHandler;
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private ClassLoader getContextClassLoader() {
@@ -304,15 +356,72 @@ public interface JaxbContextBuilder {
     }
 
     @Override
-    public JaxbContextBuilder contextClassLoader(final ClassLoader classLoader) {
+    public JaxbContextBuilder copy() {
+      Builder copy = new Builder();
+      copy.jaxbContextMap.putAll(jaxbContextMap);
+      copy.schemaMap.putAll(schemaMap);
+      copy.jaxbContextDataMap.putAll(jaxbContextDataMap);
+      copy.classLoader = classLoader;
+      copy.formattedOutput = formattedOutput;
+      if (xmlAdapters != null) {
+        copy.xmlAdapters = new ArrayList<>(xmlAdapters);
+      }
+      copy.attachmentUnmarshaller = attachmentUnmarshaller;
+      copy.attachmentMarshaller = attachmentMarshaller;
+
+      return copy;
+    }
+
+    @Override
+    public JaxbContextBuilder withContextClassLoader(final ClassLoader classLoader) {
       this.classLoader = classLoader;
       return this;
     }
 
     @Override
-    public JaxbContextBuilder formattedOutput(final boolean formattedOutput) {
+    public JaxbContextBuilder withFormattedOutput(final boolean formattedOutput) {
       this.formattedOutput = formattedOutput;
       return this;
+    }
+
+    @Override
+    public JaxbContextBuilder withXmlAdapters(
+        Collection<? extends XmlAdapter<?, ?>> xmlAdapters) {
+      if (xmlAdapters != null && !xmlAdapters.isEmpty()) {
+        this.xmlAdapters = xmlAdapters
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+      } else {
+        this.xmlAdapters = null;
+      }
+      return this;
+    }
+
+    @Override
+    public JaxbContextBuilder withAttachmentMarshaller(
+        final AttachmentMarshaller attachmentMarshaller) {
+      this.attachmentMarshaller = attachmentMarshaller;
+      return this;
+    }
+
+    @Override
+    public JaxbContextBuilder withAttachmentUnmarshaller(
+        final AttachmentUnmarshaller attachmentUnmarshaller) {
+      this.attachmentUnmarshaller = attachmentUnmarshaller;
+      return this;
+    }
+
+    @Override
+    public JaxbContextBuilder withValidationEventHandler(
+        final ValidationEventHandler validationEventHandler) {
+      this.validationEventHandler = validationEventHandler;
+      return this;
+    }
+
+    private void clear() {
+      jaxbContextMap.clear();
+      schemaMap.clear();
     }
 
     @Override
@@ -321,7 +430,7 @@ public interface JaxbContextBuilder {
           && data.getPackageName() != null
           && data.getPackageName().length() > 0) {
         final String nameSpace = data.getNameSpace() != null ? data.getNameSpace().trim() : "";
-        jaxbContextMap.clear();
+        clear();
         if (nameSpace.length() == 0) {
           jaxbContextDataMap
               .computeIfAbsent(data.getNameSpace(), s -> new HashSet<>())
@@ -393,25 +502,17 @@ public interface JaxbContextBuilder {
       final Set<JaxbContextData> dataSet = new HashSet<>();
       nameSpaces.forEach(nameSpace -> dataSet.addAll(jaxbContextDataMap.get(nameSpace)));
       final String key = String.join(":", nameSpaces);
-      final String contextPath;
-      final String schemaLocation;
-      final SchemaLocationAwareJaxbContext jaxbContext = jaxbContextMap.get(key);
-      if (jaxbContext != null) {
-        contextPath = jaxbContext.getContextPath();
-        schemaLocation = jaxbContext.getSchemaLocation();
-      } else {
-        contextPath = dataSet
-            .stream()
-            .map(JaxbContextData::getPackageName)
-            .collect(Collectors.joining(":"));
-        schemaLocation = dataSet
-            .stream()
-            .filter(ds -> ds.getNameSpace().length() > 0
-                && ds.getSchemaLocation() != null
-                && ds.getSchemaLocation().length() > 0)
-            .map(ds -> ds.getNameSpace() + " " + ds.getSchemaLocation())
-            .collect(Collectors.joining(" "));
-      }
+      final String contextPath = dataSet
+          .stream()
+          .map(JaxbContextData::getPackageName)
+          .collect(Collectors.joining(":"));
+      final String schemaLocation = dataSet
+          .stream()
+          .filter(ds -> ds.getNameSpace().length() > 0
+              && ds.getSchemaLocation() != null
+              && ds.getSchemaLocation().length() > 0)
+          .map(ds -> ds.getNameSpace() + " " + ds.getSchemaLocation())
+          .collect(Collectors.joining(" "));
       return new DataDetails(key, contextPath, schemaLocation);
     }
 
@@ -450,15 +551,8 @@ public interface JaxbContextBuilder {
 
     @Override
     public Schema buildSchema(final SchemaBuilder schemaBuilder, final String... nameSpaces) {
-
       final DataDetails dataDetails = buildDataDetails(nameSpaces);
-      final SchemaLocationAwareJaxbContext jaxbContext = jaxbContextMap
-          .computeIfAbsent(
-              dataDetails.getKey(),
-              s -> computeJaxbContext(dataDetails));
-      return jaxbContext.getSchema() != null
-          ? jaxbContext.getSchema()
-          : computeSchema(dataDetails, schemaBuilder, jaxbContext);
+      return computeSchema(dataDetails, schemaBuilder);
     }
 
     @Override
@@ -474,100 +568,74 @@ public interface JaxbContextBuilder {
     }
 
     @Override
-    public SchemaLocationAwareJaxbContext buildJaxbContext(final String... nameSpaces) {
+    public JaxbContextWrapper buildJaxbContext(final String... nameSpaces) {
       final DataDetails dataDetails = buildDataDetails(nameSpaces);
-      return jaxbContextMap
-          .computeIfAbsent(
-              dataDetails.getKey(),
-              s -> computeJaxbContext(dataDetails));
+      final JAXBContext jaxbContext = computeJaxbContext(dataDetails);
+      return newJaxbContextWrapper(jaxbContext, dataDetails, null);
     }
 
     @Override
-    public SchemaLocationAwareJaxbContext buildJaxbContextWithSchema(
+    public JaxbContextWrapper buildJaxbContextWithSchema(
         final SchemaBuilder schemaBuilder,
         final String... nameSpaces) {
 
       final DataDetails dataDetails = buildDataDetails(nameSpaces);
-      SchemaLocationAwareJaxbContext jaxbContext = jaxbContextMap
-          .computeIfAbsent(
-              dataDetails.getKey(),
-              s -> computeJaxbContext(dataDetails));
-      if (jaxbContext.getSchema() == null) {
-        jaxbContext.setSchema(computeSchema(dataDetails, schemaBuilder, jaxbContext));
-      }
-      return jaxbContext;
+      final JAXBContext jaxbContext = computeJaxbContext(dataDetails);
+      return newJaxbContextWrapper(
+          jaxbContext,
+          dataDetails,
+          computeSchema(dataDetails, schemaBuilder));
     }
 
-    @Override
-    public Marshaller buildMarshallerWithSchema(
-        final SchemaBuilder schemaBuilder,
-        final String... nameSpaces) {
-
-      try {
-        return buildJaxbContextWithSchema(schemaBuilder, nameSpaces).createMarshaller();
-      } catch (JAXBException e) {
-        throw new JaxbRuntimeException(e);
-      }
-    }
-
-    @Override
-    public Unmarshaller buildUnmarshallerWithSchema(
-        final SchemaBuilder schemaBuilder,
-        final String... nameSpaces) {
-
-      try {
-        return buildJaxbContextWithSchema(schemaBuilder, nameSpaces).createUnmarshaller();
-      } catch (JAXBException e) {
-        throw new JaxbRuntimeException(e);
-      }
-    }
-
-    private SchemaLocationAwareJaxbContext computeJaxbContext(
+    private JAXBContext computeJaxbContext(
         final DataDetails dataDetails) {
 
-      try {
-        final JAXBContext jaxbContext = JAXBContext.newInstance(
-            dataDetails.getContextPath(),
-            getContextClassLoader());
-        return new SchemaLocationAwareJaxbContext(
-            jaxbContext,
-            dataDetails.getContextPath(),
-            dataDetails.getSchemaLocation(),
-            formattedOutput);
+      return jaxbContextMap.computeIfAbsent(dataDetails.getKey(), key -> {
+        try {
+          return JAXBContext.newInstance(
+              dataDetails.getContextPath(),
+              getContextClassLoader());
 
-      } catch (final Exception e) {
-        throw new JaxbRuntimeException(e);
-      }
+        } catch (final Exception e) {
+          throw new JaxbRuntimeException(e);
+        }
+      });
     }
 
     private Schema computeSchema(
         final DataDetails dataDetails,
-        final SchemaBuilder schemaBuilder,
-        final SchemaLocationAwareJaxbContext jaxbContext) {
+        final SchemaBuilder schemaBuilder) {
 
-      SchemaLocationAwareJaxbContext ctx;
-      if (jaxbContext != null) {
-        ctx = jaxbContext;
-      } else {
-        ctx = jaxbContextMap
-            .computeIfAbsent(
-                dataDetails.getKey(),
-                s -> computeJaxbContext(dataDetails));
-      }
-      if (ctx.getSchema() != null) {
-        return ctx.getSchema();
-      }
-      final SchemaSourcesResolver resolver = new SchemaSourcesResolver();
-      try {
-        ctx.generateSchema(resolver);
-      } catch (IOException e) {
-        throw new JaxbRuntimeException(e);
-      }
-      final List<Source> sources = new ArrayList<>(resolver.toSources(dataDetails.getNameSpaces()));
-      final SchemaBuilder sb = schemaBuilder != null ? schemaBuilder : SchemaBuilder.builder();
-      final Set<String> locations = dataDetails.getSchemaLocations();
-      sources.addAll(sb.fetchSchemaSources(locations));
-      return sb.buildSchema(sources);
+      return schemaMap.computeIfAbsent(dataDetails.getKey(), key -> {
+        final JAXBContext ctx = computeJaxbContext(dataDetails);
+        final SchemaSourcesResolver resolver = new SchemaSourcesResolver();
+        try {
+          ctx.generateSchema(resolver);
+        } catch (IOException e) {
+          throw new JaxbRuntimeException(e);
+        }
+        final List<Source> sources = new ArrayList<>(
+            resolver.toSources(dataDetails.getNameSpaces()));
+        final SchemaBuilder sb = schemaBuilder != null ? schemaBuilder : SchemaBuilder.builder();
+        final Set<String> locations = dataDetails.getSchemaLocations();
+        sources.addAll(sb.fetchSchemaSources(locations));
+        return sb.buildSchema(sources);
+      });
+    }
+
+    private JaxbContextWrapper newJaxbContextWrapper(
+        final JAXBContext jaxbContext,
+        final DataDetails dataDetails,
+        final Schema schema) {
+      final JaxbContextWrapper wrapper = new JaxbContextWrapper(
+          jaxbContext, dataDetails.getContextPath(), dataDetails.getSchemaLocation());
+      return wrapper
+          .withAttachmentMarshaller(attachmentMarshaller)
+          .withAttachmentUnmarshaller(attachmentUnmarshaller)
+          .withFormattedOutput(formattedOutput)
+          .withSchema(schema)
+          .withValidationEventHandler(validationEventHandler)
+          .withXmlAdapters(xmlAdapters);
     }
 
     private static class DataDetails {
@@ -585,7 +653,7 @@ public interface JaxbContextBuilder {
        * @param contextPath the context path, normally package names separated by colon
        * @param schemaLocation the schema location
        */
-      DataDetails(String key, String contextPath, String schemaLocation) {
+      DataDetails(final String key, final String contextPath, final String schemaLocation) {
         this.key = key;
         this.contextPath = contextPath;
         this.schemaLocation = schemaLocation;
@@ -636,11 +704,11 @@ public interface JaxbContextBuilder {
        * @return the schema locations
        */
       Set<String> getSchemaLocations() {
-        String[] parts = StringUtils.delimitedListToStringArray(schemaLocation, " ");
+        final String[] parts = StringUtils.delimitedListToStringArray(schemaLocation, " ");
         if (parts.length == 0) {
           return Collections.emptySet();
         }
-        Set<String> locations = new LinkedHashSet<>();
+        final Set<String> locations = new LinkedHashSet<>();
         for (int i = 1; i < parts.length; i = i + 2) {
           locations.add(parts[i]);
         }
@@ -653,11 +721,11 @@ public interface JaxbContextBuilder {
        * @return the name spaces
        */
       Set<String> getNameSpaces() {
-        String[] parts = StringUtils.delimitedListToStringArray(schemaLocation, " ");
+        final String[] parts = StringUtils.delimitedListToStringArray(schemaLocation, " ");
         if (parts.length == 0) {
           return Collections.emptySet();
         }
-        Set<String> locations = new LinkedHashSet<>();
+        final Set<String> locations = new LinkedHashSet<>();
         for (int i = 0; i < parts.length; i = i + 2) {
           locations.add(parts[i]);
         }
