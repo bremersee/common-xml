@@ -53,15 +53,21 @@ class SchemaBuilderTest {
           (PrivilegedAction) () -> Thread.currentThread().getContextClassLoader());
     }
 
-    Schema schema = SchemaBuilder.builder()
-        .schemaLanguage(XMLConstants.W3C_XML_SCHEMA_NS_URI)
-        .factoryClassName(null)
-        .classLoader(classLoader)
-        .resourceLoader(new DefaultResourceLoader())
-        .resourceResolver(new TestResourceResolver())
-        .errorHandler(new TestErrorHandler())
-        .feature(XMLConstants.FEATURE_SECURE_PROCESSING, false)
-        .property(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "false")
+    SchemaBuilder builder = SchemaBuilder.builder()
+        .withSchemaLanguage(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+        .withFactory(null)
+        .withClassLoader(classLoader)
+        .withResourceLoader(new DefaultResourceLoader())
+        .withResourceResolver(new TestResourceResolver())
+        .withErrorHandler(new TestErrorHandler())
+        .withFeature(XMLConstants.FEATURE_SECURE_PROCESSING, false)
+        .withProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "false");
+    assertNotNull(builder);
+
+    SchemaBuilder copy = builder.copy();
+    assertNotNull(copy);
+
+    Schema schema = copy
         .buildSchema("classpath:common-xml-test-model-1.xsd");
     assertNotNull(schema);
   }
@@ -75,13 +81,13 @@ class SchemaBuilderTest {
   void buildSchemaWithUrl() throws Exception {
 
     Schema schema = SchemaBuilder.builder()
-        .schemaLanguage(XMLConstants.W3C_XML_SCHEMA_NS_URI)
-        .classLoader(null)
-        .resourceLoader(null)
-        .resourceResolver(null)
-        .errorHandler(null)
-        .feature(null, false)
-        .property(null, "false")
+        .withSchemaLanguage(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+        .withClassLoader(null)
+        .withResourceLoader(null)
+        .withResourceResolver(null)
+        .withErrorHandler(null)
+        .withFeature(null, false)
+        .withProperty(null, "false")
         .buildSchema(
             new URL("http://bremersee.github.io/xmlschemas/common-xml-test-model-1.xsd"));
     assertNotNull(schema);

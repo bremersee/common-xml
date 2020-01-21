@@ -49,6 +49,8 @@ import javax.xml.validation.Schema;
 import org.springframework.util.StringUtils;
 
 /**
+ * The jaxb context builder implementation.
+ *
  * @author Christian Bremer
  */
 class JaxbContextBuilderImpl implements JaxbContextBuilder {
@@ -59,7 +61,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
   private final Map<String, JAXBContext> jaxbContextMap = new ConcurrentHashMap<>();
 
   /**
-   * Key is name space concatenation separated by colon, value is Schema.
+   * Key is name space concatenation separated by colon, value is schema.
    */
   private final Map<String, Schema> schemaMap = new ConcurrentHashMap<>();
 
@@ -184,10 +186,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @Override
   public JaxbContextBuilder addAll(final Iterable<? extends JaxbContextData> data) {
-    if (data != null) {
-      return addAll(data.iterator());
-    }
-    return this;
+    return data == null ? this : addAll(data.iterator());
   }
 
   @Override
@@ -202,10 +201,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @Override
   public JaxbContextBuilder process(final JaxbContextDataProvider dataProvider) {
-    if (dataProvider != null) {
-      addAll(dataProvider.getJaxbContextData());
-    }
-    return this;
+    return dataProvider == null ? this : addAll(dataProvider.getJaxbContextData());
   }
 
   @Override

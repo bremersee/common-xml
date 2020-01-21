@@ -43,7 +43,6 @@ class SchemaSourcesResolver extends SchemaOutputResolver {
 
   @Override
   public Result createOutput(final String namespaceUri, final String suggestedFileName) {
-    System.out.println("namespaceUri = " + namespaceUri);
     final StringWriter out = new StringWriter();
     final StreamResult res = new StreamResult(out);
     res.setSystemId(suggestedFileName);

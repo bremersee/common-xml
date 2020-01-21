@@ -16,48 +16,32 @@
 
 package org.bremersee.xml;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.StringTokenizer;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.ValidationEventHandler;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
-import javax.xml.transform.Source;
 import javax.xml.validation.Schema;
-import org.springframework.util.StringUtils;
 
 /**
- * The jaxb context builder creates a {@link JAXBContext} from the provided meta data {@link
- * JaxbContextData}*****.
+ * The jaxb context builder creates a {@link JAXBContext} from the provided meta data
+ * {@link JaxbContextData}.
  *
  * @author Christian Bremer
  */
 public interface JaxbContextBuilder {
 
+  /**
+   * Copy jaxb context builder.
+   *
+   * @return the jaxb context builder
+   */
   JaxbContextBuilder copy();
 
   /**
@@ -308,7 +292,4 @@ public interface JaxbContextBuilder {
     return new JaxbContextBuilderImpl();
   }
 
-  /**
-   * The builder implementation.
-   */
 }
