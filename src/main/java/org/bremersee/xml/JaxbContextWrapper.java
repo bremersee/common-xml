@@ -32,6 +32,7 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.validation.Schema;
+import org.springframework.util.StringUtils;
 
 /**
  * This {@link JAXBContext} will be returned by the {@link JaxbContextBuilder}.
@@ -39,13 +40,11 @@ import javax.xml.validation.Schema;
  * @author Christian Bremer
  */
 @SuppressWarnings({"unused", "deprecation"})
-class JaxbContextWrapper extends JAXBContext implements JaxbContextDetailsAware {
+class JaxbContextWrapper extends JAXBContext {
 
   private final JAXBContext jaxbContext;
 
-  private final String contextPath;
-
-  private final String schemaLocation;
+  private final JaxbContextBuilderDetails details;
 
   private boolean formattedOutput;
 
@@ -55,34 +54,21 @@ class JaxbContextWrapper extends JAXBContext implements JaxbContextDetailsAware 
 
   private AttachmentUnmarshaller attachmentUnmarshaller;
 
-  private Schema schema;
-
   private ValidationEventHandler validationEventHandler;
 
-  /**
-   * Instantiates a new jaxb context wrapper.
-   *
-   * @param jaxbContext the jaxb context
-   * @param contextPath the context path
-   * @param schemaLocation the schema location
-   */
+  private Schema schema;
+
+  private SchemaMode schemaMode = SchemaMode.NEVER;
+
   JaxbContextWrapper(
       final JAXBContext jaxbContext,
-      final String contextPath,
-      final String schemaLocation) {
+      final JaxbContextBuilderDetails details) {
     this.jaxbContext = jaxbContext;
-    this.contextPath = contextPath;
-    this.schemaLocation = schemaLocation;
+    this.details = details;
   }
 
-  @Override
-  public String getContextPath() {
-    return contextPath;
-  }
-
-  @Override
-  public String getSchemaLocation() {
-    return schemaLocation;
+  public JaxbContextBuilderDetails getDetails() {
+    return details;
   }
 
   /**
@@ -200,6 +186,17 @@ class JaxbContextWrapper extends JAXBContext implements JaxbContextDetailsAware 
     return this;
   }
 
+  public SchemaMode getSchemaMode() {
+    return schemaMode;
+  }
+
+  JaxbContextWrapper withSchemaMode(SchemaMode schemaMode) {
+    if (schemaMode != null) {
+      this.schemaMode = schemaMode;
+    }
+    return this;
+  }
+
   @Override
   public Unmarshaller createUnmarshaller() throws JAXBException {
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
@@ -209,7 +206,10 @@ class JaxbContextWrapper extends JAXBContext implements JaxbContextDetailsAware 
     if (attachmentUnmarshaller != null) {
       unmarshaller.setAttachmentUnmarshaller(attachmentUnmarshaller);
     }
-    if (schema != null) {
+    if (schema != null && (schemaMode == SchemaMode.ALWAYS
+        || schemaMode == SchemaMode.UNMARSHAL
+        || (schemaMode == SchemaMode.EXTERNAL_XSD
+        && StringUtils.hasText(details.getSchemaLocation())))) {
       unmarshaller.setSchema(schema);
     }
     if (validationEventHandler != null) {
@@ -223,8 +223,8 @@ class JaxbContextWrapper extends JAXBContext implements JaxbContextDetailsAware 
     final Marshaller marshaller = jaxbContext.createMarshaller();
     marshaller.setProperty(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.name());
     marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formattedOutput);
-    if (schemaLocation != null && schemaLocation.trim().length() > 0) {
-      marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, schemaLocation);
+    if (details.getSchemaLocation() != null && details.getSchemaLocation().trim().length() > 0) {
+      marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, details.getSchemaLocation());
     }
     if (xmlAdapters != null) {
       xmlAdapters.forEach(marshaller::setAdapter);
@@ -232,7 +232,10 @@ class JaxbContextWrapper extends JAXBContext implements JaxbContextDetailsAware 
     if (attachmentMarshaller != null) {
       marshaller.setAttachmentMarshaller(attachmentMarshaller);
     }
-    if (schema != null) {
+    if (schema != null && (schemaMode == SchemaMode.ALWAYS
+        || schemaMode == SchemaMode.MARSHAL
+        || (schemaMode == SchemaMode.EXTERNAL_XSD
+        && StringUtils.hasText(details.getSchemaLocation())))) {
       marshaller.setSchema(schema);
     }
     if (validationEventHandler != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,22 @@
 
 package org.bremersee.xml;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.StringTokenizer;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.ValidationEventHandler;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
@@ -49,40 +40,55 @@ import javax.xml.validation.Schema;
 import org.springframework.util.StringUtils;
 
 /**
- * The jaxb context builder implementation.
+ * The type Jaxb context builder.
  *
  * @author Christian Bremer
  */
 class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   /**
-   * Key is name space concatenation separated by colon, value is JAXB context.
+   * Key is package name, value is a data set.
    */
-  private final Map<String, JAXBContext> jaxbContextMap = new ConcurrentHashMap<>();
+  private final Map<String, JaxbContextData> jaxbContextDataMap = new ConcurrentHashMap<>();
 
-  /**
-   * Key is name space concatenation separated by colon, value is schema.
-   */
-  private final Map<String, Schema> schemaMap = new ConcurrentHashMap<>();
+  private final Map<JaxbContextBuilderDetails, Schema> schemaCache = new ConcurrentHashMap<>();
 
-  /**
-   * Key is name space, value is a data set.
-   *
-   * <p>A data set with more than one entry is only possible when there is no name space present.
-   */
-  private final Map<String, Set<JaxbContextData>> jaxbContextDataMap = new ConcurrentHashMap<>();
+  private final Map<JaxbContextBuilderDetails, JAXBContext> jaxbContextCache
+      = new ConcurrentHashMap<>();
+
+  private JaxbDependenciesResolver dependenciesResolver = DEFAULT_DEPENDENCIES_RESOLVER;
+
+  private SchemaBuilder schemaBuilder = SchemaBuilder.builder();
 
   private ClassLoader classLoader;
 
   private boolean formattedOutput = true;
 
-  private List<XmlAdapter<?, ?>> xmlAdapters = null;
+  private SchemaMode schemaMode = SchemaMode.NEVER;
+
+  private BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> canMarshal = CAN_MARSHAL_ALL;
+
+  private BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> canUnmarshal
+      = CAN_UNMARSHAL_ALL;
+
+  private List<XmlAdapter<?, ?>> xmlAdapters;
 
   private AttachmentMarshaller attachmentMarshaller;
 
   private AttachmentUnmarshaller attachmentUnmarshaller;
 
   private ValidationEventHandler validationEventHandler;
+
+  /**
+   * Instantiates a new jaxb context builder.
+   */
+  JaxbContextBuilderImpl() {
+  }
+
+  private void clearCache() {
+    schemaCache.clear();
+    jaxbContextCache.clear();
+  }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   private ClassLoader getContextClassLoader() {
@@ -99,19 +105,58 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @Override
   public JaxbContextBuilder copy() {
-    JaxbContextBuilderImpl copy = new JaxbContextBuilderImpl();
-    copy.jaxbContextMap.putAll(jaxbContextMap);
-    copy.schemaMap.putAll(schemaMap);
-    copy.jaxbContextDataMap.putAll(jaxbContextDataMap);
+    final JaxbContextBuilderImpl copy = new JaxbContextBuilderImpl();
+    copy.dependenciesResolver = dependenciesResolver;
+    copy.schemaMode = schemaMode;
+    copy.schemaCache.putAll(schemaCache);
+    copy.canUnmarshal = canUnmarshal;
+    copy.canMarshal = canMarshal;
     copy.classLoader = classLoader;
+    copy.attachmentMarshaller = attachmentMarshaller;
+    copy.attachmentUnmarshaller = attachmentUnmarshaller;
     copy.formattedOutput = formattedOutput;
+    copy.jaxbContextCache.putAll(jaxbContextCache);
+    copy.jaxbContextDataMap.putAll(jaxbContextDataMap);
+    copy.schemaBuilder = schemaBuilder.copy();
+    copy.validationEventHandler = validationEventHandler;
     if (xmlAdapters != null) {
       copy.xmlAdapters = new ArrayList<>(xmlAdapters);
     }
-    copy.attachmentUnmarshaller = attachmentUnmarshaller;
-    copy.attachmentMarshaller = attachmentMarshaller;
-
     return copy;
+  }
+
+  @Override
+  public JaxbContextBuilder withCanMarshal(
+      final BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> function) {
+
+    if (function != null) {
+      this.canMarshal = function;
+    }
+    return this;
+  }
+
+  @Override
+  public JaxbContextBuilder withCanUnmarshal(
+      final BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> function) {
+
+    if (function != null) {
+      this.canUnmarshal = function;
+    }
+    return this;
+  }
+
+  @Override
+  public JaxbContextBuilder withSchemaMode(final SchemaMode schemaMode) {
+    if (schemaMode != null) {
+      this.schemaMode = schemaMode;
+    }
+    return this;
+  }
+
+  @Override
+  public JaxbContextBuilder withDependenciesResolver(final JaxbDependenciesResolver resolver) {
+    this.dependenciesResolver = resolver;
+    return this;
   }
 
   @Override
@@ -128,7 +173,8 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @Override
   public JaxbContextBuilder withXmlAdapters(
-      Collection<? extends XmlAdapter<?, ?>> xmlAdapters) {
+      final Collection<? extends XmlAdapter<?, ?>> xmlAdapters) {
+
     if (xmlAdapters != null && !xmlAdapters.isEmpty()) {
       this.xmlAdapters = xmlAdapters
           .stream()
@@ -161,311 +207,164 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     return this;
   }
 
-  private void clear() {
-    jaxbContextMap.clear();
-    schemaMap.clear();
-  }
-
   @Override
   public JaxbContextBuilder add(final JaxbContextData data) {
-    if (data != null
-        && data.getPackageName() != null
-        && data.getPackageName().length() > 0) {
-      final String nameSpace = data.getNameSpace() != null ? data.getNameSpace().trim() : "";
-      clear();
-      if (nameSpace.length() == 0) {
-        jaxbContextDataMap
-            .computeIfAbsent(data.getNameSpace(), s -> new HashSet<>())
-            .add(data);
+    if (data != null && StringUtils.hasText(data.getPackageName())) {
+      clearCache();
+      jaxbContextDataMap.put(data.getPackageName(), data);
+    }
+    return this;
+  }
+
+
+  @Override
+  public boolean canUnmarshal(final Class<?> clazz) { // decode
+    return canUnmarshal.apply(clazz, jaxbContextDataMap);
+  }
+
+  @Override
+  public boolean canMarshal(final Class<?> clazz) { // encode
+    return canMarshal.apply(clazz, jaxbContextDataMap);
+  }
+
+  @Override
+  public Unmarshaller buildUnmarshaller(final Object value) {
+    JaxbContextWrapper jaxbContext;
+    if (value instanceof Class<?>[] && areAllClassesAreSupported((Class<?>[]) value)) {
+      jaxbContext = computeJaxbContext(null);
+    } else if (value instanceof Class<?>) {
+      return buildUnmarshaller(new Class[]{(Class<?>) value});
+    } else if (value == null || areAllClassesAreSupported(new Class[]{value.getClass()})) {
+      jaxbContext = computeJaxbContext(null);
+    } else {
+      jaxbContext = computeJaxbContext(value);
+    }
+    final SchemaMode mode = jaxbContext.getSchemaMode();
+    if (mode == SchemaMode.ALWAYS
+        || mode == SchemaMode.UNMARSHAL
+        || (mode == SchemaMode.EXTERNAL_XSD
+        && StringUtils.hasText(jaxbContext.getDetails().getSchemaLocation()))) {
+      jaxbContext = jaxbContext.withSchema(computeSchema(jaxbContext));
+    }
+    try {
+      return jaxbContext.createUnmarshaller();
+
+    } catch (JAXBException e) {
+      throw new JaxbRuntimeException(e);
+    }
+  }
+
+  @Override
+  public Marshaller buildMarshaller(final Object value) {
+    JaxbContextWrapper jaxbContext = computeJaxbContext(value);
+    final SchemaMode mode = jaxbContext.getSchemaMode();
+    if (mode == SchemaMode.ALWAYS
+        || mode == SchemaMode.MARSHAL
+        || (mode == SchemaMode.EXTERNAL_XSD
+        && StringUtils.hasText(jaxbContext.getDetails().getSchemaLocation()))) {
+      jaxbContext = jaxbContext.withSchema(computeSchema(jaxbContext));
+    }
+    try {
+      return jaxbContext.createMarshaller();
+    } catch (JAXBException e) {
+      throw new JaxbRuntimeException(e);
+    }
+  }
+
+  @Override
+  public JaxbContextWrapper buildJaxbContext(final Object value) {
+    final JaxbContextWrapper wrapper = computeJaxbContext(value);
+    final SchemaMode mode = wrapper.getSchemaMode();
+    if (mode == SchemaMode.ALWAYS
+        || mode == SchemaMode.MARSHAL
+        || mode == SchemaMode.UNMARSHAL
+        || (mode == SchemaMode.EXTERNAL_XSD
+        && StringUtils.hasText(wrapper.getDetails().getSchemaLocation()))) {
+      return wrapper.withSchema(computeSchema(wrapper));
+    } else {
+      return wrapper;
+    }
+  }
+
+  @Override
+  public Schema buildSchema(final Object value) {
+    return computeSchema(value);
+  }
+
+  private JaxbContextBuilderDetails buildDetails(final Object value) {
+    if (value == null) {
+      return JaxbContextBuilderDetails.buildWith(null, jaxbContextDataMap);
+    }
+    if (value instanceof Class<?>) {
+      return buildDetails(new Class<?>[]{(Class<?>) value});
+    }
+    if (value instanceof Class<?>[]) {
+      final Class<?>[] classes = (Class<?>[]) value;
+      if (areAllClassesAreSupported(classes)) {
+        final Set<String> packages = Arrays.stream(classes)
+            .map(clazz -> clazz.getPackage().getName())
+            .collect(Collectors.toSet());
+        return JaxbContextBuilderDetails.buildWith(packages, jaxbContextDataMap);
       } else {
-        jaxbContextDataMap.put(data.getNameSpace(), new HashSet<>(Collections.singleton(data)));
+        return JaxbContextBuilderDetails.buildWith(classes);
       }
     }
-    return this;
-  }
-
-  @Override
-  public JaxbContextBuilder addAll(final Iterable<? extends JaxbContextData> data) {
-    return data == null ? this : addAll(data.iterator());
-  }
-
-  @Override
-  public JaxbContextBuilder addAll(final Iterator<? extends JaxbContextData> data) {
-    if (data != null) {
-      while (data.hasNext()) {
-        add(data.next());
-      }
+    if (jaxbContextDataMap.containsKey(value.getClass().getPackage().getName())) {
+      final Set<String> packages = dependenciesResolver != null
+          ? dependenciesResolver.resolvePackages(value)
+          : null;
+      return JaxbContextBuilderDetails.buildWith(packages, jaxbContextDataMap);
+    } else {
+      return buildDetails(value.getClass());
     }
-    return this;
   }
 
-  @Override
-  public JaxbContextBuilder process(final JaxbContextDataProvider dataProvider) {
-    return dataProvider == null ? this : addAll(dataProvider.getJaxbContextData());
+  private boolean areAllClassesAreSupported(final Class<?>[] classes) {
+    return Arrays.stream(classes)
+        .map(clazz -> clazz.getPackage().getName())
+        .allMatch(jaxbContextDataMap::containsKey);
   }
 
-  @Override
-  public JaxbContextBuilder processAll(
-      final Iterable<? extends JaxbContextDataProvider> dataProviders) {
-    if (dataProviders != null) {
-      processAll(dataProviders.iterator());
-    }
-    return this;
-  }
-
-  @Override
-  public JaxbContextBuilder processAll(
-      final Iterator<? extends JaxbContextDataProvider> dataProviders) {
-    if (dataProviders != null) {
-      while (dataProviders.hasNext()) {
-        process(dataProviders.next());
-      }
-    }
-    return this;
-  }
-
-  private DataDetails buildDataDetails(final String... nameSpaces) {
-    if (nameSpaces == null || nameSpaces.length == 0) {
-      return buildDataDetails(new TreeSet<>(jaxbContextDataMap.keySet()));
-    }
-    return buildDataDetails(new TreeSet<>(Arrays
-        .stream(nameSpaces)
-        .filter(s -> s != null && jaxbContextDataMap.containsKey(s))
-        .collect(Collectors.toList())));
-  }
-
-  private DataDetails buildDataDetails(final SortedSet<String> nameSpaces) {
-    final Set<JaxbContextData> dataSet = new HashSet<>();
-    nameSpaces.forEach(nameSpace -> dataSet.addAll(jaxbContextDataMap.get(nameSpace)));
-    final String key = String.join(":", nameSpaces);
-    final String contextPath = dataSet
-        .stream()
-        .map(JaxbContextData::getPackageName)
-        .collect(Collectors.joining(":"));
-    final String schemaLocation = dataSet
-        .stream()
-        .filter(ds -> ds.getNameSpace().length() > 0
-            && ds.getSchemaLocation() != null
-            && ds.getSchemaLocation().length() > 0)
-        .map(ds -> ds.getNameSpace() + " " + ds.getSchemaLocation())
-        .collect(Collectors.joining(" "));
-    return new DataDetails(key, contextPath, schemaLocation);
-  }
-
-  public boolean supports(final Class<?> clazz, final String... nameSpaces) {
-    return (clazz != null
-        && (clazz.isAnnotationPresent(XmlRootElement.class)
-        || clazz.isAnnotationPresent(XmlType.class))
-        && contextPathContains(clazz, nameSpaces));
-  }
-
-  private boolean contextPathContains(final Class<?> clazz, final String... nameSpaces) {
-    if (clazz == null) {
-      return false;
-    }
-    final String packageName = clazz.getPackage().getName();
-    final String contextPath = buildContextPath(nameSpaces);
-    final StringTokenizer st = new StringTokenizer(contextPath, ":");
-    while (st.hasMoreTokens()) {
-      final String token = st.nextToken().trim();
-      if (packageName.equals(token)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public String buildContextPath(final String... nameSpaces) {
-    return buildDataDetails(nameSpaces).getContextPath();
-  }
-
-  @Override
-  public String buildSchemaLocation(final String... nameSpaces) {
-    return buildDataDetails(nameSpaces).getSchemaLocation();
-  }
-
-  @Override
-  public Schema buildSchema(final SchemaBuilder schemaBuilder, final String... nameSpaces) {
-    final DataDetails dataDetails = buildDataDetails(nameSpaces);
-    return computeSchema(dataDetails, schemaBuilder);
-  }
-
-  @Override
-  public Map<String, ?> buildMarshallerProperties(final String... nameSpaces) {
-    final Map<String, Object> properties = new HashMap<>();
-    properties.put(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.name());
-    properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, formattedOutput);
-    final String schemaLocation = buildSchemaLocation(nameSpaces);
-    if (schemaLocation != null && schemaLocation.trim().length() > 0) {
-      properties.put(Marshaller.JAXB_SCHEMA_LOCATION, schemaLocation);
-    }
-    return properties;
-  }
-
-  @Override
-  public JaxbContextWrapper buildJaxbContext(final String... nameSpaces) {
-    final DataDetails dataDetails = buildDataDetails(nameSpaces);
-    final JAXBContext jaxbContext = computeJaxbContext(dataDetails);
-    return newJaxbContextWrapper(jaxbContext, dataDetails, null);
-  }
-
-  @Override
-  public JaxbContextWrapper buildJaxbContextWithSchema(
-      final SchemaBuilder schemaBuilder,
-      final String... nameSpaces) {
-
-    final DataDetails dataDetails = buildDataDetails(nameSpaces);
-    final JAXBContext jaxbContext = computeJaxbContext(dataDetails);
-    return newJaxbContextWrapper(
-        jaxbContext,
-        dataDetails,
-        computeSchema(dataDetails, schemaBuilder));
-  }
-
-  private JAXBContext computeJaxbContext(
-      final DataDetails dataDetails) {
-
-    return jaxbContextMap.computeIfAbsent(dataDetails.getKey(), key -> {
+  private JaxbContextWrapper computeJaxbContext(final Object value) {
+    final JaxbContextBuilderDetails details = buildDetails(value);
+    final JAXBContext jaxbContext = jaxbContextCache.computeIfAbsent(details, key -> {
       try {
-        return JAXBContext.newInstance(
-            dataDetails.getContextPath(),
-            getContextClassLoader());
+        return key.isBuildWithContextPath()
+            ? JAXBContext.newInstance(details.getContextPath(), getContextClassLoader())
+            : JAXBContext.newInstance(key.getClasses());
 
       } catch (final Exception e) {
         throw new JaxbRuntimeException(e);
       }
     });
-  }
-
-  private Schema computeSchema(
-      final DataDetails dataDetails,
-      final SchemaBuilder schemaBuilder) {
-
-    return schemaMap.computeIfAbsent(dataDetails.getKey(), key -> {
-      final JAXBContext ctx = computeJaxbContext(dataDetails);
-      final SchemaSourcesResolver resolver = new SchemaSourcesResolver();
-      try {
-        ctx.generateSchema(resolver);
-      } catch (IOException e) {
-        throw new JaxbRuntimeException(e);
-      }
-      final List<Source> sources = new ArrayList<>(
-          resolver.toSources(dataDetails.getNameSpaces()));
-      final SchemaBuilder sb = schemaBuilder != null ? schemaBuilder : SchemaBuilder.builder();
-      final Set<String> locations = dataDetails.getSchemaLocations();
-      sources.addAll(sb.fetchSchemaSources(locations));
-      return sb.buildSchema(sources);
-    });
-  }
-
-  private JaxbContextWrapper newJaxbContextWrapper(
-      final JAXBContext jaxbContext,
-      final DataDetails dataDetails,
-      final Schema schema) {
-    final JaxbContextWrapper wrapper = new JaxbContextWrapper(
-        jaxbContext, dataDetails.getContextPath(), dataDetails.getSchemaLocation());
-    return wrapper
+    return new JaxbContextWrapper(jaxbContext, details)
         .withAttachmentMarshaller(attachmentMarshaller)
         .withAttachmentUnmarshaller(attachmentUnmarshaller)
         .withFormattedOutput(formattedOutput)
-        .withSchema(schema)
         .withValidationEventHandler(validationEventHandler)
-        .withXmlAdapters(xmlAdapters);
+        .withXmlAdapters(xmlAdapters)
+        .withSchemaMode(schemaMode);
   }
 
-  private static class DataDetails {
+  private Schema computeSchema(final Object value) {
+    return computeSchema(computeJaxbContext(value));
+  }
 
-    private final String key;
-
-    private final String contextPath;
-
-    private final String schemaLocation;
-
-    /**
-     * Instantiates data details.
-     *
-     * @param key the key, a concatenation of name spaces separated by colon
-     * @param contextPath the context path, normally package names separated by colon
-     * @param schemaLocation the schema location
-     */
-    DataDetails(final String key, final String contextPath, final String schemaLocation) {
-      this.key = key;
-      this.contextPath = contextPath;
-      this.schemaLocation = schemaLocation;
-    }
-
-    /**
-     * Gets key, the key is a concatenation of name spaces separated by colon.
-     *
-     * @return the key
-     */
-    String getKey() {
-      return key;
-    }
-
-    /**
-     * Gets context path of JAXB, normally package names separated by colon.
-     *
-     * @return the context path
-     */
-    String getContextPath() {
-      return contextPath;
-    }
-
-    /**
-     * Builds schema location as it appears in the generated xml file. Name space and location (url)
-     * are separated by space. The pairs of name space and location is also separated by space.
-     * <pre>
-     * http://example.org/namesspace1 http://example.org/ns1.xsd
-     * </pre>
-     * In the xml file it looks like:
-     * <pre>
-     * xsi:schemaLocation="http://example.org/namesspace1 http://example.org/ns1.xsd"
-     * </pre>
-     *
-     * @return the schema location as it appears in the generated xml file
-     */
-    String getSchemaLocation() {
-      return schemaLocation;
-    }
-
-    /**
-     * Gets the set of schema locations, normally as URL.
-     * <pre>
-     * http://example.org/model.xsd, http://example.org/another-model.xsd
-     * </pre>
-     *
-     * @return the schema locations
-     */
-    Set<String> getSchemaLocations() {
-      final String[] parts = StringUtils.delimitedListToStringArray(schemaLocation, " ");
-      if (parts.length == 0) {
-        return Collections.emptySet();
+  private Schema computeSchema(final JaxbContextWrapper jaxbContext) {
+    final JaxbContextBuilderDetails details = jaxbContext.getDetails();
+    return schemaCache.computeIfAbsent(details, key -> {
+      final SchemaSourcesResolver sourcesResolver = new SchemaSourcesResolver();
+      try {
+        jaxbContext.generateSchema(sourcesResolver);
+      } catch (Exception e) {
+        throw new JaxbRuntimeException(e);
       }
-      final Set<String> locations = new LinkedHashSet<>();
-      for (int i = 1; i < parts.length; i = i + 2) {
-        locations.add(parts[i]);
-      }
-      return locations;
-    }
-
-    /**
-     * Gets the set of name spaces where the schema location is present.
-     *
-     * @return the name spaces
-     */
-    Set<String> getNameSpaces() {
-      final String[] parts = StringUtils.delimitedListToStringArray(schemaLocation, " ");
-      if (parts.length == 0) {
-        return Collections.emptySet();
-      }
-      final Set<String> locations = new LinkedHashSet<>();
-      for (int i = 0; i < parts.length; i = i + 2) {
-        locations.add(parts[i]);
-      }
-      return locations;
-    }
+      final List<Source> sources = new ArrayList<>(
+          sourcesResolver.toSources(details.getNameSpacesWithLocation()));
+      final Set<String> locations = details.getSchemaLocations();
+      sources.addAll(schemaBuilder.fetchSchemaSources(locations));
+      return schemaBuilder.buildSchema(sources);
+    });
   }
 
 }

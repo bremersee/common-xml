@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,23 +19,70 @@ package org.bremersee.xml;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.BiFunction;
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.ValidationEventHandler;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.validation.Schema;
+import org.springframework.util.StringUtils;
 
 /**
- * The jaxb context builder creates a {@link JAXBContext} from the provided meta data
- * {@link JaxbContextData}.
+ * The jaxb context builder.
  *
  * @author Christian Bremer
  */
 public interface JaxbContextBuilder {
+
+  /**
+   * The constant DEFAULT_DEPENDENCIES_RESOLVER.
+   */
+  JaxbDependenciesResolver DEFAULT_DEPENDENCIES_RESOLVER = new JaxbDependenciesResolverImpl();
+
+  /**
+   * The Can marshal all.
+   */
+  BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_MARSHAL_ALL
+      = (aClass, predefinedData) -> aClass != null
+      && aClass.isAnnotationPresent(XmlRootElement.class);
+
+  /**
+   * The Can unmarshal all.
+   */
+  BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_UNMARSHAL_ALL
+      = (aClass, predefinedData) -> aClass != null
+      && aClass.isAnnotationPresent(XmlRootElement.class);
+
+  /**
+   * The Can marshal only predefined data.
+   */
+  BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_MARSHAL_ONLY_PREDEFINED_DATA
+      = (aClass, predefinedData) -> aClass != null
+      && aClass.isAnnotationPresent(XmlRootElement.class)
+      && predefinedData.containsKey(aClass.getPackage().getName());
+
+  /**
+   * The Can unmarshal only predefined data.
+   */
+  BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_UNMARSHAL_ONLY_PREDEFINED_DATA
+      = (aClass, predefinedData) -> aClass != null
+      && aClass.isAnnotationPresent(XmlRootElement.class)
+      && predefinedData.containsKey(aClass.getPackage().getName());
+
+
+  /**
+   * Returns a jaxb context builder.
+   *
+   * @return the jaxb context builder
+   */
+  static JaxbContextBuilder builder() {
+    return new JaxbContextBuilderImpl();
+  }
+
 
   /**
    * Copy jaxb context builder.
@@ -43,6 +90,40 @@ public interface JaxbContextBuilder {
    * @return the jaxb context builder
    */
   JaxbContextBuilder copy();
+
+  /**
+   * With can marshal function.
+   *
+   * @param function the function
+   * @return the jaxb context builder
+   */
+  JaxbContextBuilder withCanMarshal(
+      BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> function);
+
+  /**
+   * With can unmarshal function.
+   *
+   * @param function the function
+   * @return the jaxb context builder
+   */
+  JaxbContextBuilder withCanUnmarshal(
+      BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> function);
+
+  /**
+   * With schema mode.
+   *
+   * @param schemaMode the schema mode
+   * @return the jaxb context builder
+   */
+  JaxbContextBuilder withSchemaMode(SchemaMode schemaMode);
+
+  /**
+   * With dependencies resolver.
+   *
+   * @param resolver the resolver
+   * @return the jaxb context builder
+   */
+  JaxbContextBuilder withDependenciesResolver(JaxbDependenciesResolver resolver);
 
   /**
    * Specify the class loader.
@@ -92,6 +173,23 @@ public interface JaxbContextBuilder {
    */
   JaxbContextBuilder withValidationEventHandler(ValidationEventHandler validationEventHandler);
 
+
+  /**
+   * Add.
+   *
+   * @param contextPath the context path
+   * @return the jaxb context builder
+   */
+  default JaxbContextBuilder add(final String contextPath) {
+    if (StringUtils.hasText(contextPath)) {
+      final String[] packages = StringUtils.delimitedListToStringArray(contextPath, ":");
+      for (String pakkage : packages) {
+        add(new JaxbContextData(pakkage));
+      }
+    }
+    return this;
+  }
+
   /**
    * Add jaxb context meta data to this builder.
    *
@@ -106,7 +204,9 @@ public interface JaxbContextBuilder {
    * @param data the data
    * @return the jaxb context builder
    */
-  JaxbContextBuilder addAll(Iterable<? extends JaxbContextData> data);
+  default JaxbContextBuilder addAll(final Iterable<? extends JaxbContextData> data) {
+    return data == null ? this : addAll(data.iterator());
+  }
 
   /**
    * Add all jaxb context meta data to this builder.
@@ -114,7 +214,14 @@ public interface JaxbContextBuilder {
    * @param data the data
    * @return the jaxb context builder
    */
-  JaxbContextBuilder addAll(Iterator<? extends JaxbContextData> data);
+  default JaxbContextBuilder addAll(final Iterator<? extends JaxbContextData> data) {
+    if (data != null) {
+      while (data.hasNext()) {
+        add(data.next());
+      }
+    }
+    return this;
+  }
 
   /**
    * Process the jaxb context meta data provider and add it's data to this builder.
@@ -122,7 +229,9 @@ public interface JaxbContextBuilder {
    * @param dataProvider the data provider
    * @return the jaxb context builder
    */
-  JaxbContextBuilder process(JaxbContextDataProvider dataProvider);
+  default JaxbContextBuilder process(final JaxbContextDataProvider dataProvider) {
+    return dataProvider == null ? this : addAll(dataProvider.getJaxbContextData());
+  }
 
   /**
    * Process the jaxb context meta data providers and add their data to this builder.
@@ -130,7 +239,10 @@ public interface JaxbContextBuilder {
    * @param dataProviders the data providers
    * @return the jaxb context builder
    */
-  JaxbContextBuilder processAll(Iterable<? extends JaxbContextDataProvider> dataProviders);
+  default JaxbContextBuilder processAll(
+      final Iterable<? extends JaxbContextDataProvider> dataProviders) {
+    return dataProviders == null ? this : processAll(dataProviders.iterator());
+  }
 
   /**
    * Process the jaxb context meta data providers and add their data to this builder.
@@ -138,158 +250,80 @@ public interface JaxbContextBuilder {
    * @param dataProviders the data providers
    * @return the jaxb context builder
    */
-  JaxbContextBuilder processAll(Iterator<? extends JaxbContextDataProvider> dataProviders);
-
-  /**
-   * Determine whether the given class is supported or not.
-   *
-   * @param clazz the clazz
-   * @param nameSpaces the name spaces
-   * @return {@code true} if the given class is supported, otherwise {@code false}
-   */
-  boolean supports(Class<?> clazz, String... nameSpaces);
-
-  /**
-   * Build context path, normally the package names of the model separated by colon.
-   *
-   * @param nameSpaces the name spaces
-   * @return the context path (the package names of the model separated by colon)
-   */
-  String buildContextPath(String... nameSpaces);
-
-  /**
-   * Builds schema location as it appears in the generated xml file. Name space and location (url)
-   * are separated by space. The pairs of name space and location is also separated by space.
-   * <pre>
-   * http://example.org/namesspace1 http://example.org/ns1.xsd
-   * </pre>
-   * In the xml file it looks like:
-   * <pre>
-   * xsi:schemaLocation="http://example.org/namesspace1 http://example.org/ns1.xsd"
-   * </pre>
-   *
-   * @param nameSpaces the name spaces
-   * @return the schema location as it appears in the generated xml file
-   */
-  String buildSchemaLocation(String... nameSpaces);
-
-  /**
-   * Build schema with a default {@link SchemaBuilder}.
-   *
-   * @param nameSpaces the name spaces
-   * @return the schema
-   */
-  default Schema buildSchema(String... nameSpaces) {
-    return buildSchema(null, nameSpaces);
-  }
-
-  /**
-   * Build schema. The schema is generated from the present schema locations (xsd files) and the
-   * jaxb context.
-   *
-   * @param schemaBuilder the schema builder
-   * @param nameSpaces the name spaces
-   * @return the schema
-   */
-  Schema buildSchema(SchemaBuilder schemaBuilder, String... nameSpaces);
-
-  /**
-   * Build marshaller properties.
-   *
-   * @param nameSpaces the name spaces
-   * @return the marshaller properties
-   */
-  Map<String, ?> buildMarshallerProperties(String... nameSpaces);
-
-  /**
-   * Build the jaxb context.
-   *
-   * @param nameSpaces the name spaces
-   * @return the jaxb context
-   * @throws JaxbRuntimeException if building fails
-   */
-  JAXBContext buildJaxbContext(String... nameSpaces);
-
-  /**
-   * Build jaxb context with schema.
-   *
-   * @param schemaBuilder the schema builder
-   * @param nameSpaces the name spaces
-   * @return the jaxb context
-   */
-  JAXBContext buildJaxbContextWithSchema(SchemaBuilder schemaBuilder, String... nameSpaces);
-
-  /**
-   * Build the marshaller of the jaxb context.
-   *
-   * @param nameSpaces the name spaces
-   * @return the marshaller of the jaxb context
-   * @throws JaxbRuntimeException if building fails
-   */
-  default Marshaller buildMarshaller(final String... nameSpaces) {
-    try {
-      return buildJaxbContext(nameSpaces).createMarshaller();
-    } catch (JAXBException e) {
-      throw new JaxbRuntimeException(e);
+  default JaxbContextBuilder processAll(
+      final Iterator<? extends JaxbContextDataProvider> dataProviders) {
+    if (dataProviders != null) {
+      while (dataProviders.hasNext()) {
+        process(dataProviders.next());
+      }
     }
+    return this;
   }
 
   /**
-   * Build marshaller with schema.
+   * Determines whether the unmarshaller can decode xml into an object of the given class
    *
-   * @param schemaBuilder the schema builder
-   * @param nameSpaces the name spaces
-   * @return the marshaller
+   * @param clazz the class
+   * @return {@code true} if the unmarshaller can decode xml into an object of the given class,
+   *     otherwise {@code false}
    */
-  default Marshaller buildMarshallerWithSchema(
-      final SchemaBuilder schemaBuilder,
-      final String... nameSpaces) {
-    try {
-      return buildJaxbContextWithSchema(schemaBuilder, nameSpaces).createMarshaller();
-    } catch (JAXBException e) {
-      throw new JaxbRuntimeException(e);
-    }
-  }
+  boolean canUnmarshal(Class<?> clazz);
 
   /**
-   * Build the unmarshaller of the jaxb context.
+   * Determines whether the marshaller can encode an object of the given class into xml
    *
-   * @param nameSpaces the name spaces
-   * @return the unmarshaller of the jaxb context
-   * @throws JaxbRuntimeException if building fails
+   * @param clazz the class
+   * @return {@code true} if the marshaller can decode an object of the given class into xml,
+   *     otherwise {@code false}
    */
-  default Unmarshaller buildUnmarshaller(final String... nameSpaces) {
-    try {
-      return buildJaxbContext(nameSpaces).createUnmarshaller();
-    } catch (JAXBException e) {
-      throw new JaxbRuntimeException(e);
-    }
+  boolean canMarshal(Class<?> clazz);
+
+  default Unmarshaller buildUnmarshaller() {
+    return buildUnmarshaller(null);
   }
 
   /**
-   * Build unmarshaller with schema.
+   * Build unmarshaller unmarshaller.
    *
-   * @param schemaBuilder the schema builder
-   * @param nameSpaces the name spaces
+   * @param value the value
    * @return the unmarshaller
    */
-  default Unmarshaller buildUnmarshallerWithSchema(
-      final SchemaBuilder schemaBuilder,
-      final String... nameSpaces) {
-    try {
-      return buildJaxbContextWithSchema(schemaBuilder, nameSpaces).createUnmarshaller();
-    } catch (JAXBException e) {
-      throw new JaxbRuntimeException(e);
-    }
+  Unmarshaller buildUnmarshaller(Object value);
+
+  default Marshaller buildMarshaller() {
+    return buildMarshaller(null);
   }
 
   /**
-   * Builder jaxb context builder.
+   * Build marshaller marshaller.
    *
-   * @return the jaxb context builder
+   * @param value the value
+   * @return the marshaller
    */
-  static JaxbContextBuilder builder() {
-    return new JaxbContextBuilderImpl();
+  Marshaller buildMarshaller(Object value);
+
+  default JAXBContext buildJaxbContext() {
+    return buildJaxbContext(null);
   }
+
+  /**
+   * Build jaxb context jaxb context.
+   *
+   * @param value the value
+   * @return the jaxb context
+   */
+  JAXBContext buildJaxbContext(Object value);
+
+  default Schema buildSchema() {
+    return buildSchema(null);
+  }
+  
+  /**
+   * Build schema schema.
+   *
+   * @param value the value
+   * @return the schema
+   */
+  Schema buildSchema(Object value);
 
 }

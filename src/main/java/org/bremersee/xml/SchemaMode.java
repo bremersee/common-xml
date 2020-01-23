@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,18 @@
 
 package org.bremersee.xml;
 
-import java.util.Set;
-
 /**
  * @author Christian Bremer
  */
-public interface JaxbNameSpaceResolver {
+public enum SchemaMode {
 
-  Set<String> resolveNameSpaces(Object value); // plus annotation MinimumNameSpaces, @XmlSeeAlso
+  NEVER,
 
+  ALWAYS,
+
+  MARSHAL,
+
+  UNMARSHAL,
+
+  EXTERNAL_XSD
 }

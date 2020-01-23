@@ -291,8 +291,7 @@ class XmlDocumentBuilderTest {
         .processAll(ServiceLoader.load(JaxbContextDataProvider.class));
 
     Document document = XmlDocumentBuilder.builder()
-        .buildDocument(person, jaxbContextBuilder
-            .buildMarshaller("http://bremersee.org/xmlschemas/common-xml-test-model-1"));
+        .buildDocument(person, jaxbContextBuilder.buildMarshaller());
     assertNotNull(document);
   }
 

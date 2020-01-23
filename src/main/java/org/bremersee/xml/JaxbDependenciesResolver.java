@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,22 @@
 
 package org.bremersee.xml;
 
+import java.util.Set;
+
 /**
- * Marker interface to get the xml context path and the xml schema locations.
+ * The jaxb dependencies resolver.
  *
  * @author Christian Bremer
  */
-public interface JaxbContextDetailsAware {
+public interface JaxbDependenciesResolver {
 
   /**
-   * Gets the xml context path.
+   * Resolve dependencies to other packages to add their name space to the schema location tag of
+   * the xml file.
    *
-   * @return the xml context path
+   * @param value the value that should be processed by the marshaller
+   * @return the set with package names
    */
-  String getContextPath();
-
-  /**
-   * Gets the xml schema location.
-   *
-   * @return the xml schema location
-   */
-  String getSchemaLocation();
+  Set<String> resolvePackages(Object value);
 
 }
