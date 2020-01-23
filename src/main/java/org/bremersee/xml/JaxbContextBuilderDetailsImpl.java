@@ -40,12 +40,41 @@ class JaxbContextBuilderDetailsImpl implements JaxbContextBuilderDetails {
 
   private String schemaLocation;
 
-  private JaxbContextBuilderDetailsImpl() {
+  JaxbContextBuilderDetailsImpl(final Class<?>... classes) {
+    if (classes != null) {
+      this.classes = Arrays.stream(classes)
+          .sorted(Comparator.comparing(Class::getName))
+          .toArray(Class<?>[]::new);
+    }
+  }
+
+  JaxbContextBuilderDetailsImpl(
+      final Set<String> packages,
+      final Map<String, JaxbContextData> jaxbContextDataMap) {
+
+    Assert.notEmpty(jaxbContextDataMap, "Jaxb context data map must be present.");
+    final Set<String> packageNames = packages == null || packages.isEmpty()
+        ? jaxbContextDataMap.keySet()
+        : packages;
+    final List<String> contextPathList = new ArrayList<>();
+    final List<String> schemaLocationList = new ArrayList<>();
+    jaxbContextDataMap.values().stream()
+        .filter(data -> packageNames.contains(data.getPackageName()))
+        .forEach(data -> {
+          contextPathList.add(data.getPackageName());
+          if (data.getNameSpace().length() > 0 && StringUtils.hasText(data.getSchemaLocation())) {
+            schemaLocationList.add(data.getNameSpace() + " " + data.getSchemaLocation());
+          }
+        });
+    contextPathList.sort(String::compareToIgnoreCase);
+    schemaLocationList.sort(String::compareToIgnoreCase);
+    this.contextPath = String.join(":", contextPathList);
+    this.schemaLocation = String.join(" ", schemaLocationList);
   }
 
   @Override
   public boolean isBuildWithContextPath() {
-    return classes == null;
+    return contextPath != null;
   }
 
   @Override
@@ -96,41 +125,6 @@ class JaxbContextBuilderDetailsImpl implements JaxbContextBuilderDetails {
         + ", contextPath='" + contextPath + '\''
         + ", schemaLocation='" + schemaLocation + '\''
         + '}';
-  }
-
-  static JaxbContextBuilderDetailsImpl with(final Class<?>... classes) {
-    Assert.notEmpty(classes, "Classes must not be present.");
-    final JaxbContextBuilderDetailsImpl details = new JaxbContextBuilderDetailsImpl();
-    details.classes = Arrays.stream(classes)
-        .sorted(Comparator.comparing(Class::getName))
-        .toArray(Class<?>[]::new);
-    return details;
-  }
-
-  static JaxbContextBuilderDetailsImpl with(
-      final Set<String> packages,
-      final Map<String, JaxbContextData> jaxbContextDataMap) {
-
-    Assert.notEmpty(jaxbContextDataMap, "Jaxb context data map must be present.");
-    final Set<String> packageNames = packages == null || packages.isEmpty()
-        ? jaxbContextDataMap.keySet()
-        : packages;
-    final List<String> contextPathList = new ArrayList<>();
-    final List<String> schemaLocationList = new ArrayList<>();
-    jaxbContextDataMap.values().stream()
-        .filter(data -> packageNames.contains(data.getPackageName()))
-        .forEach(data -> {
-          contextPathList.add(data.getPackageName());
-          if (data.getNameSpace().length() > 0 && StringUtils.hasText(data.getSchemaLocation())) {
-            schemaLocationList.add(data.getNameSpace() + " " + data.getSchemaLocation());
-          }
-        });
-    contextPathList.sort(String::compareToIgnoreCase);
-    schemaLocationList.sort(String::compareToIgnoreCase);
-    final JaxbContextBuilderDetailsImpl details = new JaxbContextBuilderDetailsImpl();
-    details.contextPath = String.join(":", contextPathList);
-    details.schemaLocation = String.join(" ", schemaLocationList);
-    return details;
   }
 
 }

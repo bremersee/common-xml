@@ -19,7 +19,6 @@ package org.bremersee.xml;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.util.StringUtils;
@@ -73,16 +72,6 @@ public interface JaxbContextBuilderDetails extends Serializable {
       locations.add(parts[i]);
     }
     return locations;
-  }
-
-  static JaxbContextBuilderDetails buildWith(final Class<?>... classes) {
-    return JaxbContextBuilderDetailsImpl.with(classes);
-  }
-
-  static JaxbContextBuilderDetails buildWith(
-      final Set<String> packages,
-      final Map<String, JaxbContextData> jaxbContextDataMap) {
-    return JaxbContextBuilderDetailsImpl.with(packages, jaxbContextDataMap);
   }
 
 }

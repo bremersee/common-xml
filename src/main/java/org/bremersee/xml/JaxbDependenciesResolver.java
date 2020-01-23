@@ -16,7 +16,9 @@
 
 package org.bremersee.xml;
 
+import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The jaxb dependencies resolver.
@@ -32,6 +34,18 @@ public interface JaxbDependenciesResolver {
    * @param value the value that should be processed by the marshaller
    * @return the set with package names
    */
-  Set<String> resolvePackages(Object value);
+  default Set<String> resolvePackages(Object value) {
+    return Arrays.stream(resolveClasses(value))
+        .map(clazz -> clazz.getPackage().getName())
+        .collect(Collectors.toSet());
+  }
+
+  /**
+   * Resolve dependencies to other classes.
+   *
+   * @param value the value that should be processed by the marshaller
+   * @return the resolved classes
+   */
+  Class<?>[] resolveClasses(Object value);
 
 }

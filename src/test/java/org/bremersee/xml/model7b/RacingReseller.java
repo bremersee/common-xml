@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,18 @@
 
 package org.bremersee.xml.model7b;
 
-import javax.xml.bind.annotation.XmlRegistry;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+import org.bremersee.xml.model7a.Producer;
 
 /**
- * The xml object factory.
- *
  * @author Christian Bremer
  */
-@XmlRegistry
-@SuppressWarnings("unused")
-public class ObjectFactory {
-
-  public MountainBike createMountainBike() {
-    return new MountainBike();
-  }
-
-  public RacingBike createRacingBike() {
-    return new RacingBike();
-  }
-
-  public SportBikes createSportBikes() {
-    return new SportBikes();
-  }
-
-  public RacingReseller createRacingReseller() {
-    return new RacingReseller();
-  }
-
-  public DirtBikeReseller createDirtBikeReseller() {
-    return new DirtBikeReseller();
-  }
+@XmlRootElement(name = "RacingReseller")
+@XmlType(name = "racingResellerType")
+@XmlAccessorType(XmlAccessType.FIELD)
+public class RacingReseller extends Producer {
 
 }

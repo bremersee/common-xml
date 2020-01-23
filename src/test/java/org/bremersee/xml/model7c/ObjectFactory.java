@@ -35,4 +35,8 @@ public class ObjectFactory {
     return new Fastcycle();
   }
 
+  public Carrier createCarrier() {
+    return new Carrier();
+  }
+
 }

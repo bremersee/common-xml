@@ -15,7 +15,7 @@
  */
 
 /**
- * Test model 1 package.
+ * Test model 7b package.
  *
  * @author Christian Bremer
  */

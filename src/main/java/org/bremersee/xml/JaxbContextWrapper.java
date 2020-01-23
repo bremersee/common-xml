@@ -40,7 +40,7 @@ import org.springframework.util.StringUtils;
  * @author Christian Bremer
  */
 @SuppressWarnings({"unused", "deprecation"})
-class JaxbContextWrapper extends JAXBContext {
+public class JaxbContextWrapper extends JAXBContext {
 
   private final JAXBContext jaxbContext;
 
@@ -60,11 +60,16 @@ class JaxbContextWrapper extends JAXBContext {
 
   private SchemaMode schemaMode = SchemaMode.NEVER;
 
-  JaxbContextWrapper(
+  public JaxbContextWrapper(
+      final JAXBContext jaxbContext) {
+    this(jaxbContext, null);
+  }
+
+  public JaxbContextWrapper(
       final JAXBContext jaxbContext,
       final JaxbContextBuilderDetails details) {
     this.jaxbContext = jaxbContext;
-    this.details = details;
+    this.details = details != null ? details : new JaxbContextBuilderDetailsImpl();
   }
 
   public JaxbContextBuilderDetails getDetails() {
@@ -85,7 +90,7 @@ class JaxbContextWrapper extends JAXBContext {
    *
    * @param formattedOutput the formatted output
    */
-  JaxbContextWrapper withFormattedOutput(boolean formattedOutput) {
+  public JaxbContextWrapper withFormattedOutput(boolean formattedOutput) {
     this.formattedOutput = formattedOutput;
     return this;
   }
@@ -104,7 +109,7 @@ class JaxbContextWrapper extends JAXBContext {
    *
    * @param xmlAdapters the xml adapters
    */
-  JaxbContextWrapper withXmlAdapters(
+  public JaxbContextWrapper withXmlAdapters(
       List<XmlAdapter<?, ?>> xmlAdapters) {
     this.xmlAdapters = xmlAdapters;
     return this;
@@ -124,7 +129,7 @@ class JaxbContextWrapper extends JAXBContext {
    *
    * @param attachmentMarshaller the attachment marshaller
    */
-  JaxbContextWrapper withAttachmentMarshaller(AttachmentMarshaller attachmentMarshaller) {
+  public JaxbContextWrapper withAttachmentMarshaller(AttachmentMarshaller attachmentMarshaller) {
     this.attachmentMarshaller = attachmentMarshaller;
     return this;
   }
@@ -143,7 +148,8 @@ class JaxbContextWrapper extends JAXBContext {
    *
    * @param attachmentUnmarshaller the attachment unmarshaller
    */
-  JaxbContextWrapper withAttachmentUnmarshaller(AttachmentUnmarshaller attachmentUnmarshaller) {
+  public JaxbContextWrapper withAttachmentUnmarshaller(
+      AttachmentUnmarshaller attachmentUnmarshaller) {
     this.attachmentUnmarshaller = attachmentUnmarshaller;
     return this;
   }
@@ -162,7 +168,7 @@ class JaxbContextWrapper extends JAXBContext {
    *
    * @param schema the schema
    */
-  JaxbContextWrapper withSchema(Schema schema) {
+  public JaxbContextWrapper withSchema(Schema schema) {
     this.schema = schema;
     return this;
   }
@@ -181,7 +187,8 @@ class JaxbContextWrapper extends JAXBContext {
    *
    * @param validationEventHandler the validation event handler
    */
-  JaxbContextWrapper withValidationEventHandler(ValidationEventHandler validationEventHandler) {
+  public JaxbContextWrapper withValidationEventHandler(
+      ValidationEventHandler validationEventHandler) {
     this.validationEventHandler = validationEventHandler;
     return this;
   }
@@ -190,7 +197,7 @@ class JaxbContextWrapper extends JAXBContext {
     return schemaMode;
   }
 
-  JaxbContextWrapper withSchemaMode(SchemaMode schemaMode) {
+  public JaxbContextWrapper withSchemaMode(SchemaMode schemaMode) {
     if (schemaMode != null) {
       this.schemaMode = schemaMode;
     }
@@ -223,7 +230,7 @@ class JaxbContextWrapper extends JAXBContext {
     final Marshaller marshaller = jaxbContext.createMarshaller();
     marshaller.setProperty(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.name());
     marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formattedOutput);
-    if (details.getSchemaLocation() != null && details.getSchemaLocation().trim().length() > 0) {
+    if (StringUtils.hasText(details.getSchemaLocation())) {
       marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, details.getSchemaLocation());
     }
     if (xmlAdapters != null) {

@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.BiFunction;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.ValidationEventHandler;
@@ -302,7 +301,7 @@ public interface JaxbContextBuilder {
    */
   Marshaller buildMarshaller(Object value);
 
-  default JAXBContext buildJaxbContext() {
+  default JaxbContextWrapper buildJaxbContext() {
     return buildJaxbContext(null);
   }
 
@@ -312,12 +311,12 @@ public interface JaxbContextBuilder {
    * @param value the value
    * @return the jaxb context
    */
-  JAXBContext buildJaxbContext(Object value);
+  JaxbContextWrapper buildJaxbContext(Object value);
 
   default Schema buildSchema() {
     return buildSchema(null);
   }
-  
+
   /**
    * Build schema schema.
    *

@@ -39,6 +39,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.MarshalException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
@@ -51,9 +52,13 @@ import org.bremersee.xml.model3.Company;
 import org.bremersee.xml.model4.Address;
 import org.bremersee.xml.model5.StartEnd;
 import org.bremersee.xml.model7a.ObjectFactory;
+import org.bremersee.xml.model7b.DirtBikeReseller;
 import org.bremersee.xml.model7b.MountainBike;
+import org.bremersee.xml.model7b.RacingReseller;
+import org.bremersee.xml.model7b.SportBikes;
 import org.bremersee.xml.model7c.BikeSchmied;
 import org.bremersee.xml.model7c.Carrier;
+import org.bremersee.xml.model7c.Fastcycle;
 import org.bremersee.xml.provider.ExampleJaxbContextDataProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -111,11 +116,27 @@ class JaxbContextBuilderTest {
     carrier.setPartNumber("123456789");
     carrier.setCapacity("15 kg");
 
+    Marshaller m = builder.copy().buildMarshaller(carrier);
+
+    DirtBikeReseller r0 = new DirtBikeReseller();
+    r0.setName("Dirt Bikes");
+    RacingReseller r1 = new RacingReseller();
+    r1.setName("Racing Fun");
+
+    Fastcycle r2 = new Fastcycle();
+    r2.setHref("http://fast.org");
+
+    SportBikes sportBikes = new SportBikes();
+    sportBikes.setName("Sport Bikes");
+    sportBikes.getChain().add(r0);
+    sportBikes.getChain().add(r1);
+    //sportBikes.getChain().add(r2);
+
     MountainBike model = new MountainBike();
     model.setSeatHeight(60);
     model.setColor("Red");
-    //model.setProducer(producer);
-    model.getExtraParts().add(carrier);
+    model.setProducer(sportBikes);
+    model.getExtraParts().add(XmlDocumentBuilder.builder().buildDocument(carrier, m).getDocumentElement());
 
     StringWriter sw = new StringWriter();
     builder.buildMarshaller(model).marshal(model, sw);

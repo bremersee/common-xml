@@ -155,6 +155,12 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @Override
   public JaxbContextBuilder withDependenciesResolver(final JaxbDependenciesResolver resolver) {
+    if ((this.dependenciesResolver == null && resolver != null)
+        || (this.dependenciesResolver != null && resolver == null)
+        || (this.dependenciesResolver != null
+        && this.dependenciesResolver.getClass().equals(resolver.getClass()))) {
+      clearCache();
+    }
     this.dependenciesResolver = resolver;
     return this;
   }
@@ -293,7 +299,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   private JaxbContextBuilderDetails buildDetails(final Object value) {
     if (value == null) {
-      return JaxbContextBuilderDetails.buildWith(null, jaxbContextDataMap);
+      return new JaxbContextBuilderDetailsImpl(null, jaxbContextDataMap);
     }
     if (value instanceof Class<?>) {
       return buildDetails(new Class<?>[]{(Class<?>) value});
@@ -304,16 +310,18 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
         final Set<String> packages = Arrays.stream(classes)
             .map(clazz -> clazz.getPackage().getName())
             .collect(Collectors.toSet());
-        return JaxbContextBuilderDetails.buildWith(packages, jaxbContextDataMap);
+        return new JaxbContextBuilderDetailsImpl(packages, jaxbContextDataMap);
+      } else if (dependenciesResolver != null) {
+        return new JaxbContextBuilderDetailsImpl(dependenciesResolver.resolveClasses(classes));
       } else {
-        return JaxbContextBuilderDetails.buildWith(classes);
+        return new JaxbContextBuilderDetailsImpl(classes);
       }
     }
     if (jaxbContextDataMap.containsKey(value.getClass().getPackage().getName())) {
       final Set<String> packages = dependenciesResolver != null
           ? dependenciesResolver.resolvePackages(value)
           : null;
-      return JaxbContextBuilderDetails.buildWith(packages, jaxbContextDataMap);
+      return new JaxbContextBuilderDetailsImpl(packages, jaxbContextDataMap);
     } else {
       return buildDetails(value.getClass());
     }

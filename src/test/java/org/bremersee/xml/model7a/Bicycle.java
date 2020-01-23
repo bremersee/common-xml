@@ -21,7 +21,10 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlType;
+import org.w3c.dom.Element;
 
 /**
  * @author Christian Bremer
@@ -36,7 +39,9 @@ public abstract class Bicycle {
 
   private String color;
 
-  private List<ExtraPart> extraParts;
+  @XmlElementWrapper(name = "extraParts")
+  @XmlAnyElement
+  private List<Element> extraParts;
 
   public Producer getProducer() {
     return producer;
@@ -62,7 +67,7 @@ public abstract class Bicycle {
     this.color = color;
   }
 
-  public List<ExtraPart> getExtraParts() {
+  public List<Element> getExtraParts() {
     if (extraParts == null) {
       extraParts = new ArrayList<>();
     }
