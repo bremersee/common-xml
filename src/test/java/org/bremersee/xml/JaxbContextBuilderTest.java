@@ -29,6 +29,7 @@ import java.security.PrivilegedAction;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -44,13 +45,17 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 import org.bremersee.xml.adapter.DurationXmlAdapter;
 import org.bremersee.xml.adapter.OffsetDateTimeXmlAdapter;
-import org.bremersee.xml.model1.ObjectFactory;
 import org.bremersee.xml.model1.Person;
 import org.bremersee.xml.model2.Vehicle;
 import org.bremersee.xml.model3.Company;
 import org.bremersee.xml.model4.Address;
 import org.bremersee.xml.model5.StartEnd;
+import org.bremersee.xml.model7a.ObjectFactory;
+import org.bremersee.xml.model7b.MountainBike;
+import org.bremersee.xml.model7c.BikeSchmied;
+import org.bremersee.xml.model7c.Carrier;
 import org.bremersee.xml.provider.ExampleJaxbContextDataProvider;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.StringUtils;
@@ -82,7 +87,45 @@ class JaxbContextBuilderTest {
         .builder()
         .withContextClassLoader(classLoader)
         .withFormattedOutput(true)
-        .processAll(ServiceLoader.load(JaxbContextDataProvider.class));
+        .addAll(Arrays.asList(
+            new JaxbContextData(ObjectFactory.class.getPackage()),
+            new JaxbContextData(org.bremersee.xml.model7b.ObjectFactory.class.getPackage()),
+            new JaxbContextData(org.bremersee.xml.model7c.ObjectFactory.class.getPackage())));
+  }
+
+  @Test
+  void createSchema() throws Exception {
+    BufferSchemaOutputResolver resolver = new BufferSchemaOutputResolver();
+    builder.buildJaxbContext().generateSchema(resolver);
+    System.out.println(resolver);
+  }
+
+  @Test
+  void testSchema() throws Exception {
+
+    BikeSchmied producer = new BikeSchmied();
+    producer.setAddress("Somewhere");
+    producer.setName("Schmidt");
+
+    Carrier carrier = new Carrier();
+    carrier.setPartNumber("123456789");
+    carrier.setCapacity("15 kg");
+
+    MountainBike model = new MountainBike();
+    model.setSeatHeight(60);
+    model.setColor("Red");
+    //model.setProducer(producer);
+    model.getExtraParts().add(carrier);
+
+    StringWriter sw = new StringWriter();
+    builder.buildMarshaller(model).marshal(model, sw);
+    //builder.buildJaxbContext(model).createMarshaller().marshal(model, sw);
+    System.out.println(sw);
+
+    //sw = new StringWriter();
+    //JAXBContext ctx = JAXBContext.newInstance("org.bremersee.xml.model7a:org.bremersee.xml.model7b:org.bremersee.xml.model7c");
+    //Marshaller m = ctx.createMarshaller();
+    //m.marshal(model, sw);
   }
 
 //  /**

@@ -89,7 +89,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
       }
       return true;
     }
-    packages.add(value.getClass().getPackage().getName());
+    resolveSuperClasses(value.getClass(), packages);
     ReflectionUtils.doWithFields(
         value.getClass(),
         new XmlFieldCallback(value, packages),
@@ -111,7 +111,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     if (stopResolving(clazz)) {
       return;
     }
-    packages.add(clazz.getPackage().getName());
+    resolveSuperClasses(clazz, packages);
     ReflectionUtils.doWithFields(
         clazz,
         new XmlFieldCallback(null, packages),
@@ -125,6 +125,13 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
       for (Class<?> c : seeAlso.value()) {
         resolvePackages(c, packages);
       }
+    }
+  }
+
+  private void resolveSuperClasses(final Class<?> clazz, final Set<String> packages) {
+    if (!stopResolving(clazz)) {
+      packages.add(clazz.getPackage().getName());
+      resolveSuperClasses(clazz.getSuperclass(), packages);
     }
   }
 
