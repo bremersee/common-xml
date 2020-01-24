@@ -28,6 +28,11 @@ import org.bremersee.xml.model1.Person;
 @SuppressWarnings("unused")
 public class ObjectFactory {
 
+  /**
+   * Create fender.
+   *
+   * @return the fender
+   */
   public Fender createFender() {
     return new Fender();
   }

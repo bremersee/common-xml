@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import com.sun.org.apache.xerces.internal.jaxp.JAXPConstants;
 import java.io.ByteArrayInputStream;
@@ -46,6 +47,8 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 
 /**
@@ -184,8 +187,8 @@ class XmlDocumentBuilderTest {
         .configureFactoryAttribute(JAXPConstants.JAXP_SCHEMA_LANGUAGE, JAXPConstants.W3C_XML_SCHEMA)
         .configureFactoryFeature(XMLConstants.FEATURE_SECURE_PROCESSING, false)
         .configureFactorySchema(null)
-        .configureEntityResolver(new TestEntityResolver())
-        .configureErrorHandler(new TestErrorHandler())
+        .configureEntityResolver(mock(EntityResolver.class))
+        .configureErrorHandler(mock(ErrorHandler.class))
         .buildDocumentBuilder();
     assertNotNull(builder);
   }

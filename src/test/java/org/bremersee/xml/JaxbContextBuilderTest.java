@@ -19,35 +19,19 @@ package org.bremersee.xml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.security.PrivilegedAction;
-import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.MarshalException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.Validator;
+import javax.xml.bind.ValidationEventHandler;
+import javax.xml.bind.attachment.AttachmentMarshaller;
+import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import org.bremersee.xml.adapter.DurationXmlAdapter;
 import org.bremersee.xml.adapter.OffsetDateTimeXmlAdapter;
-import org.bremersee.xml.model1.Person;
-import org.bremersee.xml.model2.Vehicle;
 import org.bremersee.xml.model3.Company;
 import org.bremersee.xml.model4.Address;
 import org.bremersee.xml.model5.StartEnd;
@@ -59,12 +43,9 @@ import org.bremersee.xml.model7b.SportBikes;
 import org.bremersee.xml.model7c.BikeSchmied;
 import org.bremersee.xml.model7c.Carrier;
 import org.bremersee.xml.model7c.Fastcycle;
-import org.bremersee.xml.provider.ExampleJaxbContextDataProvider;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.util.StringUtils;
-import org.xml.sax.SAXParseException;
+import org.w3c.dom.Element;
 
 /**
  * The jaxb context builder test.
@@ -72,6 +53,60 @@ import org.xml.sax.SAXParseException;
  * @author Christian Bremer
  */
 class JaxbContextBuilderTest {
+
+  /**
+   * The xml we want to write and read.
+   *
+   * <pre>
+   * <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+   * <ns2:MountainBike xsi:schemaLocation="http://bremersee.org/xmlschemas/common-xml-test-model-7a http://bremersee.github.io/xmlschemas/common-xml-test-model-7a.xsd http://bremersee.org/xmlschemas/common-xml-test-model-7b http://bremersee.github.io/xmlschemas/common-xml-test-model-7b.xsd" xmlns="http://bremersee.org/xmlschemas/common-xml-test-model-7a" xmlns:ns2="http://bremersee.org/xmlschemas/common-xml-test-model-7b" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+   *     <producer xsi:type="ns2:sportBikesType">
+   *         <name>Sport Bikes</name>
+   *         <ns2:Reseller xsi:type="ns2:dirtBikeResellerType">
+   *             <name>Dirt Bikes</name>
+   *         </ns2:Reseller>
+   *         <ns2:Reseller xsi:type="ns2:racingResellerType">
+   *             <name>Racing Fun</name>
+   *         </ns2:Reseller>
+   *     </producer>
+   *     <color>Red</color>
+   *     <extraParts>
+   *         <ns2:Carrier xsi:schemaLocation="http://bremersee.org/xmlschemas/common-xml-test-model-7a http://bremersee.github.io/xmlschemas/common-xml-test-model-7a.xsd http://bremersee.org/xmlschemas/common-xml-test-model-7c http://bremersee.github.io/xmlschemas/common-xml-test-model-7c.xsd" xmlns:ns2="http://bremersee.org/xmlschemas/common-xml-test-model-7c">
+   *             <partNumber>123456789</partNumber>
+   *             <ns2:capacity>15 kg</ns2:capacity>
+   *         </ns2:Carrier>
+   *     </extraParts>
+   *     <ns2:seatHeight>60</ns2:seatHeight>
+   * </ns2:MountainBike>
+   * </pre>
+   */
+  private static final String XML1 = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+      + "<ns2:MountainBike "
+      + "xsi:schemaLocation=\"http://bremersee.org/xmlschemas/common-xml-test-model-7a "
+      + "http://bremersee.github.io/xmlschemas/common-xml-test-model-7a.xsd "
+      + "http://bremersee.org/xmlschemas/common-xml-test-model-7b "
+      + "http://bremersee.github.io/xmlschemas/common-xml-test-model-7b.xsd\" "
+      + "xmlns=\"http://bremersee.org/xmlschemas/common-xml-test-model-7a\" "
+      + "xmlns:ns2=\"http://bremersee.org/xmlschemas/common-xml-test-model-7b\" "
+      + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">"
+      + "<producer xsi:type=\"ns2:sportBikesType\">"
+      + "<name>Sport Bikes</name>"
+      + "<ns2:Reseller xsi:type=\"ns2:dirtBikeResellerType\">"
+      + "<name>Dirt Bikes</name></ns2:Reseller>"
+      + "<ns2:Reseller xsi:type=\"ns2:racingResellerType\">"
+      + "<name>Racing Fun</name></ns2:Reseller>"
+      + "</producer><color>Red</color><extraParts>"
+      + "<ns2:Carrier "
+      + "xsi:schemaLocation=\"http://bremersee.org/xmlschemas/common-xml-test-model-7a "
+      + "http://bremersee.github.io/xmlschemas/common-xml-test-model-7a.xsd "
+      + "http://bremersee.org/xmlschemas/common-xml-test-model-7c "
+      + "http://bremersee.github.io/xmlschemas/common-xml-test-model-7c.xsd\" "
+      + "xmlns:ns2=\"http://bremersee.org/xmlschemas/common-xml-test-model-7c\">"
+      + "<partNumber>123456789</partNumber>"
+      + "<ns2:capacity>15 kg</ns2:capacity>"
+      + "</ns2:Carrier>"
+      + "</extraParts>"
+      + "<ns2:seatHeight>60</ns2:seatHeight></ns2:MountainBike>";
 
   private static JaxbContextBuilder builder;
 
@@ -91,32 +126,34 @@ class JaxbContextBuilderTest {
     builder = JaxbContextBuilder
         .builder()
         .withContextClassLoader(classLoader)
-        .withFormattedOutput(true)
+        .withDependenciesResolver(new JaxbDependenciesResolverImpl())
+        .withXmlAdapters(Arrays.asList(new OffsetDateTimeXmlAdapter(), new DurationXmlAdapter()))
+        .withFormattedOutput(false)
+        .withSchemaMode(SchemaMode.ALWAYS)
         .addAll(Arrays.asList(
             new JaxbContextData(ObjectFactory.class.getPackage()),
             new JaxbContextData(org.bremersee.xml.model7b.ObjectFactory.class.getPackage()),
             new JaxbContextData(org.bremersee.xml.model7c.ObjectFactory.class.getPackage())));
   }
 
+  /**
+   * Write and read with context path.
+   *
+   * @throws Exception the exception
+   */
   @Test
-  void createSchema() throws Exception {
-    BufferSchemaOutputResolver resolver = new BufferSchemaOutputResolver();
-    builder.buildJaxbContext().generateSchema(resolver);
-    System.out.println(resolver);
-  }
-
-  @Test
-  void testSchema() throws Exception {
+  void writeAndReadWithContextPath() throws Exception {
 
     BikeSchmied producer = new BikeSchmied();
     producer.setAddress("Somewhere");
-    producer.setName("Schmidt");
+    producer.setName("Smith");
 
     Carrier carrier = new Carrier();
     carrier.setPartNumber("123456789");
     carrier.setCapacity("15 kg");
-
-    Marshaller m = builder.copy().buildMarshaller(carrier);
+    Element carrierElement = XmlDocumentBuilder.builder()
+        .buildDocument(carrier, builder.copy().buildMarshaller(carrier))
+        .getDocumentElement();
 
     DirtBikeReseller r0 = new DirtBikeReseller();
     r0.setName("Dirt Bikes");
@@ -130,23 +167,116 @@ class JaxbContextBuilderTest {
     sportBikes.setName("Sport Bikes");
     sportBikes.getChain().add(r0);
     sportBikes.getChain().add(r1);
-    //sportBikes.getChain().add(r2);
 
     MountainBike model = new MountainBike();
     model.setSeatHeight(60);
     model.setColor("Red");
     model.setProducer(sportBikes);
-    model.getExtraParts().add(XmlDocumentBuilder.builder().buildDocument(carrier, m).getDocumentElement());
+    model.getExtraParts().add(carrierElement);
 
     StringWriter sw = new StringWriter();
     builder.buildMarshaller(model).marshal(model, sw);
-    //builder.buildJaxbContext(model).createMarshaller().marshal(model, sw);
-    System.out.println(sw);
 
-    //sw = new StringWriter();
-    //JAXBContext ctx = JAXBContext.newInstance("org.bremersee.xml.model7a:org.bremersee.xml.model7b:org.bremersee.xml.model7c");
-    //Marshaller m = ctx.createMarshaller();
-    //m.marshal(model, sw);
+    String actualXml = sw.toString();
+    assertEquals(XML1, actualXml);
+
+    MountainBike actualModel = (MountainBike) builder.buildUnmarshaller(MountainBike.class)
+        .unmarshal(new StringReader(XML1));
+
+    assertNotNull(actualModel);
+    assertEquals(model.getSeatHeight(), actualModel.getSeatHeight());
+    assertEquals(model.getColor(), actualModel.getColor());
+    assertEquals(model.getProducer(), actualModel.getProducer());
+
+    assertNotNull(actualModel.getExtraParts());
+    assertFalse(actualModel.getExtraParts().isEmpty());
+    Element actualCarrierElement = actualModel.getExtraParts().get(0);
+    assertNotNull(actualCarrierElement);
+    Carrier actualCarrier = (Carrier) builder.buildUnmarshaller().unmarshal(actualCarrierElement);
+    assertNotNull(actualCarrier);
+    assertEquals(carrier, actualCarrier);
+  }
+
+  /**
+   * Write and read with classes.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  void writeAndReadWithClasses() throws Exception {
+    StartEnd startEnd = new StartEnd();
+    startEnd.setStart(OffsetDateTime.now());
+    startEnd.setStart(OffsetDateTime.now().plusDays(30L));
+
+    Address model = new Address();
+    model.setStreet("Casparstreet");
+    model.setStreetNumber("1234");
+    model.setStartEnd(startEnd);
+
+    assertTrue(builder.canMarshal(Address.class));
+    assertTrue(builder.canUnmarshal(Address.class));
+
+    StringWriter sw = new StringWriter();
+    builder.buildMarshaller(new Class[]{Address.class, Company.class}).marshal(model, sw);
+    String xml = sw.toString();
+
+    Address actual = (Address) builder.buildUnmarshaller(new Class[]{Address.class, Company.class})
+        .unmarshal(new StringReader(xml));
+    assertEquals(model, actual);
+  }
+
+  /**
+   * Write and read with class.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  void writeAndReadWithClass() throws Exception {
+    StartEnd startEnd = new StartEnd();
+    startEnd.setStart(OffsetDateTime.now());
+    startEnd.setStart(OffsetDateTime.now().plusDays(30L));
+
+    Address model = new Address();
+    model.setStreet("Casparstreet");
+    model.setStreetNumber("1234");
+    model.setStartEnd(startEnd);
+
+    assertTrue(builder.canMarshal(Address.class));
+    assertTrue(builder.canUnmarshal(Address.class));
+
+    StringWriter sw = new StringWriter();
+    builder.buildMarshaller(model).marshal(model, sw);
+    String xml = sw.toString();
+
+    Address actual = (Address) builder.buildUnmarshaller(Address.class)
+        .unmarshal(new StringReader(xml));
+    assertEquals(model, actual);
+
+    JaxbContextBuilder jaxbContextBuilder = builder.copy()
+        .withXmlAdapters(null)
+        .withDependenciesResolver(null);
+    jaxbContextBuilder.buildMarshaller(model).marshal(model, new StringWriter());
+  }
+
+  /**
+   * Can write and read with class.
+   */
+  @Test
+  void canWriteAndReadWithClass() {
+    JaxbContextBuilder jaxbContextBuilder = builder.copy()
+        .withCanMarshal(JaxbContextBuilder.CAN_MARSHAL_ONLY_PREDEFINED_DATA)
+        .withCanUnmarshal(JaxbContextBuilder.CAN_UNMARSHAL_ONLY_PREDEFINED_DATA)
+        .withAttachmentMarshaller(mock(AttachmentMarshaller.class))
+        .withAttachmentUnmarshaller(mock(AttachmentUnmarshaller.class))
+        .withValidationEventHandler(mock(ValidationEventHandler.class));
+
+    assertFalse(jaxbContextBuilder.canMarshal(Address.class));
+    assertFalse(jaxbContextBuilder.canUnmarshal(Address.class));
+
+    assertTrue(jaxbContextBuilder.canMarshal(MountainBike.class));
+    assertTrue(jaxbContextBuilder.canUnmarshal(MountainBike.class));
+
+    assertNotNull(jaxbContextBuilder.buildSchema());
   }
 
 //  /**

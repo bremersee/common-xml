@@ -37,8 +37,8 @@ pipeline {
     stage('Deploy') {
       when {
         anyOf {
-          branch '1.1.develop'
-          branch '1.1.master'
+          branch 'develop'
+          branch 'master'
         }
       }
       steps {
@@ -48,8 +48,8 @@ pipeline {
     stage('Site') {
       when {
         anyOf {
-          branch '1.1.develop'
-          branch '1.1.master'
+          branch 'develop'
+          branch 'master'
         }
       }
       steps {

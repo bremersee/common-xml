@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import javax.xml.bind.annotation.XmlType;
 import org.w3c.dom.Element;
 
 /**
+ * The bicycle.
+ *
  * @author Christian Bremer
  */
 @XmlType(name = "bicycleType")
@@ -43,30 +45,65 @@ public abstract class Bicycle {
   @XmlAnyElement
   private List<Element> extraParts;
 
+  /**
+   * Gets producer.
+   *
+   * @return the producer
+   */
   public Producer getProducer() {
     return producer;
   }
 
+  /**
+   * Sets producer.
+   *
+   * @param producer the producer
+   */
   public void setProducer(Producer producer) {
     this.producer = producer;
   }
 
+  /**
+   * Gets gear.
+   *
+   * @return the gear
+   */
   public Integer getGear() {
     return gear;
   }
 
+  /**
+   * Sets gear.
+   *
+   * @param gear the gear
+   */
   public void setGear(Integer gear) {
     this.gear = gear;
   }
 
+  /**
+   * Gets color.
+   *
+   * @return the color
+   */
   public String getColor() {
     return color;
   }
 
+  /**
+   * Sets color.
+   *
+   * @param color the color
+   */
   public void setColor(String color) {
     this.color = color;
   }
 
+  /**
+   * Gets extra parts.
+   *
+   * @return the extra parts
+   */
   public List<Element> getExtraParts() {
     if (extraParts == null) {
       extraParts = new ArrayList<>();

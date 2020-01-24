@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -235,9 +235,13 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @Override
   public Unmarshaller buildUnmarshaller(final Object value) {
-    JaxbContextWrapper jaxbContext;
-    if (value instanceof Class<?>[] && areAllClassesAreSupported((Class<?>[]) value)) {
-      jaxbContext = computeJaxbContext(null);
+    final JaxbContextWrapper jaxbContext;
+    if (value instanceof Class<?>[]) {
+      if (areAllClassesAreSupported((Class<?>[]) value)) {
+        jaxbContext = computeJaxbContext(null);
+      } else {
+        jaxbContext = computeJaxbContext(value);
+      }
     } else if (value instanceof Class<?>) {
       return buildUnmarshaller(new Class[]{(Class<?>) value});
     } else if (value == null || areAllClassesAreSupported(new Class[]{value.getClass()})) {
@@ -250,7 +254,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
         || mode == SchemaMode.UNMARSHAL
         || (mode == SchemaMode.EXTERNAL_XSD
         && StringUtils.hasText(jaxbContext.getDetails().getSchemaLocation()))) {
-      jaxbContext = jaxbContext.withSchema(computeSchema(jaxbContext));
+      jaxbContext.setSchema(computeSchema(jaxbContext));
     }
     try {
       return jaxbContext.createUnmarshaller();
@@ -262,13 +266,13 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @Override
   public Marshaller buildMarshaller(final Object value) {
-    JaxbContextWrapper jaxbContext = computeJaxbContext(value);
+    final JaxbContextWrapper jaxbContext = computeJaxbContext(value);
     final SchemaMode mode = jaxbContext.getSchemaMode();
     if (mode == SchemaMode.ALWAYS
         || mode == SchemaMode.MARSHAL
         || (mode == SchemaMode.EXTERNAL_XSD
         && StringUtils.hasText(jaxbContext.getDetails().getSchemaLocation()))) {
-      jaxbContext = jaxbContext.withSchema(computeSchema(jaxbContext));
+      jaxbContext.setSchema(computeSchema(jaxbContext));
     }
     try {
       return jaxbContext.createMarshaller();
@@ -286,10 +290,9 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
         || mode == SchemaMode.UNMARSHAL
         || (mode == SchemaMode.EXTERNAL_XSD
         && StringUtils.hasText(wrapper.getDetails().getSchemaLocation()))) {
-      return wrapper.withSchema(computeSchema(wrapper));
-    } else {
-      return wrapper;
+      wrapper.setSchema(computeSchema(wrapper));
     }
+    return wrapper;
   }
 
   @Override
@@ -345,13 +348,14 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
         throw new JaxbRuntimeException(e);
       }
     });
-    return new JaxbContextWrapper(jaxbContext, details)
-        .withAttachmentMarshaller(attachmentMarshaller)
-        .withAttachmentUnmarshaller(attachmentUnmarshaller)
-        .withFormattedOutput(formattedOutput)
-        .withValidationEventHandler(validationEventHandler)
-        .withXmlAdapters(xmlAdapters)
-        .withSchemaMode(schemaMode);
+    final JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext, details);
+    wrapper.setAttachmentMarshaller(attachmentMarshaller);
+    wrapper.setAttachmentUnmarshaller(attachmentUnmarshaller);
+    wrapper.setFormattedOutput(formattedOutput);
+    wrapper.setValidationEventHandler(validationEventHandler);
+    wrapper.setXmlAdapters(xmlAdapters);
+    wrapper.setSchemaMode(schemaMode);
+    return wrapper;
   }
 
   private Schema computeSchema(final Object value) {

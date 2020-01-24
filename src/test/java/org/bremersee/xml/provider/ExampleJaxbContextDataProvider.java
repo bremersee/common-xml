@@ -36,9 +36,7 @@ public class ExampleJaxbContextDataProvider implements JaxbContextDataProvider {
             org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
             "http://bremersee.github.io/xmlschemas/common-xml-test-model-2.xsd"),
         new JaxbContextData(
-            org.bremersee.xml.model3.ObjectFactory.class.getPackage().getName(),
-            null,
-            null),
+            org.bremersee.xml.model3.ObjectFactory.class.getPackage()),
         new JaxbContextData(org.bremersee.xml.model4.ObjectFactory.class.getPackage())
     );
   }

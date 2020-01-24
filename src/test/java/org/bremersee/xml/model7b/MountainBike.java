@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import javax.xml.bind.annotation.XmlType;
 import org.bremersee.xml.model7a.Bicycle;
 
 /**
+ * The mountain bike.
+ *
  * @author Christian Bremer
  */
 @XmlRootElement(name = "MountainBike")
@@ -33,10 +35,20 @@ public class MountainBike extends Bicycle {
 
   private Integer seatHeight;
 
+  /**
+   * Gets seat height.
+   *
+   * @return the seat height
+   */
   public Integer getSeatHeight() {
     return seatHeight;
   }
 
+  /**
+   * Sets seat height.
+   *
+   * @param seatHeight the seat height
+   */
   public void setSeatHeight(Integer seatHeight) {
     this.seatHeight = seatHeight;
   }
@@ -60,4 +72,5 @@ public class MountainBike extends Bicycle {
   public int hashCode() {
     return Objects.hash(super.hashCode(), seatHeight);
   }
+
 }

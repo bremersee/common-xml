@@ -19,6 +19,7 @@ package org.bremersee.xml.model4;
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import org.bremersee.xml.model5.StartEnd;
 
 /**
  * The type Address.
@@ -33,6 +34,8 @@ public class Address {
   private String street;
 
   private String streetNumber;
+
+  private StartEnd startEnd;
 
   /**
    * Gets street.
@@ -70,11 +73,20 @@ public class Address {
     this.streetNumber = streetNumber;
   }
 
+  public StartEnd getStartEnd() {
+    return startEnd;
+  }
+
+  public void setStartEnd(StartEnd startEnd) {
+    this.startEnd = startEnd;
+  }
+
   @Override
   public String toString() {
     return "Address{"
         + "street='" + street + '\''
         + ", streetNumber='" + streetNumber + '\''
+        + ", startEnd='" + startEnd + '\''
         + '}';
   }
 
@@ -88,7 +100,8 @@ public class Address {
     }
     Address address = (Address) o;
     return Objects.equals(street, address.street)
-        && Objects.equals(streetNumber, address.streetNumber);
+        && Objects.equals(streetNumber, address.streetNumber)
+        && Objects.equals(startEnd, address.startEnd);
   }
 
   @Override

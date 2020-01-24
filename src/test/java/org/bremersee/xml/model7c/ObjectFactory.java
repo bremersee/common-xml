@@ -27,14 +27,29 @@ import javax.xml.bind.annotation.XmlRegistry;
 @SuppressWarnings("unused")
 public class ObjectFactory {
 
+  /**
+   * Create bike schmied.
+   *
+   * @return the bike schmied
+   */
   public BikeSchmied createBikeSchmied() {
     return new BikeSchmied();
   }
 
+  /**
+   * Create fastcycle.
+   *
+   * @return the fastcycle
+   */
   public Fastcycle createFastcycle() {
     return new Fastcycle();
   }
 
+  /**
+   * Create carrier.
+   *
+   * @return the carrier
+   */
   public Carrier createCarrier() {
     return new Carrier();
   }

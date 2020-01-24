@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,32 @@ import javax.xml.bind.annotation.XmlType;
 import org.bremersee.xml.model7a.Bicycle;
 
 /**
+ * The racing bike.
+ *
  * @author Christian Bremer
  */
 @XmlRootElement(name = "RacingBike")
 @XmlType(name = "racingBikeType")
 @XmlAccessorType(XmlAccessType.FIELD)
+@SuppressWarnings("unused")
 public class RacingBike extends Bicycle {
 
   private Integer frameSize;
 
+  /**
+   * Gets frame size.
+   *
+   * @return the frame size
+   */
   public Integer getFrameSize() {
     return frameSize;
   }
 
+  /**
+   * Sets frame size.
+   *
+   * @param frameSize the frame size
+   */
   public void setFrameSize(Integer frameSize) {
     this.frameSize = frameSize;
   }

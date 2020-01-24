@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018-2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,21 +43,21 @@ public interface JaxbContextBuilder {
   JaxbDependenciesResolver DEFAULT_DEPENDENCIES_RESOLVER = new JaxbDependenciesResolverImpl();
 
   /**
-   * The Can marshal all.
+   * The can marshal all function.
    */
   BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_MARSHAL_ALL
       = (aClass, predefinedData) -> aClass != null
       && aClass.isAnnotationPresent(XmlRootElement.class);
 
   /**
-   * The Can unmarshal all.
+   * The can unmarshal all function.
    */
   BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_UNMARSHAL_ALL
       = (aClass, predefinedData) -> aClass != null
       && aClass.isAnnotationPresent(XmlRootElement.class);
 
   /**
-   * The Can marshal only predefined data.
+   * The can marshal only predefined data function.
    */
   BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_MARSHAL_ONLY_PREDEFINED_DATA
       = (aClass, predefinedData) -> aClass != null
@@ -65,7 +65,7 @@ public interface JaxbContextBuilder {
       && predefinedData.containsKey(aClass.getPackage().getName());
 
   /**
-   * The Can unmarshal only predefined data.
+   * The can unmarshal only predefined data function.
    */
   BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_UNMARSHAL_ONLY_PREDEFINED_DATA
       = (aClass, predefinedData) -> aClass != null

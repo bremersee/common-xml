@@ -18,6 +18,7 @@ package org.bremersee.xml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,9 +33,13 @@ import javax.xml.validation.Schema;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.util.FileCopyUtils;
+import org.w3c.dom.ls.LSResourceResolver;
+import org.xml.sax.ErrorHandler;
 
 /**
  * The schema builder test.
+ *
+ * @author Christian Bremer
  */
 class SchemaBuilderTest {
 
@@ -58,8 +63,8 @@ class SchemaBuilderTest {
         .withFactory(null)
         .withClassLoader(classLoader)
         .withResourceLoader(new DefaultResourceLoader())
-        .withResourceResolver(new TestResourceResolver())
-        .withErrorHandler(new TestErrorHandler())
+        .withResourceResolver(mock(LSResourceResolver.class))
+        .withErrorHandler(mock(ErrorHandler.class))
         .withFeature(XMLConstants.FEATURE_SECURE_PROCESSING, false)
         .withProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "false");
     assertNotNull(builder);
