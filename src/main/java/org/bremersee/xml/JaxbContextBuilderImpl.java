@@ -40,14 +40,14 @@ import javax.xml.validation.Schema;
 import org.springframework.util.StringUtils;
 
 /**
- * The type Jaxb context builder.
+ * The jaxb context builder.
  *
  * @author Christian Bremer
  */
 class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   /**
-   * Key is package name, value is a data set.
+   * Key is package name, value is jaxb data set.
    */
   private final Map<String, JaxbContextData> jaxbContextDataMap = new ConcurrentHashMap<>();
 

@@ -18,14 +18,17 @@ package org.bremersee.xml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -146,6 +149,62 @@ class SchemaBuilderTest {
             "http://bremersee.github.io/xmlschemas/common-xml-test-model-2.xsd"));
     assertNotNull(sources);
     assertEquals(2, sources.size());
+  }
+
+  /**
+   * Create schema factory wth illegal property.
+   */
+  @Test
+  void createSchemaFactoryWthIllegalProperty() {
+    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
+        .withProperty("foo", "bar")
+        .buildSchema());
+  }
+
+  /**
+   * Fetch schema sources that does not exist.
+   */
+  @Test
+  void fetchSchemaSourcesThatDoesNotExist() {
+    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
+        .fetchSchemaSources("classpath:/nothing.xsd"));
+  }
+
+  /**
+   * Build schema with illegal url.
+   */
+  @Test
+  void buildSchemaWithIllegalUrl() {
+    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
+        .buildSchema(new URL("http://localhost/" + UUID.randomUUID() + ".xsd")));
+  }
+
+  /**
+   * Build schema with illegal file.
+   *
+   * @throws IOException the io exception
+   */
+  @Test
+  void buildSchemaWithIllegalFile() throws IOException {
+    final File file = File.createTempFile("junit", ".test",
+        new File(System.getProperty("java.io.tmpdir")));
+    file.deleteOnExit();
+
+    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
+        .buildSchema(file));
+
+    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
+        .buildSchema(new StreamSource(file)));
+  }
+
+  /**
+   * Build schema with null.
+   */
+  @Test
+  void buildSchemaWithNull() {
+    assertNotNull(SchemaBuilder.builder().buildSchema((URL) null));
+    assertNotNull(SchemaBuilder.builder().buildSchema((File) null));
+    assertNotNull(SchemaBuilder.builder().buildSchema((Source) null));
   }
 
 }
