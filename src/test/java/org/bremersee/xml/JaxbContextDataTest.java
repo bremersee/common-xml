@@ -75,12 +75,12 @@ class JaxbContextDataTest {
   @Test
   void getPackageName() {
     JaxbContextData model = new JaxbContextData(
-        "org.bremersee.xml.model1",
-        "http://bremersee.org/xmlschemas/common-xml-test-model-1",
-        "http://bremersee.github.io/xmlschemas/common-xml-test-model-1.xsd");
-    assertEquals("org.bremersee.xml.model1", model.getPackageName());
+        "org.bremersee.xml",
+        "http://namespace",
+        "http://example.org/namespace.xsd");
+    assertEquals("org.bremersee.xml", model.getPackageName());
 
-    model = new JaxbContextData("org.bremersee.xml.model2");
-    assertEquals("org.bremersee.xml.model2", model.getPackageName());
+    model = new JaxbContextData("org.bremersee.xml");
+    assertEquals("org.bremersee.xml", model.getPackageName());
   }
 }

@@ -40,7 +40,7 @@ public class JaxbContextData implements Serializable {
    *
    * @param packageName the package name
    */
-  JaxbContextData(final String packageName) {
+  public JaxbContextData(final String packageName) {
     this(Package.getPackage(packageName), null, null);
   }
 
@@ -51,7 +51,7 @@ public class JaxbContextData implements Serializable {
    * @param nameSpace the name space (can be empty or {@code null})
    * @param schemaLocation the schema location (can be {@code null})
    */
-  JaxbContextData(
+  public JaxbContextData(
       final String packageName,
       final String nameSpace,
       final String schemaLocation) {
