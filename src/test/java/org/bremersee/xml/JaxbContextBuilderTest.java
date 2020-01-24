@@ -27,6 +27,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.security.PrivilegedAction;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.attachment.AttachmentMarshaller;
@@ -208,8 +209,10 @@ class JaxbContextBuilderTest {
   @Test
   void writeAndReadWithClasses() throws Exception {
     StartEnd startEnd = new StartEnd();
-    startEnd.setStart(OffsetDateTime.now());
-    startEnd.setStart(OffsetDateTime.now().plusDays(30L));
+    startEnd.setStart(OffsetDateTime
+        .parse("2000-01-16T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+    startEnd.setStart(OffsetDateTime
+        .parse("2000-01-20T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 
     Address model = new Address();
     model.setStreet("Casparstreet");
@@ -236,8 +239,10 @@ class JaxbContextBuilderTest {
   @Test
   void writeAndReadWithClass() throws Exception {
     StartEnd startEnd = new StartEnd();
-    startEnd.setStart(OffsetDateTime.now());
-    startEnd.setStart(OffsetDateTime.now().plusDays(30L));
+    startEnd.setStart(OffsetDateTime
+        .parse("2000-01-16T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+    startEnd.setStart(OffsetDateTime
+        .parse("2000-01-20T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 
     Address model = new Address();
     model.setStreet("Casparstreet");

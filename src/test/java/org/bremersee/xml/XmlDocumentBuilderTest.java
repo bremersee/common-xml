@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import com.sun.org.apache.xerces.internal.jaxp.JAXPConstants;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -189,7 +188,6 @@ class XmlDocumentBuilderTest {
   void buildDocumentBuilder() {
 
     DocumentBuilder builder = XmlDocumentBuilder.builder()
-        .configureFactoryAttribute(JAXPConstants.JAXP_SCHEMA_LANGUAGE, JAXPConstants.W3C_XML_SCHEMA)
         .configureFactoryFeature(XMLConstants.FEATURE_SECURE_PROCESSING, false)
         .configureFactorySchema(null)
         .configureEntityResolver(mock(EntityResolver.class))

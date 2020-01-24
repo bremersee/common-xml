@@ -123,4 +123,13 @@ public class StartEnd {
   public int hashCode() {
     return Objects.hash(start, end, duration);
   }
+
+  @Override
+  public String toString() {
+    return "StartEnd{"
+        + "start=" + start
+        + ", end=" + end
+        + ", duration=" + duration
+        + '}';
+  }
 }
