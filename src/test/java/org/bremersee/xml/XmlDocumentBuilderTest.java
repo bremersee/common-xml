@@ -44,7 +44,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import org.bremersee.xml.model1.Person;
 import org.bremersee.xml.model3.Company;
 import org.bremersee.xml.model3.ObjectFactory;

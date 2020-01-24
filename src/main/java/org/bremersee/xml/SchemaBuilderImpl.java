@@ -211,7 +211,7 @@ class SchemaBuilderImpl implements SchemaBuilder {
     final Set<String> locationSet = new LinkedHashSet<>(locations);
     final List<Source> sources = new ArrayList<>(locationSet.size());
     for (final String location : locationSet) {
-      try (final InputStream is = resourceLoader.getResource(location).getInputStream()) {
+      try (InputStream is = resourceLoader.getResource(location).getInputStream()) {
         final byte[] bytes = FileCopyUtils.copyToByteArray(is);
         sources.add(new StreamSource(new ByteArrayInputStream(bytes)));
       } catch (IOException e) {
