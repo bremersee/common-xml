@@ -18,6 +18,7 @@ package org.bremersee.xml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -26,11 +27,15 @@ import com.sun.org.apache.xerces.internal.jaxp.JAXPConstants;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.UUID;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.UnmarshalException;
@@ -39,6 +44,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import org.bremersee.xml.model1.Person;
 import org.bremersee.xml.model3.Company;
 import org.bremersee.xml.model3.ObjectFactory;
@@ -249,6 +255,15 @@ class XmlDocumentBuilderTest {
   }
 
   /**
+   * Build document from illegal uri.
+   */
+  @Test
+  void buildDocumentFromIllegalUri() {
+    assertThrows(XmlRuntimeException.class, () -> XmlDocumentBuilder.builder()
+        .buildDocument("http://localhost/" + UUID.randomUUID() + ".xml"));
+  }
+
+  /**
    * Build document from file.
    */
   @Test
@@ -281,6 +296,35 @@ class XmlDocumentBuilderTest {
   }
 
   /**
+   * Build document from illegal file and expect exception.
+   *
+   * @throws IOException the io exception
+   */
+  @Test
+  void buildDocumentFromIllegalFileAndExpectException() throws IOException {
+    final File file = File.createTempFile("junit", ".test",
+        new File(System.getProperty("java.io.tmpdir")));
+    file.deleteOnExit();
+
+    assertThrows(XmlRuntimeException.class, () -> XmlDocumentBuilder.builder().buildDocument(file));
+
+    try (InputStream in = new FileInputStream(file)) {
+      assertThrows(XmlRuntimeException.class, () -> XmlDocumentBuilder.builder()
+          .buildDocument(in));
+    }
+
+    try (InputStream in = new FileInputStream(file)) {
+      assertThrows(XmlRuntimeException.class, () -> XmlDocumentBuilder.builder()
+          .buildDocument(in, "system-id"));
+    }
+
+    try (InputStream in = new FileInputStream(file)) {
+      assertThrows(XmlRuntimeException.class, () -> XmlDocumentBuilder.builder()
+          .buildDocument(new InputSource(in)));
+    }
+  }
+
+  /**
    * Build document with marshaller.
    */
   @Test
@@ -296,6 +340,12 @@ class XmlDocumentBuilderTest {
     Document document = XmlDocumentBuilder.builder()
         .buildDocument(person, jaxbContextBuilder.buildMarshaller());
     assertNotNull(document);
+
+    assertNull(XmlDocumentBuilder.builder()
+        .buildDocument(null, jaxbContextBuilder.buildMarshaller()));
+
+    assertThrows(JaxbRuntimeException.class, () -> XmlDocumentBuilder.builder()
+        .buildDocument("", jaxbContextBuilder.buildMarshaller()));
   }
 
   /**
@@ -320,6 +370,12 @@ class XmlDocumentBuilderTest {
     Document document = XmlDocumentBuilder.builder()
         .buildDocument(person, jaxbContextBuilder.buildJaxbContext());
     assertNotNull(document);
+
+    assertNull(XmlDocumentBuilder.builder()
+        .buildDocument(null, jaxbContextBuilder.buildJaxbContext()));
+
+    assertThrows(JaxbRuntimeException.class, () -> XmlDocumentBuilder.builder()
+        .buildDocument("", jaxbContextBuilder.buildJaxbContext()));
   }
 
 }
