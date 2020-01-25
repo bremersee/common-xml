@@ -137,7 +137,8 @@ class JaxbContextBuilderTest {
         .addAll(Arrays.asList(
             new JaxbContextData(ObjectFactory.class.getPackage()),
             new JaxbContextData(org.bremersee.xml.model7b.ObjectFactory.class.getPackage()),
-            new JaxbContextData(org.bremersee.xml.model7c.ObjectFactory.class.getPackage())));
+            new JaxbContextData(org.bremersee.xml.model7c.ObjectFactory.class.getPackage())))
+        .initJaxbContext();
   }
 
   /**

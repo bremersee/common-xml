@@ -277,6 +277,11 @@ public interface JaxbContextBuilder {
    */
   boolean canMarshal(Class<?> clazz);
 
+  /**
+   * Build unmarshaller unmarshaller.
+   *
+   * @return the unmarshaller
+   */
   default Unmarshaller buildUnmarshaller() {
     return buildUnmarshaller(null);
   }
@@ -289,6 +294,11 @@ public interface JaxbContextBuilder {
    */
   Unmarshaller buildUnmarshaller(Object value);
 
+  /**
+   * Build marshaller marshaller.
+   *
+   * @return the marshaller
+   */
   default Marshaller buildMarshaller() {
     return buildMarshaller(null);
   }
@@ -301,6 +311,18 @@ public interface JaxbContextBuilder {
    */
   Marshaller buildMarshaller(Object value);
 
+  /**
+   * Init jaxb context.
+   *
+   * @return the jaxb context builder
+   */
+  JaxbContextBuilder initJaxbContext();
+
+  /**
+   * Build jaxb context jaxb context wrapper.
+   *
+   * @return the jaxb context wrapper
+   */
   default JaxbContextWrapper buildJaxbContext() {
     return buildJaxbContext(null);
   }
@@ -313,6 +335,11 @@ public interface JaxbContextBuilder {
    */
   JaxbContextWrapper buildJaxbContext(Object value);
 
+  /**
+   * Build schema schema.
+   *
+   * @return the schema
+   */
   default Schema buildSchema() {
     return buildSchema(null);
   }

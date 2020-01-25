@@ -282,6 +282,14 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
   }
 
   @Override
+  public JaxbContextBuilder initJaxbContext() {
+    if (!jaxbContextDataMap.isEmpty()) {
+      buildJaxbContext(null);
+    }
+    return this;
+  }
+
+  @Override
   public JaxbContextWrapper buildJaxbContext(final Object value) {
     final JaxbContextWrapper wrapper = computeJaxbContext(value);
     final SchemaMode mode = wrapper.getSchemaMode();
