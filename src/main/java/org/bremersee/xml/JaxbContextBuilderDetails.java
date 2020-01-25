@@ -24,16 +24,38 @@ import java.util.Set;
 import org.springframework.util.StringUtils;
 
 /**
+ * The jaxb context builder details.
+ *
  * @author Christian Bremer
  */
 public interface JaxbContextBuilderDetails extends Serializable {
 
+  /**
+   * Is build with context path.
+   *
+   * @return the boolean
+   */
   boolean isBuildWithContextPath();
 
+  /**
+   * Get classes.
+   *
+   * @return the classes
+   */
   Class<?>[] getClasses();
 
+  /**
+   * Gets context path.
+   *
+   * @return the context path
+   */
   String getContextPath();
 
+  /**
+   * Gets schema location.
+   *
+   * @return the schema location
+   */
   String getSchemaLocation();
 
   /**

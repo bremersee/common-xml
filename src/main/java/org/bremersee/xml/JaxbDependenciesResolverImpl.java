@@ -26,10 +26,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -85,7 +85,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
 
   @Override
   public Class<?>[] resolveClasses(final Object value) {
-    final Set<ScanResult> scanResults = ConcurrentHashMap.newKeySet();
+    final Set<ScanResult> scanResults = new HashSet<>();
     if (value instanceof Class<?>[]) {
       for (Class<?> clazz : ((Class<?>[]) value)) {
         resolveClasses(clazz, scanResults);
@@ -128,12 +128,9 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
         value.getClass(),
         new XmlMethodCallback(value, scanResults),
         new XmlMethodFilter(value.getClass()));
-    final XmlSeeAlso seeAlso = AnnotationUtils.findAnnotation(value.getClass(), XmlSeeAlso.class);
-    if (seeAlso != null) {
-      for (Class<?> clazz : seeAlso.value()) {
-        resolveClasses(clazz, scanResults);
-      }
-    }
+    Optional.ofNullable(AnnotationUtils.findAnnotation(value.getClass(), XmlSeeAlso.class))
+        .ifPresent(seeAlso -> Arrays.stream(seeAlso.value())
+            .forEach(seeAlsoClass -> resolveClasses(seeAlsoClass, scanResults)));
     return true;
   }
 
@@ -150,16 +147,16 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
         clazz,
         new XmlMethodCallback(null, scanResults),
         new XmlMethodFilter(clazz));
-    final XmlSeeAlso seeAlso = AnnotationUtils.findAnnotation(clazz, XmlSeeAlso.class);
-    if (seeAlso != null) {
-      for (Class<?> c : seeAlso.value()) {
-        resolveClasses(c, scanResults);
-      }
-    }
+    Optional.ofNullable(AnnotationUtils.findAnnotation(clazz, XmlSeeAlso.class))
+        .ifPresent(seeAlso -> Arrays.stream(seeAlso.value())
+            .forEach(seeAlsoClass -> resolveClasses(seeAlsoClass, scanResults)));
   }
 
-  private void resolveSuperClasses(final Class<?> clazz, final Object source,
+  private void resolveSuperClasses(
+      final Class<?> clazz,
+      final Object source,
       final Set<ScanResult> scanResults) {
+
     if (!stopResolving(clazz, source, scanResults)) {
       scanResults.add(new ScanResult(clazz, source));
       resolveSuperClasses(clazz.getSuperclass(), null, scanResults);
@@ -200,7 +197,8 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
         .ifPresent(type -> resolveClasses(type, scanResults));
   }
 
-  private void processXmlElementRef(final XmlElementRef annotation, final Set<ScanResult> scanResults) {
+  private void processXmlElementRef(final XmlElementRef annotation,
+      final Set<ScanResult> scanResults) {
     Optional.ofNullable(annotation)
         .map(XmlElementRef::type)
         .filter(type -> !type.equals(XmlElementRef.DEFAULT.class))

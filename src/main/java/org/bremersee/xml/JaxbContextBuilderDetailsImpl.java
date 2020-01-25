@@ -28,6 +28,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * The jaxb context builder details implementation.
+ *
  * @author Christian Bremer
  */
 class JaxbContextBuilderDetailsImpl implements JaxbContextBuilderDetails {
@@ -40,6 +42,11 @@ class JaxbContextBuilderDetailsImpl implements JaxbContextBuilderDetails {
 
   private String schemaLocation;
 
+  /**
+   * Instantiates a new jaxb context builder details.
+   *
+   * @param classes the classes
+   */
   JaxbContextBuilderDetailsImpl(final Class<?>... classes) {
     if (classes != null) {
       this.classes = Arrays.stream(classes)
@@ -48,6 +55,12 @@ class JaxbContextBuilderDetailsImpl implements JaxbContextBuilderDetails {
     }
   }
 
+  /**
+   * Instantiates a new jaxb context builder details.
+   *
+   * @param packages the packages
+   * @param jaxbContextDataMap the jaxb context data map
+   */
   JaxbContextBuilderDetailsImpl(
       final Set<String> packages,
       final Map<String, JaxbContextData> jaxbContextDataMap) {
