@@ -26,9 +26,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyAttribute;
@@ -50,6 +52,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 import org.springframework.util.ReflectionUtils.FieldFilter;
@@ -82,85 +85,92 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
 
   @Override
   public Class<?>[] resolveClasses(final Object value) {
-    final Set<Class<?>> classes = ConcurrentHashMap.newKeySet();
+    final Set<ScanResult> scanResults = ConcurrentHashMap.newKeySet();
     if (value instanceof Class<?>[]) {
       for (Class<?> clazz : ((Class<?>[]) value)) {
-        resolveClasses(clazz, classes);
+        resolveClasses(clazz, scanResults);
       }
     } else {
-      resolveClasses(value, classes);
+      resolveClasses(value, scanResults);
     }
-    return classes.toArray(new Class[0]);
+    //noinspection FuseStreamOperations
+    return scanResults.stream()
+        .map(ScanResult::getClazz)
+        .collect(Collectors.toSet())
+        .toArray(new Class[0]);
   }
 
-  private boolean resolveClasses(final Object value, final Set<Class<?>> classes) {
-    if (value == null || stopResolving(value.getClass())) {
+  private boolean resolveClasses(final Object value, final Set<ScanResult> scanResults) {
+    if (value == null || stopResolving(value.getClass(), value, scanResults)) {
       return false;
     }
     if (value instanceof Class) {
-      resolveClasses((Class<?>) value, classes);
+      resolveClasses((Class<?>) value, scanResults);
       return true;
     }
     if (value instanceof Collection) {
       Collection<?> collection = (Collection<?>) value;
       if (!collection.isEmpty()) {
         for (Object v : collection) {
-          if (!resolveClasses(v, classes)) {
+          if (!resolveClasses(v, scanResults)) {
             return true;
           }
         }
       }
       return true;
     }
-    resolveSuperClasses(value.getClass(), classes);
+    resolveSuperClasses(value.getClass(), value, scanResults);
     ReflectionUtils.doWithFields(
         value.getClass(),
-        new XmlFieldCallback(value, classes),
+        new XmlFieldCallback(value, scanResults),
         new XmlFieldFilter(value.getClass()));
     ReflectionUtils.doWithMethods(
         value.getClass(),
-        new XmlMethodCallback(value, classes),
+        new XmlMethodCallback(value, scanResults),
         new XmlMethodFilter(value.getClass()));
     final XmlSeeAlso seeAlso = AnnotationUtils.findAnnotation(value.getClass(), XmlSeeAlso.class);
     if (seeAlso != null) {
       for (Class<?> clazz : seeAlso.value()) {
-        resolveClasses(clazz, classes);
+        resolveClasses(clazz, scanResults);
       }
     }
     return true;
   }
 
-  private void resolveClasses(final Class<?> clazz, final Set<Class<?>> classes) {
-    if (stopResolving(clazz)) {
+  private void resolveClasses(final Class<?> clazz, final Set<ScanResult> scanResults) {
+    if (stopResolving(clazz, null, scanResults)) {
       return;
     }
-    resolveSuperClasses(clazz, classes);
+    resolveSuperClasses(clazz, null, scanResults);
     ReflectionUtils.doWithFields(
         clazz,
-        new XmlFieldCallback(null, classes),
+        new XmlFieldCallback(null, scanResults),
         new XmlFieldFilter(clazz));
     ReflectionUtils.doWithMethods(
         clazz,
-        new XmlMethodCallback(null, classes),
+        new XmlMethodCallback(null, scanResults),
         new XmlMethodFilter(clazz));
     final XmlSeeAlso seeAlso = AnnotationUtils.findAnnotation(clazz, XmlSeeAlso.class);
     if (seeAlso != null) {
       for (Class<?> c : seeAlso.value()) {
-        resolveClasses(c, classes);
+        resolveClasses(c, scanResults);
       }
     }
   }
 
-  private void resolveSuperClasses(final Class<?> clazz, final Set<Class<?>> classes) {
-    if (!stopResolving(clazz)) {
-      classes.add(clazz);
-      resolveSuperClasses(clazz.getSuperclass(), classes);
+  private void resolveSuperClasses(final Class<?> clazz, final Object source,
+      final Set<ScanResult> scanResults) {
+    if (!stopResolving(clazz, source, scanResults)) {
+      scanResults.add(new ScanResult(clazz, source));
+      resolveSuperClasses(clazz.getSuperclass(), null, scanResults);
     }
   }
 
-  private boolean stopResolving(final Class<?> clazz) {
+  private boolean stopResolving(final Class<?> clazz, final Object source,
+      final Set<ScanResult> scanResults) {
     return clazz == null
-        || (!isAnnotatedWithXml(clazz) && !Collection.class.isAssignableFrom(clazz));
+        || (!isAnnotatedWithXml(clazz) && !Collection.class.isAssignableFrom(clazz))
+        || scanResults.contains(new ScanResult(clazz, source));
   }
 
   private boolean isAnnotatedWithXml(final Class<?> clazz) {
@@ -168,49 +178,50 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
         || clazz.isAnnotationPresent(XmlType.class);
   }
 
-  private void processXmlAnnotations(final AnnotatedElement element, final Set<Class<?>> classes) {
-    processXmlElement(AnnotationUtils.findAnnotation(element, XmlElement.class), classes);
+  private void processXmlAnnotations(final AnnotatedElement element,
+      final Set<ScanResult> scanResults) {
+    processXmlElement(AnnotationUtils.findAnnotation(element, XmlElement.class), scanResults);
     Optional
         .ofNullable(AnnotationUtils.findAnnotation(element, XmlElements.class))
         .map(XmlElements::value)
-        .ifPresent(a -> Arrays.stream(a).forEach(e -> processXmlElement(e, classes)));
+        .ifPresent(a -> Arrays.stream(a).forEach(e -> processXmlElement(e, scanResults)));
 
-    processXmlElementRef(AnnotationUtils.findAnnotation(element, XmlElementRef.class), classes);
+    processXmlElementRef(AnnotationUtils.findAnnotation(element, XmlElementRef.class), scanResults);
     Optional
         .ofNullable(AnnotationUtils.findAnnotation(element, XmlElementRefs.class))
         .map(XmlElementRefs::value)
-        .ifPresent(a -> Arrays.stream(a).forEach(e -> processXmlElementRef(e, classes)));
+        .ifPresent(a -> Arrays.stream(a).forEach(e -> processXmlElementRef(e, scanResults)));
   }
 
-  private void processXmlElement(final XmlElement annotation, final Set<Class<?>> classes) {
+  private void processXmlElement(final XmlElement annotation, final Set<ScanResult> scanResults) {
     Optional.ofNullable(annotation)
         .map(XmlElement::type)
         .filter(type -> !type.equals(XmlElement.DEFAULT.class))
-        .ifPresent(type -> resolveClasses(type, classes));
+        .ifPresent(type -> resolveClasses(type, scanResults));
   }
 
-  private void processXmlElementRef(final XmlElementRef annotation, final Set<Class<?>> classes) {
+  private void processXmlElementRef(final XmlElementRef annotation, final Set<ScanResult> scanResults) {
     Optional.ofNullable(annotation)
         .map(XmlElementRef::type)
         .filter(type -> !type.equals(XmlElementRef.DEFAULT.class))
-        .ifPresent(type -> resolveClasses(type, classes));
+        .ifPresent(type -> resolveClasses(type, scanResults));
   }
 
   private class XmlFieldCallback implements FieldCallback {
 
     private final Object value;
 
-    private final Set<Class<?>> classes;
+    private final Set<ScanResult> scanResults;
 
     /**
      * Instantiates a new xml field callback.
      *
      * @param value the value
-     * @param classes the classes
+     * @param scanResults the scan results
      */
-    XmlFieldCallback(final Object value, final Set<Class<?>> classes) {
+    XmlFieldCallback(final Object value, final Set<ScanResult> scanResults) {
       this.value = value;
-      this.classes = classes;
+      this.scanResults = scanResults;
     }
 
     @Override
@@ -218,32 +229,32 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
       if (!field.isAccessible()) {
         ReflectionUtils.makeAccessible(field);
       }
-      processXmlAnnotations(field, classes);
+      processXmlAnnotations(field, scanResults);
       if (value == null) {
         if (Collection.class.isAssignableFrom(field.getType())) {
           for (ResolvableType rt : ResolvableType.forField(field).getGenerics()) {
-            resolveClasses(rt.resolve(), classes);
+            resolveClasses(rt.resolve(), scanResults);
           }
         } else {
-          resolveClasses(field.getType(), classes);
+          resolveClasses(field.getType(), scanResults);
         }
       } else {
         final Object fieldValue = ReflectionUtils.getField(field, value);
         if (fieldValue != null) {
           if (fieldValue instanceof Collection && ((Collection<?>) fieldValue).isEmpty()) {
             for (ResolvableType rt : ResolvableType.forField(field).getGenerics()) {
-              resolveClasses(rt.resolve(), classes);
+              resolveClasses(rt.resolve(), scanResults);
             }
           } else {
-            resolveClasses(fieldValue, classes);
+            resolveClasses(fieldValue, scanResults);
           }
         } else {
           if (Collection.class.isAssignableFrom(field.getType())) {
             for (ResolvableType rt : ResolvableType.forField(field).getGenerics()) {
-              resolveClasses(rt.resolve(), classes);
+              resolveClasses(rt.resolve(), scanResults);
             }
           } else {
-            resolveClasses(field.getType(), classes);
+            resolveClasses(field.getType(), scanResults);
           }
         }
       }
@@ -254,17 +265,17 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
 
     private final Object value;
 
-    private final Set<Class<?>> classes;
+    private final Set<ScanResult> scanResults;
 
     /**
      * Instantiates a new xml method callback.
      *
      * @param value the value
-     * @param classes the classes
+     * @param scanResults the scan results
      */
-    XmlMethodCallback(final Object value, final Set<Class<?>> classes) {
+    XmlMethodCallback(final Object value, final Set<ScanResult> scanResults) {
       this.value = value;
-      this.classes = classes;
+      this.scanResults = scanResults;
     }
 
     @Override
@@ -272,14 +283,14 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
       if (!method.isAccessible()) {
         ReflectionUtils.makeAccessible(method);
       }
-      processXmlAnnotations(method, classes);
+      processXmlAnnotations(method, scanResults);
       if (value == null) {
         if (Collection.class.isAssignableFrom(method.getReturnType())) {
           for (ResolvableType rt : ResolvableType.forMethodReturnType(method).getGenerics()) {
-            resolveClasses(rt.resolve(), classes);
+            resolveClasses(rt.resolve(), scanResults);
           }
         } else {
-          resolveClasses(method.getReturnType(), classes);
+          resolveClasses(method.getReturnType(), scanResults);
         }
       } else {
         final Object methodValue = ReflectionUtils.invokeMethod(method, value);
@@ -287,16 +298,20 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
           if (methodValue instanceof Collection && ((Collection<?>) methodValue).isEmpty()) {
             for (ResolvableType rt : ResolvableType.forMethodReturnType(method, value.getClass())
                 .getGenerics()) {
-              resolveClasses(rt.resolve(), classes);
+              resolveClasses(rt.resolve(), scanResults);
             }
           } else {
-            resolveClasses(methodValue, classes);
+            resolveClasses(methodValue, scanResults);
           }
         } else {
-          resolveClasses(method.getReturnType(), classes);
+          resolveClasses(method.getReturnType(), scanResults);
         }
       }
     }
+  }
+
+  private static boolean anyXmlAnnotationPresent(final AnnotatedElement element) {
+    return Arrays.stream(EXPLICIT_XML_ANNOTATIONS).anyMatch(element::isAnnotationPresent);
   }
 
   private static class XmlFieldFilter implements FieldFilter {
@@ -378,8 +393,50 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     }
   }
 
-  private static boolean anyXmlAnnotationPresent(final AnnotatedElement element) {
-    return Arrays.stream(EXPLICIT_XML_ANNOTATIONS).anyMatch(element::isAnnotationPresent);
+  private static class ScanResult {
+
+    private final Class<?> clazz;
+
+    private final Object source;
+
+    /**
+     * Instantiates a new scan result.
+     *
+     * @param clazz the clazz
+     * @param source the source
+     */
+    ScanResult(final Class<?> clazz, final Object source) {
+      Assert.notNull(clazz, "Class must be present.");
+      this.clazz = clazz;
+      this.source = source;
+    }
+
+    /**
+     * Gets clazz.
+     *
+     * @return the clazz
+     */
+    Class<?> getClazz() {
+      return clazz;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      ScanResult that = (ScanResult) o;
+      return clazz.equals(that.clazz) &&
+          Objects.equals(source, that.source);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(clazz, source);
+    }
   }
 
 }
