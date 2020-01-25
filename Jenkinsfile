@@ -45,20 +45,20 @@ pipeline {
         sh 'mvn -B -P deploy clean deploy'
       }
     }
-    stage('Site') {
+    stage('Snapshot Site') {
       when {
-        anyOf {
-          branch 'develop'
-          branch 'master'
-        }
+        branch 'develop'
       }
       steps {
-        sh 'mvn -B site-deploy'
+        sh 'mvn -B clean site-deploy'
       }
-      post {
-        always {
-          sh 'curl -s https://codecov.io/bash | bash -s - -t ${CODECOV_TOKEN}'
-        }
+    }
+    stage('Release Site') {
+      when {
+        branch 'master'
+      }
+      steps {
+        sh 'mvn -B -P gh-pages-site clean site site:stage scm-publish:publish-scm'
       }
     }
     stage('Deploy Feature') {
