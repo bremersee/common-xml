@@ -4,4 +4,9 @@
 
 Library for xml processing.
 
-[Maven Site](https://nexus.bremersee.org/repository/maven-sites/common-xml/1.0.0-SNAPSHOT/index.html)
+#### Maven Site
+
+- [Release](https://bremersee.github.io/common-xml/index.html)
+
+- [Snapshot](https://nexus.bremersee.org/repository/maven-sites/common-xml/1.0.0-SNAPSHOT/index.html)
+
