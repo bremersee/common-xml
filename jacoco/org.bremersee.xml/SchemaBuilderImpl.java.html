@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaBuilderImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">common-xml</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml</a> &gt; <span class="el_source">SchemaBuilderImpl.java</span></div><h1>SchemaBuilderImpl.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2018-2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.bremersee.xml;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.xml.XMLConstants;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
+import org.w3c.dom.ls.LSResourceResolver;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
+
+/**
+ * The schema builder implementation.
+ *
+ * @author Christian Bremer
+ */
+<span class="fc" id="L53">class SchemaBuilderImpl implements SchemaBuilder {</span>
+
+  /**
+   * The schema language.
+   */
+<span class="fc" id="L58">  String schemaLanguage = XMLConstants.W3C_XML_SCHEMA_NS_URI;</span>
+
+  /**
+   * The factory class name.
+   */
+  String factoryClassName;
+
+  /**
+   * The class loader.
+   */
+  ClassLoader classLoader;
+
+  /**
+   * The resource loader.
+   */
+<span class="fc" id="L73">  ResourceLoader resourceLoader = new DefaultResourceLoader();</span>
+
+  /**
+   * The resource resolver.
+   */
+  LSResourceResolver resourceResolver;
+
+  /**
+   * The error handler.
+   */
+  ErrorHandler errorHandler;
+
+  /**
+   * The features.
+   */
+<span class="fc" id="L88">  final Map&lt;String, Boolean&gt; features = new LinkedHashMap&lt;&gt;();</span>
+
+  /**
+   * The properties.
+   */
+<span class="fc" id="L93">  final Map&lt;String, Object&gt; properties = new LinkedHashMap&lt;&gt;();</span>
+
+  /**
+   * Creates a new schema factory.
+   *
+   * @return the schema factory
+   */
+  SchemaFactory createSchemaFactory() {
+    final SchemaFactory schemaFactory;
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">    if (factoryClassName != null) {</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">      if (classLoader == null) {</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (System.getSecurityManager() == null) {</span>
+<span class="nc" id="L105">          classLoader = Thread.currentThread().getContextClassLoader();</span>
+        } else {
+          //noinspection unchecked,rawtypes
+<span class="nc" id="L108">          classLoader = (ClassLoader) java.security.AccessController.doPrivileged(</span>
+<span class="nc" id="L109">              (PrivilegedAction) () -&gt; Thread.currentThread().getContextClassLoader());</span>
+        }
+      }
+<span class="nc" id="L112">      schemaFactory = SchemaFactory.newInstance(schemaLanguage, factoryClassName, classLoader);</span>
+    } else {
+<span class="fc" id="L114">      schemaFactory = SchemaFactory.newInstance(schemaLanguage);</span>
+    }
+<span class="fc bfc" id="L116" title="All 2 branches covered.">    if (resourceResolver != null) {</span>
+<span class="fc" id="L117">      schemaFactory.setResourceResolver(resourceResolver);</span>
+    }
+<span class="fc bfc" id="L119" title="All 2 branches covered.">    if (errorHandler != null) {</span>
+<span class="fc" id="L120">      schemaFactory.setErrorHandler(errorHandler);</span>
+    }
+    try {
+<span class="fc bfc" id="L123" title="All 2 branches covered.">      for (Map.Entry&lt;String, Boolean&gt; feature : features.entrySet()) {</span>
+<span class="fc" id="L124">        schemaFactory.setFeature(feature.getKey(), feature.getValue());</span>
+<span class="fc" id="L125">      }</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">      for (Map.Entry&lt;String, Object&gt; property : properties.entrySet()) {</span>
+<span class="fc" id="L127">        schemaFactory.setProperty(property.getKey(), property.getValue());</span>
+<span class="fc" id="L128">      }</span>
+
+<span class="fc" id="L130">    } catch (SAXNotSupportedException | SAXNotRecognizedException e) {</span>
+<span class="fc" id="L131">      throw new XmlRuntimeException(e);</span>
+<span class="fc" id="L132">    }</span>
+<span class="fc" id="L133">    return schemaFactory;</span>
+  }
+
+  @Override
+  public SchemaBuilderImpl copy() {
+<span class="fc" id="L138">    SchemaBuilderImpl copy = new SchemaBuilderImpl();</span>
+<span class="fc" id="L139">    copy.schemaLanguage = schemaLanguage;</span>
+<span class="fc" id="L140">    copy.factoryClassName = factoryClassName;</span>
+<span class="fc" id="L141">    copy.classLoader = classLoader;</span>
+<span class="fc" id="L142">    copy.resourceLoader = resourceLoader;</span>
+<span class="fc" id="L143">    copy.resourceResolver = resourceResolver;</span>
+<span class="fc" id="L144">    copy.errorHandler = errorHandler;</span>
+<span class="fc" id="L145">    copy.features.putAll(features);</span>
+<span class="fc" id="L146">    copy.properties.putAll(properties);</span>
+<span class="fc" id="L147">    return copy;</span>
+  }
+
+  @Override
+  public SchemaBuilder withSchemaLanguage(final String schemaLanguage) {
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">    if (StringUtils.hasText(schemaLanguage)) {</span>
+<span class="fc" id="L153">      this.schemaLanguage = schemaLanguage;</span>
+    }
+<span class="fc" id="L155">    return this;</span>
+  }
+
+  @Override
+  public SchemaBuilder withFactory(final String factoryClassName) {
+<span class="fc" id="L160">    this.factoryClassName = factoryClassName;</span>
+<span class="fc" id="L161">    return this;</span>
+  }
+
+  @Override
+  public SchemaBuilder withClassLoader(final ClassLoader classLoader) {
+<span class="fc" id="L166">    this.classLoader = classLoader;</span>
+<span class="fc" id="L167">    return this;</span>
+  }
+
+  @Override
+  public SchemaBuilder withResourceLoader(final ResourceLoader resourceLoader) {
+<span class="fc bfc" id="L172" title="All 2 branches covered.">    if (resourceLoader != null) {</span>
+<span class="fc" id="L173">      this.resourceLoader = resourceLoader;</span>
+    }
+<span class="fc" id="L175">    return this;</span>
+  }
+
+  @Override
+  public SchemaBuilder withResourceResolver(final LSResourceResolver resourceResolver) {
+<span class="fc" id="L180">    this.resourceResolver = resourceResolver;</span>
+<span class="fc" id="L181">    return this;</span>
+  }
+
+  @Override
+  public SchemaBuilder withErrorHandler(final ErrorHandler errorHandler) {
+<span class="fc" id="L186">    this.errorHandler = errorHandler;</span>
+<span class="fc" id="L187">    return this;</span>
+  }
+
+  @Override
+  public SchemaBuilder withFeature(final String name, final Boolean value) {
+<span class="fc bfc" id="L192" title="All 2 branches covered.">    if (StringUtils.hasText(name)) {</span>
+<span class="fc" id="L193">      features.put(name, value);</span>
+    }
+<span class="fc" id="L195">    return this;</span>
+  }
+
+  @Override
+  public SchemaBuilder withProperty(final String name, final Object value) {
+<span class="fc bfc" id="L200" title="All 2 branches covered.">    if (StringUtils.hasText(name)) {</span>
+<span class="fc" id="L201">      properties.put(name, value);</span>
+    }
+<span class="fc" id="L203">    return this;</span>
+  }
+
+  @Override
+  public List&lt;Source&gt; fetchSchemaSources(final Collection&lt;String&gt; locations) {
+<span class="pc bpc" id="L208" title="1 of 4 branches missed.">    if (locations == null || locations.size() == 0) {</span>
+<span class="fc" id="L209">      return Collections.emptyList();</span>
+    }
+<span class="fc" id="L211">    final Set&lt;String&gt; locationSet = new LinkedHashSet&lt;&gt;(locations);</span>
+<span class="fc" id="L212">    final List&lt;Source&gt; sources = new ArrayList&lt;&gt;(locationSet.size());</span>
+<span class="fc bfc" id="L213" title="All 2 branches covered.">    for (final String location : locationSet) {</span>
+<span class="fc" id="L214">      try (InputStream is = resourceLoader.getResource(location).getInputStream()) {</span>
+<span class="fc" id="L215">        final byte[] bytes = FileCopyUtils.copyToByteArray(is);</span>
+<span class="fc" id="L216">        sources.add(new StreamSource(new ByteArrayInputStream(bytes)));</span>
+<span class="fc" id="L217">      } catch (IOException e) {</span>
+<span class="fc" id="L218">        throw new XmlRuntimeException(e);</span>
+<span class="fc" id="L219">      }</span>
+<span class="fc" id="L220">    }</span>
+<span class="fc" id="L221">    return sources;</span>
+  }
+
+  @Override
+  public Schema buildSchema(final URL url) {
+    try {
+<span class="fc bfc" id="L227" title="All 2 branches covered.">      if (url == null) {</span>
+<span class="fc" id="L228">        return createSchemaFactory().newSchema();</span>
+      }
+<span class="fc" id="L230">      return createSchemaFactory().newSchema(url);</span>
+<span class="fc" id="L231">    } catch (SAXException e) {</span>
+<span class="fc" id="L232">      throw new XmlRuntimeException(e);</span>
+    }
+  }
+
+  @Override
+  public Schema buildSchema(final File file) {
+    try {
+<span class="fc bfc" id="L239" title="All 2 branches covered.">      if (file == null) {</span>
+<span class="fc" id="L240">        return createSchemaFactory().newSchema();</span>
+      }
+<span class="fc" id="L242">      return createSchemaFactory().newSchema(file);</span>
+<span class="fc" id="L243">    } catch (SAXException e) {</span>
+<span class="fc" id="L244">      throw new XmlRuntimeException(e);</span>
+    }
+  }
+
+  @Override
+  public Schema buildSchema(final Source[] sources) {
+    try {
+<span class="fc bfc" id="L251" title="All 4 branches covered.">      if (sources == null || sources.length == 0) {</span>
+<span class="fc" id="L252">        return createSchemaFactory().newSchema();</span>
+      }
+<span class="fc" id="L254">      return createSchemaFactory().newSchema(sources);</span>
+<span class="fc" id="L255">    } catch (SAXException e) {</span>
+<span class="fc" id="L256">      throw new XmlRuntimeException(e);</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

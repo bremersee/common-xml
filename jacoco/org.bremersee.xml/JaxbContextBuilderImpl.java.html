@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JaxbContextBuilderImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">common-xml</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml</a> &gt; <span class="el_source">JaxbContextBuilderImpl.java</span></div><h1>JaxbContextBuilderImpl.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2018-2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.bremersee.xml;
+
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.ValidationEventHandler;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.attachment.AttachmentMarshaller;
+import javax.xml.bind.attachment.AttachmentUnmarshaller;
+import javax.xml.transform.Source;
+import javax.xml.validation.Schema;
+import org.springframework.util.StringUtils;
+
+/**
+ * The jaxb context builder.
+ *
+ * @author Christian Bremer
+ */
+class JaxbContextBuilderImpl implements JaxbContextBuilder {
+
+  /**
+   * Key is package name, value is jaxb data set.
+   */
+<span class="fc" id="L52">  private final Map&lt;String, JaxbContextData&gt; jaxbContextDataMap = new ConcurrentHashMap&lt;&gt;();</span>
+
+<span class="fc" id="L54">  private final Map&lt;JaxbContextBuilderDetails, Schema&gt; schemaCache = new ConcurrentHashMap&lt;&gt;();</span>
+
+<span class="fc" id="L56">  private final Map&lt;JaxbContextBuilderDetails, JAXBContext&gt; jaxbContextCache</span>
+      = new ConcurrentHashMap&lt;&gt;();
+
+<span class="fc" id="L59">  private JaxbDependenciesResolver dependenciesResolver = DEFAULT_DEPENDENCIES_RESOLVER;</span>
+
+<span class="fc" id="L61">  private SchemaBuilder schemaBuilder = SchemaBuilder.builder();</span>
+
+  private ClassLoader classLoader;
+
+<span class="fc" id="L65">  private boolean formattedOutput = true;</span>
+
+<span class="fc" id="L67">  private SchemaMode schemaMode = SchemaMode.NEVER;</span>
+
+<span class="fc" id="L69">  private BiFunction&lt;Class&lt;?&gt;, Map&lt;String, JaxbContextData&gt;, Boolean&gt; canMarshal = CAN_MARSHAL_ALL;</span>
+
+<span class="fc" id="L71">  private BiFunction&lt;Class&lt;?&gt;, Map&lt;String, JaxbContextData&gt;, Boolean&gt; canUnmarshal</span>
+      = CAN_UNMARSHAL_ALL;
+
+  private List&lt;XmlAdapter&lt;?, ?&gt;&gt; xmlAdapters;
+
+  private AttachmentMarshaller attachmentMarshaller;
+
+  private AttachmentUnmarshaller attachmentUnmarshaller;
+
+  private ValidationEventHandler validationEventHandler;
+
+  /**
+   * Instantiates a new jaxb context builder.
+   */
+<span class="fc" id="L85">  JaxbContextBuilderImpl() {</span>
+<span class="fc" id="L86">  }</span>
+
+  private void clearCache() {
+<span class="fc" id="L89">    schemaCache.clear();</span>
+<span class="fc" id="L90">    jaxbContextCache.clear();</span>
+<span class="fc" id="L91">  }</span>
+
+  @SuppressWarnings({&quot;unchecked&quot;, &quot;rawtypes&quot;})
+  private ClassLoader getContextClassLoader() {
+<span class="fc bfc" id="L95" title="All 2 branches covered.">    if (classLoader == null) {</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">      if (System.getSecurityManager() == null) {</span>
+<span class="fc" id="L97">        classLoader = Thread.currentThread().getContextClassLoader();</span>
+      } else {
+<span class="nc" id="L99">        classLoader = (ClassLoader) java.security.AccessController.doPrivileged(</span>
+<span class="nc" id="L100">            (PrivilegedAction) () -&gt; Thread.currentThread().getContextClassLoader());</span>
+      }
+    }
+<span class="fc" id="L103">    return classLoader;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder copy() {
+<span class="fc" id="L108">    final JaxbContextBuilderImpl copy = new JaxbContextBuilderImpl();</span>
+<span class="fc" id="L109">    copy.dependenciesResolver = dependenciesResolver;</span>
+<span class="fc" id="L110">    copy.schemaMode = schemaMode;</span>
+<span class="fc" id="L111">    copy.schemaCache.putAll(schemaCache);</span>
+<span class="fc" id="L112">    copy.canUnmarshal = canUnmarshal;</span>
+<span class="fc" id="L113">    copy.canMarshal = canMarshal;</span>
+<span class="fc" id="L114">    copy.classLoader = classLoader;</span>
+<span class="fc" id="L115">    copy.attachmentMarshaller = attachmentMarshaller;</span>
+<span class="fc" id="L116">    copy.attachmentUnmarshaller = attachmentUnmarshaller;</span>
+<span class="fc" id="L117">    copy.formattedOutput = formattedOutput;</span>
+<span class="fc" id="L118">    copy.jaxbContextCache.putAll(jaxbContextCache);</span>
+<span class="fc" id="L119">    copy.jaxbContextDataMap.putAll(jaxbContextDataMap);</span>
+<span class="fc" id="L120">    copy.schemaBuilder = schemaBuilder.copy();</span>
+<span class="fc" id="L121">    copy.validationEventHandler = validationEventHandler;</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">    if (xmlAdapters != null) {</span>
+<span class="fc" id="L123">      copy.xmlAdapters = new ArrayList&lt;&gt;(xmlAdapters);</span>
+    }
+<span class="fc" id="L125">    return copy;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder withCanMarshal(
+      final BiFunction&lt;Class&lt;?&gt;, Map&lt;String, JaxbContextData&gt;, Boolean&gt; function) {
+
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">    if (function != null) {</span>
+<span class="fc" id="L133">      this.canMarshal = function;</span>
+    }
+<span class="fc" id="L135">    return this;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder withCanUnmarshal(
+      final BiFunction&lt;Class&lt;?&gt;, Map&lt;String, JaxbContextData&gt;, Boolean&gt; function) {
+
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">    if (function != null) {</span>
+<span class="fc" id="L143">      this.canUnmarshal = function;</span>
+    }
+<span class="fc" id="L145">    return this;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder withSchemaMode(final SchemaMode schemaMode) {
+<span class="pc bpc" id="L150" title="1 of 2 branches missed.">    if (schemaMode != null) {</span>
+<span class="fc" id="L151">      this.schemaMode = schemaMode;</span>
+    }
+<span class="fc" id="L153">    return this;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder withSchemaBuilder(SchemaBuilder schemaBuilder) {
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">    if (schemaBuilder != null) {</span>
+<span class="fc" id="L159">      this.schemaBuilder = schemaBuilder;</span>
+    }
+<span class="fc" id="L161">    return this;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder withDependenciesResolver(final JaxbDependenciesResolver resolver) {
+<span class="pc bpc" id="L166" title="5 of 10 branches missed.">    if ((this.dependenciesResolver == null &amp;&amp; resolver != null)</span>
+        || (this.dependenciesResolver != null &amp;&amp; resolver == null)
+        || (this.dependenciesResolver != null
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">        &amp;&amp; this.dependenciesResolver.getClass().equals(resolver.getClass()))) {</span>
+<span class="fc" id="L170">      clearCache();</span>
+    }
+<span class="fc" id="L172">    this.dependenciesResolver = resolver;</span>
+<span class="fc" id="L173">    return this;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder withContextClassLoader(final ClassLoader classLoader) {
+<span class="fc" id="L178">    this.classLoader = classLoader;</span>
+<span class="fc" id="L179">    return this;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder withFormattedOutput(final boolean formattedOutput) {
+<span class="fc" id="L184">    this.formattedOutput = formattedOutput;</span>
+<span class="fc" id="L185">    return this;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder withXmlAdapters(
+      final Collection&lt;? extends XmlAdapter&lt;?, ?&gt;&gt; xmlAdapters) {
+
+<span class="pc bpc" id="L192" title="1 of 4 branches missed.">    if (xmlAdapters != null &amp;&amp; !xmlAdapters.isEmpty()) {</span>
+<span class="fc" id="L193">      this.xmlAdapters = xmlAdapters</span>
+<span class="fc" id="L194">          .stream()</span>
+<span class="fc" id="L195">          .filter(Objects::nonNull)</span>
+<span class="fc" id="L196">          .collect(Collectors.toList());</span>
+    } else {
+<span class="fc" id="L198">      this.xmlAdapters = null;</span>
+    }
+<span class="fc" id="L200">    return this;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder withAttachmentMarshaller(
+      final AttachmentMarshaller attachmentMarshaller) {
+<span class="fc" id="L206">    this.attachmentMarshaller = attachmentMarshaller;</span>
+<span class="fc" id="L207">    return this;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder withAttachmentUnmarshaller(
+      final AttachmentUnmarshaller attachmentUnmarshaller) {
+<span class="fc" id="L213">    this.attachmentUnmarshaller = attachmentUnmarshaller;</span>
+<span class="fc" id="L214">    return this;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder withValidationEventHandler(
+      final ValidationEventHandler validationEventHandler) {
+<span class="fc" id="L220">    this.validationEventHandler = validationEventHandler;</span>
+<span class="fc" id="L221">    return this;</span>
+  }
+
+  @Override
+  public JaxbContextBuilder add(final JaxbContextData data) {
+<span class="pc bpc" id="L226" title="2 of 4 branches missed.">    if (data != null &amp;&amp; StringUtils.hasText(data.getPackageName())) {</span>
+<span class="fc" id="L227">      clearCache();</span>
+<span class="fc" id="L228">      jaxbContextDataMap.put(data.getPackageName(), data);</span>
+    }
+<span class="fc" id="L230">    return this;</span>
+  }
+
+
+  @Override
+  public boolean canUnmarshal(final Class&lt;?&gt; clazz) { // decode
+<span class="fc" id="L236">    return canUnmarshal.apply(clazz, jaxbContextDataMap);</span>
+  }
+
+  @Override
+  public boolean canMarshal(final Class&lt;?&gt; clazz) { // encode
+<span class="fc" id="L241">    return canMarshal.apply(clazz, jaxbContextDataMap);</span>
+  }
+
+  @Override
+  public Unmarshaller buildUnmarshaller(final Object value) {
+    final JaxbContextWrapper jaxbContext;
+<span class="fc bfc" id="L247" title="All 2 branches covered.">    if (value instanceof Class&lt;?&gt;[]) {</span>
+<span class="fc bfc" id="L248" title="All 2 branches covered.">      if (areAllClassesAreSupported((Class&lt;?&gt;[]) value)) {</span>
+<span class="fc" id="L249">        jaxbContext = computeJaxbContext(null);</span>
+      } else {
+<span class="fc" id="L251">        jaxbContext = computeJaxbContext(value);</span>
+      }
+<span class="fc bfc" id="L253" title="All 2 branches covered.">    } else if (value instanceof Class&lt;?&gt;) {</span>
+<span class="fc" id="L254">      return buildUnmarshaller(new Class[]{(Class&lt;?&gt;) value});</span>
+<span class="pc bpc" id="L255" title="3 of 4 branches missed.">    } else if (value == null || areAllClassesAreSupported(new Class[]{value.getClass()})) {</span>
+<span class="fc" id="L256">      jaxbContext = computeJaxbContext(null);</span>
+    } else {
+<span class="nc" id="L258">      jaxbContext = computeJaxbContext(value);</span>
+    }
+<span class="fc" id="L260">    final SchemaMode mode = jaxbContext.getSchemaMode();</span>
+<span class="pc bpc" id="L261" title="2 of 6 branches missed.">    if (mode == SchemaMode.ALWAYS</span>
+        || mode == SchemaMode.UNMARSHAL
+        || (mode == SchemaMode.EXTERNAL_XSD
+<span class="nc bnc" id="L264" title="All 2 branches missed.">        &amp;&amp; StringUtils.hasText(jaxbContext.getDetails().getSchemaLocation()))) {</span>
+<span class="fc" id="L265">      jaxbContext.setSchema(computeSchema(jaxbContext));</span>
+    }
+    try {
+<span class="fc" id="L268">      return jaxbContext.createUnmarshaller();</span>
+
+<span class="nc" id="L270">    } catch (JAXBException e) {</span>
+<span class="nc" id="L271">      throw new JaxbRuntimeException(e);</span>
+    }
+  }
+
+  @Override
+  public Marshaller buildMarshaller(final Object value) {
+<span class="fc" id="L277">    final JaxbContextWrapper jaxbContext = computeJaxbContext(value);</span>
+<span class="fc" id="L278">    final SchemaMode mode = jaxbContext.getSchemaMode();</span>
+<span class="pc bpc" id="L279" title="2 of 6 branches missed.">    if (mode == SchemaMode.ALWAYS</span>
+        || mode == SchemaMode.MARSHAL
+        || (mode == SchemaMode.EXTERNAL_XSD
+<span class="nc bnc" id="L282" title="All 2 branches missed.">        &amp;&amp; StringUtils.hasText(jaxbContext.getDetails().getSchemaLocation()))) {</span>
+<span class="fc" id="L283">      jaxbContext.setSchema(computeSchema(jaxbContext));</span>
+    }
+    try {
+<span class="fc" id="L286">      return jaxbContext.createMarshaller();</span>
+<span class="nc" id="L287">    } catch (JAXBException e) {</span>
+<span class="nc" id="L288">      throw new JaxbRuntimeException(e);</span>
+    }
+  }
+
+  @Override
+  public JaxbContextBuilder initJaxbContext() {
+<span class="pc bpc" id="L294" title="1 of 2 branches missed.">    if (!jaxbContextDataMap.isEmpty()) {</span>
+<span class="fc" id="L295">      buildJaxbContext(null);</span>
+    }
+<span class="fc" id="L297">    return this;</span>
+  }
+
+  @Override
+  public JaxbContextWrapper buildJaxbContext(final Object value) {
+<span class="fc" id="L302">    final JaxbContextWrapper wrapper = computeJaxbContext(value);</span>
+<span class="fc" id="L303">    final SchemaMode mode = wrapper.getSchemaMode();</span>
+<span class="pc bpc" id="L304" title="3 of 8 branches missed.">    if (mode == SchemaMode.ALWAYS</span>
+        || mode == SchemaMode.MARSHAL
+        || mode == SchemaMode.UNMARSHAL
+        || (mode == SchemaMode.EXTERNAL_XSD
+<span class="nc bnc" id="L308" title="All 2 branches missed.">        &amp;&amp; StringUtils.hasText(wrapper.getDetails().getSchemaLocation()))) {</span>
+<span class="fc" id="L309">      wrapper.setSchema(computeSchema(wrapper));</span>
+    }
+<span class="fc" id="L311">    return wrapper;</span>
+  }
+
+  @Override
+  public Schema buildSchema(final Object value) {
+<span class="fc" id="L316">    return computeSchema(value);</span>
+  }
+
+  private JaxbContextBuilderDetails buildDetails(final Object value) {
+<span class="fc bfc" id="L320" title="All 2 branches covered.">    if (value == null) {</span>
+<span class="fc" id="L321">      return new JaxbContextBuilderDetailsImpl(null, jaxbContextDataMap);</span>
+    }
+<span class="fc bfc" id="L323" title="All 2 branches covered.">    if (value instanceof Class&lt;?&gt;) {</span>
+<span class="fc" id="L324">      return buildDetails(new Class&lt;?&gt;[]{(Class&lt;?&gt;) value});</span>
+    }
+<span class="fc bfc" id="L326" title="All 2 branches covered.">    if (value instanceof Class&lt;?&gt;[]) {</span>
+<span class="fc" id="L327">      final Class&lt;?&gt;[] classes = (Class&lt;?&gt;[]) value;</span>
+<span class="pc bpc" id="L328" title="1 of 2 branches missed.">      if (areAllClassesAreSupported(classes)) {</span>
+<span class="nc" id="L329">        final Set&lt;String&gt; packages = Arrays.stream(classes)</span>
+<span class="nc" id="L330">            .map(clazz -&gt; clazz.getPackage().getName())</span>
+<span class="nc" id="L331">            .collect(Collectors.toSet());</span>
+<span class="nc" id="L332">        return new JaxbContextBuilderDetailsImpl(packages, jaxbContextDataMap);</span>
+<span class="fc bfc" id="L333" title="All 2 branches covered.">      } else if (dependenciesResolver != null) {</span>
+<span class="fc" id="L334">        return new JaxbContextBuilderDetailsImpl(dependenciesResolver.resolveClasses(classes));</span>
+      } else {
+<span class="fc" id="L336">        return new JaxbContextBuilderDetailsImpl(classes);</span>
+      }
+    }
+<span class="fc bfc" id="L339" title="All 2 branches covered.">    if (jaxbContextDataMap.containsKey(value.getClass().getPackage().getName())) {</span>
+<span class="pc bpc" id="L340" title="1 of 2 branches missed.">      final Set&lt;String&gt; packages = dependenciesResolver != null</span>
+<span class="pc" id="L341">          ? dependenciesResolver.resolvePackages(value)</span>
+          : null;
+<span class="fc" id="L343">      return new JaxbContextBuilderDetailsImpl(packages, jaxbContextDataMap);</span>
+    } else {
+<span class="fc" id="L345">      return buildDetails(value.getClass());</span>
+    }
+  }
+
+  private boolean areAllClassesAreSupported(final Class&lt;?&gt;[] classes) {
+<span class="fc" id="L350">    return Arrays.stream(classes)</span>
+<span class="fc" id="L351">        .map(clazz -&gt; clazz.getPackage().getName())</span>
+<span class="fc" id="L352">        .allMatch(jaxbContextDataMap::containsKey);</span>
+  }
+
+  private JaxbContextWrapper computeJaxbContext(final Object value) {
+<span class="fc" id="L356">    final JaxbContextBuilderDetails details = buildDetails(value);</span>
+<span class="fc" id="L357">    final JAXBContext jaxbContext = jaxbContextCache.computeIfAbsent(details, key -&gt; {</span>
+      try {
+<span class="fc bfc" id="L359" title="All 2 branches covered.">        return key.isBuildWithContextPath()</span>
+<span class="fc" id="L360">            ? JAXBContext.newInstance(details.getContextPath(), getContextClassLoader())</span>
+<span class="fc" id="L361">            : JAXBContext.newInstance(key.getClasses());</span>
+
+<span class="fc" id="L363">      } catch (final Exception e) {</span>
+<span class="fc" id="L364">        throw new JaxbRuntimeException(e);</span>
+      }
+    });
+<span class="fc" id="L367">    final JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext, details);</span>
+<span class="fc" id="L368">    wrapper.setAttachmentMarshaller(attachmentMarshaller);</span>
+<span class="fc" id="L369">    wrapper.setAttachmentUnmarshaller(attachmentUnmarshaller);</span>
+<span class="fc" id="L370">    wrapper.setFormattedOutput(formattedOutput);</span>
+<span class="fc" id="L371">    wrapper.setValidationEventHandler(validationEventHandler);</span>
+<span class="fc" id="L372">    wrapper.setXmlAdapters(xmlAdapters);</span>
+<span class="fc" id="L373">    wrapper.setSchemaMode(schemaMode);</span>
+<span class="fc" id="L374">    return wrapper;</span>
+  }
+
+  private Schema computeSchema(final Object value) {
+<span class="fc" id="L378">    return computeSchema(computeJaxbContext(value));</span>
+  }
+
+  private Schema computeSchema(final JaxbContextWrapper jaxbContext) {
+<span class="fc" id="L382">    final JaxbContextBuilderDetails details = jaxbContext.getDetails();</span>
+<span class="fc" id="L383">    return schemaCache.computeIfAbsent(details, key -&gt; {</span>
+<span class="fc" id="L384">      final SchemaSourcesResolver sourcesResolver = new SchemaSourcesResolver();</span>
+      try {
+<span class="fc" id="L386">        jaxbContext.generateSchema(sourcesResolver);</span>
+<span class="nc" id="L387">      } catch (Exception e) {</span>
+<span class="nc" id="L388">        throw new JaxbRuntimeException(e);</span>
+<span class="fc" id="L389">      }</span>
+<span class="fc" id="L390">      final List&lt;Source&gt; sources = new ArrayList&lt;&gt;(</span>
+<span class="fc" id="L391">          sourcesResolver.toSources(details.getNameSpacesWithLocation()));</span>
+<span class="fc" id="L392">      final Set&lt;String&gt; locations = details.getSchemaLocations();</span>
+<span class="fc" id="L393">      sources.addAll(schemaBuilder.fetchSchemaSources(locations));</span>
+<span class="fc" id="L394">      return schemaBuilder.buildSchema(sources);</span>
+    });
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
