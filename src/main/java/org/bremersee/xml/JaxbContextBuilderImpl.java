@@ -79,8 +79,6 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   private ValidationEventHandler validationEventHandler;
 
-  private boolean initJaxbContext = false;
-
   /**
    * Instantiates a new jaxb context builder.
    */
@@ -124,7 +122,6 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     if (xmlAdapters != null) {
       copy.xmlAdapters = new ArrayList<>(xmlAdapters);
     }
-    copy.initJaxbContext = initJaxbContext;
     return copy;
   }
 
@@ -221,9 +218,6 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     if (data != null && StringUtils.hasText(data.getPackageName())) {
       clearCache();
       jaxbContextDataMap.put(data.getPackageName(), data);
-      if (initJaxbContext) {
-        initJaxbContext();
-      }
     }
     return this;
   }
@@ -289,7 +283,6 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @Override
   public JaxbContextBuilder initJaxbContext() {
-    initJaxbContext = true;
     if (!jaxbContextDataMap.isEmpty()) {
       buildJaxbContext(null);
     }
