@@ -52,6 +52,11 @@ pipeline {
       steps {
         sh 'mvn -B clean site-deploy'
       }
+      post {
+        always {
+          sh 'curl -s https://codecov.io/bash | bash -s - -t ${CODECOV_TOKEN}'
+        }
+      }
     }
     stage('Release Site') {
       when {
@@ -59,6 +64,11 @@ pipeline {
       }
       steps {
         sh 'mvn -B -P gh-pages-site clean site site:stage scm-publish:publish-scm'
+      }
+      post {
+        always {
+          sh 'curl -s https://codecov.io/bash | bash -s - -t ${CODECOV_TOKEN}'
+        }
       }
     }
     stage('Deploy Feature') {
