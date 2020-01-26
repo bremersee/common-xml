@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.bremersee</groupId>
+    <artifactId>common-parent</artifactId>
+    <version>1.1.2</version>
+    <relativePath/>
+  </parent>
+
+  <artifactId>common-xml</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+
+  <name>common-xml</name>
+  <description>Common XML Processing</description>
+  <url>https://github.com/bremersee/common-xml</url>
+
+  <properties>
+    <github.repo>common-xml</github.repo>
+    <gh-pages-staging-dir>${project.build.directory}/staging</gh-pages-staging-dir>
+  </properties>
+
+  <scm>
+    <url>https://github.com/bremersee/common-xml</url>
+    <connection>scm:git:git://github.com/bremersee/common-xml.git</connection>
+    <developerConnection>scm:git:git@github.com:bremersee/common-xml.git</developerConnection>
+  </scm>
+
+  <issueManagement>
+    <url>https://github.com/bremersee/common-xml/issues</url>
+    <system>GitHub Issues</system>
+  </issueManagement>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <site>
+      <id>bremersee-sites</id>
+      <url>
+        dav:https://nexus.bremersee.org/repository/maven-sites/common-xml/${project.version}
+      </url>
+    </site>
+  </distributionManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+</project>

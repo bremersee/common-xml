@@ -1,6 +1,4 @@
-# Common XML Processing
-
-[![codecov](https://codecov.io/gh/bremersee/common-xml/branch/master/graph/badge.svg)](https://codecov.io/gh/bremersee/common-xml)
+# Common XML
 
 This library contains
 
@@ -10,12 +8,6 @@ This library contains
 - a JAXB context builder (`JaxbContextBuilder`) which is able to generate a JAXB context on runtime,
 - a schema builder (`SchemaBuilder`)
 - and an xml document builder (`XmlDocumentBuilder`).
-
-#### Maven Site
-
-- [Release](https://bremersee.github.io/common-xml/index.html)
-
-- [Snapshot](https://nexus.bremersee.org/repository/maven-sites/common-xml/1.0.1-SNAPSHOT/index.html)
 
 ## Usage of JaxbContextBuilder
 
