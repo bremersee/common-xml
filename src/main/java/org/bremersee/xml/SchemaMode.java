@@ -17,17 +17,36 @@
 package org.bremersee.xml;
 
 /**
+ * The schema mode.
+ *
  * @author Christian Bremer
  */
 public enum SchemaMode {
 
+  /**
+   * Never add a schema to the jaxb marshaller or unmarshaller.
+   */
   NEVER,
 
+  /**
+   * Always add schema to the jaxb marshaller or unmarshaller.
+   */
   ALWAYS,
 
+  /**
+   * Add always a schema to the jaxb marshaller, but not to the unmarshaller.
+   */
   MARSHAL,
 
+  /**
+   * Add always a schema to the jaxb unmarshaller, but not to the marshaller.
+   */
   UNMARSHAL,
 
+  /**
+   * Add only a schema to the marshaller or unmarshaller if an external schema specification is
+   * used.
+   */
   EXTERNAL_XSD
+
 }

@@ -375,4 +375,11 @@ class XmlDocumentBuilderTest {
         .buildDocument("", jaxbContextBuilder.buildJaxbContext()));
   }
 
+  @Test
+  void configureFactoryAttribute() {
+    assertThrows(IllegalArgumentException.class, () -> XmlDocumentBuilder.builder()
+        .configureFactoryAttribute("don't know", new Object())
+        .buildDocumentBuilder());
+  }
+
 }

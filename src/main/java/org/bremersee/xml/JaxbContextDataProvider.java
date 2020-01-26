@@ -19,8 +19,8 @@ package org.bremersee.xml;
 import java.util.Collection;
 
 /**
- * This provider describes a java xml model and should be loadable by the {@link
- * java.util.ServiceLoader}*.
+ * The provider describes a collection of a java xml model and should be loadable by the
+ * {@link java.util.ServiceLoader}.
  *
  * @author Christian Bremer
  */

@@ -154,6 +154,14 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
   }
 
   @Override
+  public JaxbContextBuilder withSchemaBuilder(SchemaBuilder schemaBuilder) {
+    if (schemaBuilder != null) {
+      this.schemaBuilder = schemaBuilder;
+    }
+    return this;
+  }
+
+  @Override
   public JaxbContextBuilder withDependenciesResolver(final JaxbDependenciesResolver resolver) {
     if ((this.dependenciesResolver == null && resolver != null)
         || (this.dependenciesResolver != null && resolver == null)

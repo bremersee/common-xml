@@ -45,7 +45,7 @@ public interface JaxbContextBuilderDetails extends Serializable {
   Class<?>[] getClasses();
 
   /**
-   * Gets context path.
+   * Gets context path (package names separated by colon).
    *
    * @return the context path
    */

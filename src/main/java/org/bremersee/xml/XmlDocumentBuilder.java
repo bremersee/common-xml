@@ -21,6 +21,7 @@ import java.io.InputStream;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.validation.Schema;
 import org.w3c.dom.Document;
 import org.xml.sax.EntityResolver;
@@ -28,14 +29,17 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 
 /**
- * The xml document builder.
+ * The xml document builder wraps the functionality of {@link DocumentBuilderFactory}. Checked
+ * exceptions will be wrapped into {@link XmlRuntimeException}.
  *
  * @author Christian Bremer
  */
 public interface XmlDocumentBuilder {
 
   /**
-   * Configure factory xml document builder.
+   * Configures the {@link DocumentBuilderFactory}. The default xml document builder has the same
+   * default values as the underlying factory except that {@link DocumentBuilderFactory#setNamespaceAware(boolean)}
+   * is set to {@code true}.
    *
    * @param configurator the configurator
    * @return the xml document builder
@@ -44,7 +48,22 @@ public interface XmlDocumentBuilder {
       XmlDocumentBuilderFactoryConfigurator configurator);
 
   /**
-   * Configure factory xml document builder.
+   * Configures the {@link DocumentBuilderFactory}. The default xml document builder has the same
+   * default values as the underlying factory except that {@link DocumentBuilderFactory#setNamespaceAware(boolean)}
+   * is set to {@code true}.
+   *
+   * <p>A value with {@code null} will be ignored and the default will be used.
+   *
+   * <p>The default values are:
+   * <pre>
+   * coalescing                       = false
+   * expandEntityReferences           = true
+   * ignoringComments                 = false
+   * ignoringElementContentWhitespace = false
+   * namespaceAware                   = true
+   * validating                       = false
+   * xIncludeAware                    = false
+   * </pre>
    *
    * @param coalescing the coalescing
    * @param expandEntityReferences the expand entity references
@@ -65,63 +84,68 @@ public interface XmlDocumentBuilder {
       Boolean xIncludeAware);
 
   /**
-   * Configure factory attribute xml document builder.
+   * Sets the given attribute to the underlying {@link DocumentBuilderFactory}.
    *
    * @param name the name
    * @param value the value
    * @return the xml document builder
+   * @see DocumentBuilderFactory#setAttribute(String, Object)
    */
   XmlDocumentBuilder configureFactoryAttribute(String name, Object value);
 
   /**
-   * Configure factory feature xml document builder.
+   * Sets the given feature to the underlying {@link DocumentBuilderFactory}.
    *
    * @param name the name
    * @param value the value
    * @return the xml document builder
+   * @see DocumentBuilderFactory#setFeature(String, boolean)
    */
   XmlDocumentBuilder configureFactoryFeature(String name, boolean value);
 
   /**
-   * Configure factory schema xml document builder.
+   * Sets the given schema to the underlying {@link DocumentBuilderFactory}.
    *
    * @param schema the schema
    * @return the xml document builder
+   * @see DocumentBuilderFactory#setSchema(Schema)
    */
   XmlDocumentBuilder configureFactorySchema(Schema schema);
 
   /**
-   * Configure entity resolver xml document builder.
+   * Sets the entity resolver to the created  {@link DocumentBuilder}.
    *
    * @param entityResolver the entity resolver
    * @return the xml document builder
+   * @see DocumentBuilder#setEntityResolver(EntityResolver)
    */
   XmlDocumentBuilder configureEntityResolver(EntityResolver entityResolver);
 
   /**
-   * Configure error handler xml document builder.
+   * Sets error handler to the created  {@link DocumentBuilder}.
    *
    * @param errorHandler the error handler
    * @return the xml document builder
+   * @see DocumentBuilder#setErrorHandler(ErrorHandler)
    */
   XmlDocumentBuilder configureErrorHandler(ErrorHandler errorHandler);
 
   /**
-   * Build document builder document builder.
+   * Creates a new document builder.
    *
    * @return the document builder
    */
   DocumentBuilder buildDocumentBuilder();
 
   /**
-   * Build document document.
+   * Builds an empty document.
    *
    * @return the document
    */
   Document buildDocument();
 
   /**
-   * Build document from file.
+   * Builds document from file.
    *
    * @param file the file
    * @return the document
@@ -129,7 +153,7 @@ public interface XmlDocumentBuilder {
   Document buildDocument(File file);
 
   /**
-   * Build document from uri.
+   * Builds document from uri.
    *
    * @param uri the uri
    * @return the document
@@ -137,7 +161,7 @@ public interface XmlDocumentBuilder {
   Document buildDocument(String uri);
 
   /**
-   * Build document from input source.
+   * Builds document from input source.
    *
    * @param is the input source
    * @return the document
@@ -145,7 +169,7 @@ public interface XmlDocumentBuilder {
   Document buildDocument(InputSource is);
 
   /**
-   * Build document from input stream.
+   * Builds document from input stream.
    *
    * @param is the input stream
    * @return the document
@@ -153,7 +177,7 @@ public interface XmlDocumentBuilder {
   Document buildDocument(InputStream is);
 
   /**
-   * Build document from input stream and system ID.
+   * Builds document from input stream and system ID.
    *
    * @param is the input stream
    * @param systemId the system id
@@ -162,7 +186,7 @@ public interface XmlDocumentBuilder {
   Document buildDocument(InputStream is, String systemId);
 
   /**
-   * Build document from an object that can be processed with {@link JAXBContext}.
+   * Builds document from an object (POJO that can be processed with {@link JAXBContext}.
    *
    * @param jaxbElement the jaxb element
    * @param jaxbContext the jaxb context
@@ -171,7 +195,7 @@ public interface XmlDocumentBuilder {
   Document buildDocument(Object jaxbElement, JAXBContext jaxbContext);
 
   /**
-   * Build document from an object that can be processed with {@link Marshaller}.
+   * Builds document from an object (POJO) that can be processed with {@link Marshaller}.
    *
    * @param jaxbElement the jaxb element
    * @param marshaller the marshaller

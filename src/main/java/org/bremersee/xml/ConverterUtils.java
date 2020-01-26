@@ -271,8 +271,11 @@ public abstract class ConverterUtils {
    * @param locale the locale
    * @return the xml gregorian calendar
    */
-  public static XMLGregorianCalendar millisToXmlCalendar(Long millis, TimeZone zone,
+  public static XMLGregorianCalendar millisToXmlCalendar(
+      Long millis,
+      TimeZone zone,
       Locale locale) {
+
     if (millis == null) {
       return null;
     }
@@ -309,8 +312,11 @@ public abstract class ConverterUtils {
    * @param locale the locale
    * @return the xml gregorian calendar
    */
-  public static XMLGregorianCalendar instantToXmlCalendar(Instant instant, ZoneId zoneId,
+  public static XMLGregorianCalendar instantToXmlCalendar(
+      Instant instant,
+      ZoneId zoneId,
       Locale locale) {
+
     if (instant == null) {
       return null;
     }

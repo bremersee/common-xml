@@ -38,26 +38,37 @@ import org.springframework.util.StringUtils;
 public interface JaxbContextBuilder {
 
   /**
-   * The constant DEFAULT_DEPENDENCIES_RESOLVER.
+   * The default dependencies resolver implementation.
+   *
+   * @see #withDependenciesResolver(JaxbDependenciesResolver)
    */
   JaxbDependenciesResolver DEFAULT_DEPENDENCIES_RESOLVER = new JaxbDependenciesResolverImpl();
 
   /**
-   * The can marshal all function.
+   * The can marshal all function. If this function is set, the builder can marshal all objects
+   * which are annotated with {@code XmlRootElement}. This is the default behaviour.
+   *
+   * @see #withCanMarshal(BiFunction)
    */
   BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_MARSHAL_ALL
       = (aClass, predefinedData) -> aClass != null
       && aClass.isAnnotationPresent(XmlRootElement.class);
 
   /**
-   * The can unmarshal all function.
+   * The can unmarshal all function. If this function is set, the builder can unmarshal all objects
+   * which are annotated with {@code XmlRootElement}. This is the default behaviour.
+   *
+   * @see #withCanUnmarshal(BiFunction)
    */
   BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_UNMARSHAL_ALL
       = (aClass, predefinedData) -> aClass != null
       && aClass.isAnnotationPresent(XmlRootElement.class);
 
   /**
-   * The can marshal only predefined data function.
+   * The can marshal only predefined data function. If this function is set, the builder can marshal
+   * only objects which were added previously to the builder.
+   *
+   * @see #withCanMarshal(BiFunction)
    */
   BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_MARSHAL_ONLY_PREDEFINED_DATA
       = (aClass, predefinedData) -> aClass != null
@@ -65,7 +76,10 @@ public interface JaxbContextBuilder {
       && predefinedData.containsKey(aClass.getPackage().getName());
 
   /**
-   * The can unmarshal only predefined data function.
+   * The can unmarshal only predefined data function. If this function is set, the builder can
+   * unmarshal only objects which were added previously to the builder.
+   *
+   * @see #withCanUnmarshal(BiFunction)
    */
   BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_UNMARSHAL_ONLY_PREDEFINED_DATA
       = (aClass, predefinedData) -> aClass != null
@@ -74,7 +88,7 @@ public interface JaxbContextBuilder {
 
 
   /**
-   * Returns a jaxb context builder.
+   * Creates a new jaxb context builder.
    *
    * @return the jaxb context builder
    */
@@ -91,33 +105,57 @@ public interface JaxbContextBuilder {
   JaxbContextBuilder copy();
 
   /**
-   * With can marshal function.
+   * Sets a function of the builder to determine whether the builder is responsible for the given
+   * class. The first parameter of the function is the class, the second is a map with meta data,
+   * which were previously added to the builder). The key of the map is a package name.
    *
    * @param function the function
    * @return the jaxb context builder
+   * @see #canMarshal(Class)
    */
   JaxbContextBuilder withCanMarshal(
       BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> function);
 
   /**
-   * With can unmarshal function.
+   * Sets a function of the builder to determine whether the builder is responsible for the given
+   * class. The first parameter of the function is the class, the second is a map with meta data,
+   * which were previously added to the builder). The key of the map is a package name.
    *
    * @param function the function
    * @return the jaxb context builder
+   * @see #canUnmarshal(Class)
    */
   JaxbContextBuilder withCanUnmarshal(
       BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> function);
 
   /**
-   * With schema mode.
+   * Specifies whether to add a schema to the marshaller or unmarshaller. The default is to add
+   * never a schema to the marshaller or unmarshaller.
    *
    * @param schemaMode the schema mode
    * @return the jaxb context builder
+   * @see SchemaMode#NEVER
+   * @see SchemaMode#ALWAYS
+   * @see SchemaMode#MARSHAL
+   * @see SchemaMode#UNMARSHAL
+   * @see SchemaMode#EXTERNAL_XSD
    */
   JaxbContextBuilder withSchemaMode(SchemaMode schemaMode);
 
   /**
-   * With dependencies resolver.
+   * Specifies the schema builder to generate the schema. The default is the default schema builder
+   * implementation (see {@link SchemaBuilder#builder()}).
+   *
+   * @param schemaBuilder the schema builder
+   * @return the jaxb context builder
+   */
+  JaxbContextBuilder withSchemaBuilder(SchemaBuilder schemaBuilder);
+
+  /**
+   * Specifies the dependencies resolver to use. The default jaxb context builder will use a default
+   * implementation.
+   *
+   * <p>To turn off dependency resolving set {@code null} here.
    *
    * @param resolver the resolver
    * @return the jaxb context builder
@@ -125,7 +163,7 @@ public interface JaxbContextBuilder {
   JaxbContextBuilder withDependenciesResolver(JaxbDependenciesResolver resolver);
 
   /**
-   * Specify the class loader.
+   * Specifies the class loader to use.
    *
    * @param classLoader the class loader
    * @return the jaxb context builder
@@ -141,7 +179,7 @@ public interface JaxbContextBuilder {
   JaxbContextBuilder withFormattedOutput(boolean formattedOutput);
 
   /**
-   * Sets xml adapters to marshaller and unmarshaller.
+   * Sets xml adapters of marshaller and unmarshaller.
    *
    * @param xmlAdapters the xml adapters
    * @return the jaxb context builder
@@ -165,7 +203,7 @@ public interface JaxbContextBuilder {
   JaxbContextBuilder withAttachmentUnmarshaller(AttachmentUnmarshaller attachmentUnmarshaller);
 
   /**
-   * Set validation event handler on marshaller and unmarshaller.
+   * Set validation event handler of marshaller and unmarshaller.
    *
    * @param validationEventHandler the validation event handler
    * @return the jaxb context builder
@@ -174,9 +212,10 @@ public interface JaxbContextBuilder {
 
 
   /**
-   * Add.
+   * Add the given context path (package names which are separated by colon) to the jaxb context
+   * builder. This is the same as {@link javax.xml.bind.JAXBContext#newInstance(String)}.
    *
-   * @param contextPath the context path
+   * @param contextPath the context path (package names which are separated by colon)
    * @return the jaxb context builder
    */
   default JaxbContextBuilder add(final String contextPath) {
@@ -190,7 +229,7 @@ public interface JaxbContextBuilder {
   }
 
   /**
-   * Add jaxb context meta data to this builder.
+   * Add jaxb context meta data to the jaxb context builder.
    *
    * @param data the data
    * @return the jaxb context builder
@@ -198,7 +237,7 @@ public interface JaxbContextBuilder {
   JaxbContextBuilder add(JaxbContextData data);
 
   /**
-   * Add all jaxb context meta data to this builder.
+   * Add all jaxb context meta data to the jaxb context builder.
    *
    * @param data the data
    * @return the jaxb context builder
@@ -208,7 +247,7 @@ public interface JaxbContextBuilder {
   }
 
   /**
-   * Add all jaxb context meta data to this builder.
+   * Add all jaxb context meta data to the jaxb context builder.
    *
    * @param data the data
    * @return the jaxb context builder
@@ -223,7 +262,7 @@ public interface JaxbContextBuilder {
   }
 
   /**
-   * Process the jaxb context meta data provider and add it's data to this builder.
+   * Process the jaxb context meta data provider and add it's data to the jaxb context builder.
    *
    * @param dataProvider the data provider
    * @return the jaxb context builder
@@ -233,7 +272,7 @@ public interface JaxbContextBuilder {
   }
 
   /**
-   * Process the jaxb context meta data providers and add their data to this builder.
+   * Process the jaxb context meta data providers and add their data to the jaxb context builder.
    *
    * @param dataProviders the data providers
    * @return the jaxb context builder
@@ -244,7 +283,7 @@ public interface JaxbContextBuilder {
   }
 
   /**
-   * Process the jaxb context meta data providers and add their data to this builder.
+   * Process the jaxb context meta data providers and add their data to the jaxb context builder.
    *
    * @param dataProviders the data providers
    * @return the jaxb context builder
@@ -260,7 +299,8 @@ public interface JaxbContextBuilder {
   }
 
   /**
-   * Determines whether the unmarshaller can decode xml into an object of the given class
+   * Determines whether the unmarshaller can decode xml into an object of the given class. The
+   * function that is set by {@link #withCanUnmarshal(BiFunction)} will be used.
    *
    * @param clazz the class
    * @return {@code true} if the unmarshaller can decode xml into an object of the given class,
@@ -269,7 +309,8 @@ public interface JaxbContextBuilder {
   boolean canUnmarshal(Class<?> clazz);
 
   /**
-   * Determines whether the marshaller can encode an object of the given class into xml
+   * Determines whether the marshaller can encode an object of the given class into xml. The
+   * function that is set by {@link #withCanMarshal(BiFunction)} will be used.
    *
    * @param clazz the class
    * @return {@code true} if the marshaller can decode an object of the given class into xml,
@@ -278,7 +319,7 @@ public interface JaxbContextBuilder {
   boolean canMarshal(Class<?> clazz);
 
   /**
-   * Build unmarshaller unmarshaller.
+   * Build unmarshaller with the context which is defined by the added meta data.
    *
    * @return the unmarshaller
    */
@@ -287,15 +328,20 @@ public interface JaxbContextBuilder {
   }
 
   /**
-   * Build unmarshaller unmarshaller.
+   * Build unmarshaller for the given object (POJO) or for the given class or array of classes with
+   * the specified dependencies resolver. If dependency resolving is turned off, an unmarshaller of
+   * the default context (defined by the added meta data) will be returned or one that is created
+   * with {@link javax.xml.bind.JAXBContext#newInstance(Class[])}.
    *
-   * @param value the value
+   * @param value the value (POJO) that should be processed by the unmarshaller or a single
+   *     class or an array of classes
    * @return the unmarshaller
+   * @see JaxbDependenciesResolver
    */
   Unmarshaller buildUnmarshaller(Object value);
 
   /**
-   * Build marshaller marshaller.
+   * Build marshaller with the context which is defined by the added meta data.
    *
    * @return the marshaller
    */
@@ -304,22 +350,27 @@ public interface JaxbContextBuilder {
   }
 
   /**
-   * Build marshaller marshaller.
+   * Build marshaller for the given object (POJO) or for the given class or array of classes with
+   * the specified dependencies resolver. If dependency resolving is turned off, a marshaller of the
+   * default context (defined by the added meta data) will be returned or one that is created with
+   * {@link javax.xml.bind.JAXBContext#newInstance(Class[])}.
    *
-   * @param value the value
+   * @param value the value (POJO) that should be processed by the marshaller or a single class
+   *     or an array of classes
    * @return the marshaller
+   * @see JaxbDependenciesResolver
    */
   Marshaller buildMarshaller(Object value);
 
   /**
-   * Init jaxb context.
+   * Inits default jaxb context. Otherwise the jaxb context will be created at first usage.
    *
    * @return the jaxb context builder
    */
   JaxbContextBuilder initJaxbContext();
 
   /**
-   * Build jaxb context jaxb context wrapper.
+   * Build default jaxb context that is defined by the added meta data.
    *
    * @return the jaxb context wrapper
    */
@@ -328,15 +379,19 @@ public interface JaxbContextBuilder {
   }
 
   /**
-   * Build jaxb context jaxb context.
+   * Build jaxb context for the given object (POJO) or for the given class or array of classes with
+   * the specified dependencies resolver. If dependency resolving is turned off, the default jaxb
+   * context (defined by the added meta data) will be returned or a jaxb context will be created
+   * with {@link javax.xml.bind.JAXBContext#newInstance(Class[])}.
    *
-   * @param value the value
+   * @param value the value (POJO) that should be processed by the jaxb context or a single
+   *     class or an array of classes
    * @return the jaxb context
    */
   JaxbContextWrapper buildJaxbContext(Object value);
 
   /**
-   * Build schema schema.
+   * Build schema of the default jaxb context (defined by the added meta data).
    *
    * @return the schema
    */
@@ -345,9 +400,10 @@ public interface JaxbContextBuilder {
   }
 
   /**
-   * Build schema schema.
+   * Build schema of the specified value (POJO), a single class or an array of classes.
    *
-   * @param value the value
+   * @param value the value (POJO), a single class or an array of classes for which the schema
+   *     should be created
    * @return the schema
    */
   Schema buildSchema(Object value);

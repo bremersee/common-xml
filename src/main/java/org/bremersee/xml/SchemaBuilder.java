@@ -31,7 +31,8 @@ import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.ErrorHandler;
 
 /**
- * The schema builder interface.
+ * The schema builder wraps the standard {@link SchemaFactory} of Java into a builder. It also
+ * offers the ability to load schema using Spring's {@link ResourceLoader}.
  *
  * @author Christian Bremer
  */
@@ -45,7 +46,7 @@ public interface SchemaBuilder {
   SchemaBuilder copy();
 
   /**
-   * Specifies the schema language (see {@link SchemaFactory#newInstance(String)}).
+   * Specifies the schema language.
    *
    * <p>Default is {@code javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI}
    * ("http://www.w3.org/2001/XMLSchema").
@@ -53,30 +54,33 @@ public interface SchemaBuilder {
    * @param schemaLanguage specifies the schema language which the used schema factory will
    *     understand
    * @return the schema builder
+   * @see SchemaFactory#newInstance(String)
    */
   SchemaBuilder withSchemaLanguage(String schemaLanguage);
 
   /**
-   * Specifies the factory to use (see {@link SchemaFactory#newInstance(String, String,
-   * ClassLoader)}**).
+   * Specifies the factory to use.
    *
    * @param factoryClassName the factory class name
    * @return the schema builder
+   * @see SchemaFactory#newInstance(String, String, ClassLoader)
    */
   SchemaBuilder withFactory(String factoryClassName);
 
   /**
-   * Specifies the class loader to use (see
-   * {@link SchemaFactory#newInstance(String, String, ClassLoader)}).
+   * Specifies the class loader to use.
    *
    * @param classLoader the class loader
    * @return the schema builder
+   * @see SchemaFactory#newInstance(String, String, ClassLoader)
    */
   SchemaBuilder withClassLoader(ClassLoader classLoader);
 
   /**
    * Specifies the resource loader to use. The resource loader is used to retrieve the xsd files
    * that are specified in the schema location (see {@link #fetchSchemaSources(String...)}).
+   *
+   * <p>Default is {@link org.springframework.core.io.DefaultResourceLoader}.
    *
    * @param resourceLoader the resource loader
    * @return the schema builder
@@ -88,40 +92,47 @@ public interface SchemaBuilder {
    *
    * @param resourceResolver the resource resolver
    * @return the schema builder
+   * @see SchemaFactory#setResourceResolver(LSResourceResolver)
    */
   SchemaBuilder withResourceResolver(LSResourceResolver resourceResolver);
 
   /**
-   * Specifies the error handler to use (see {@link SchemaFactory#setErrorHandler(ErrorHandler)}).
+   * Specifies the error handler to use.
    *
    * @param errorHandler the error handler
    * @return the schema builder
+   * @see SchemaFactory#setErrorHandler(ErrorHandler)
    */
   SchemaBuilder withErrorHandler(ErrorHandler errorHandler);
 
   /**
-   * Adds a feature schema factory (see {@link SchemaFactory#setFeature(String, boolean)}).
+   * Adds a feature to the schema factory.
    *
    * @param name the name
    * @param value the value
    * @return the schema builder
+   * @see SchemaFactory#setFeature(String, boolean)
    */
   SchemaBuilder withFeature(String name, Boolean value);
 
   /**
-   * Adds a property to the schema factory (see {@link SchemaFactory#setProperty(String, Object)}).
+   * Adds a property to the schema factory.
    *
    * @param name the name
    * @param value the value
    * @return the schema builder
+   * @see SchemaFactory#setProperty(String, Object)
    */
   SchemaBuilder withProperty(String name, Object value);
 
   /**
-   * Retrieves the schema files with the specified locations.
+   * Retrieves the schema files of the specified locations.
+   *
+   * <p>The location can have any format that is supported by the {@link ResourceLoader}.
    *
    * @param locations the locations
    * @return the list
+   * @see #withResourceLoader(ResourceLoader)
    */
   default List<Source> fetchSchemaSources(String... locations) {
     return Optional.ofNullable(locations)
@@ -130,16 +141,20 @@ public interface SchemaBuilder {
   }
 
   /**
-   * Retrieves the schema files with the specified locations.
+   * Retrieves the schema files of the specified locations.
+   *
+   * <p>The location can have any format that is supported by the {@link ResourceLoader}.
    *
    * @param locations the locations
    * @return the schema files as source list
+   * @see #withResourceLoader(ResourceLoader)
    */
   List<Source> fetchSchemaSources(Collection<String> locations);
 
   /**
-   * Retrieves the schema files with the specified locations and builds the schema (see {@link
-   * #buildSchema(Collection)}**).
+   * Retrieves the schema files of the specified locations and builds the schema.
+   *
+   * <p>The location can have any format that is supported by the {@link ResourceLoader}.
    *
    * @param locations the locations
    * @return the schema
@@ -151,26 +166,29 @@ public interface SchemaBuilder {
   }
 
   /**
-   * Build schema (see {@link SchemaFactory#newSchema(URL)}).
+   * Builds schema.
    *
    * @param url the url
    * @return the schema
+   * @see SchemaFactory#newSchema(URL)
    */
   Schema buildSchema(URL url);
 
   /**
-   * Build schema (see {@link SchemaFactory#newSchema(File)}).
+   * Builds schema.
    *
    * @param file the file
    * @return the schema
+   * @see SchemaFactory#newSchema(File)
    */
   Schema buildSchema(File file);
 
   /**
-   * Build schema (see {@link SchemaFactory#newSchema(Source)}).
+   * Builds schema.
    *
    * @param source the source
    * @return the schema
+   * @see SchemaFactory#newSchema(Source)
    */
   default Schema buildSchema(Source source) {
     return Optional.ofNullable(source)
@@ -179,18 +197,20 @@ public interface SchemaBuilder {
   }
 
   /**
-   * Build schema (see {@link SchemaFactory#newSchema(Source[])}).
+   * Builds schema.
    *
    * @param sources the sources
    * @return the schema
+   * @see SchemaFactory#newSchema(Source[])
    */
   Schema buildSchema(Source[] sources);
 
   /**
-   * Build schema (see {@link SchemaFactory#newSchema(Source[])}).
+   * Builds schema.
    *
    * @param sources the sources
    * @return the schema
+   * @see SchemaFactory#newSchema(Source[])
    */
   default Schema buildSchema(Collection<? extends Source> sources) {
     return Optional.ofNullable(sources)
@@ -199,7 +219,7 @@ public interface SchemaBuilder {
   }
 
   /**
-   * Builder schema builder.
+   * Creates a new schema builder.
    *
    * @return the schema builder
    */

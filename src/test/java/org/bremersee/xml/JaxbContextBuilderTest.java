@@ -134,6 +134,7 @@ class JaxbContextBuilderTest {
         .withXmlAdapters(Arrays.asList(new OffsetDateTimeXmlAdapter(), new DurationXmlAdapter()))
         .withFormattedOutput(false)
         .withSchemaMode(SchemaMode.ALWAYS)
+        .withSchemaBuilder(SchemaBuilder.builder())
         .addAll(Arrays.asList(
             new JaxbContextData(ObjectFactory.class.getPackage()),
             new JaxbContextData(org.bremersee.xml.model7b.ObjectFactory.class.getPackage()),

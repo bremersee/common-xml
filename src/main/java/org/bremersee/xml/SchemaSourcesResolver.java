@@ -56,7 +56,7 @@ class SchemaSourcesResolver extends SchemaOutputResolver {
    * @param excludedNameSpaces the excluded name spaces
    * @return the list with the schema sources
    */
-  List<Source> toSources(Collection<String> excludedNameSpaces) {
+  List<Source> toSources(final Collection<String> excludedNameSpaces) {
     final Set<String> excluded = Optional.ofNullable(excludedNameSpaces)
         .map(HashSet::new)
         .orElseGet(HashSet::new);
