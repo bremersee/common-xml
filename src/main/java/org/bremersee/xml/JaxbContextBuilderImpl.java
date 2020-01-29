@@ -37,6 +37,7 @@ import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.validation.Schema;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -166,7 +167,8 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     if ((this.dependenciesResolver == null && resolver != null)
         || (this.dependenciesResolver != null && resolver == null)
         || (this.dependenciesResolver != null
-        && this.dependenciesResolver.getClass().equals(resolver.getClass()))) {
+        && !ClassUtils.getUserClass(this.dependenciesResolver)
+        .equals(ClassUtils.getUserClass(resolver)))) {
       clearCache();
     }
     this.dependenciesResolver = resolver;
@@ -252,7 +254,8 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
       }
     } else if (value instanceof Class<?>) {
       return buildUnmarshaller(new Class[]{(Class<?>) value});
-    } else if (value == null || areAllClassesAreSupported(new Class[]{value.getClass()})) {
+    } else if (value == null
+        || areAllClassesAreSupported(new Class[]{ClassUtils.getUserClass(value)})) {
       jaxbContext = computeJaxbContext(null);
     } else {
       jaxbContext = computeJaxbContext(value);
@@ -336,13 +339,13 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
         return new JaxbContextBuilderDetailsImpl(classes);
       }
     }
-    if (jaxbContextDataMap.containsKey(value.getClass().getPackage().getName())) {
+    if (jaxbContextDataMap.containsKey(ClassUtils.getUserClass(value).getPackage().getName())) {
       final Set<String> packages = dependenciesResolver != null
           ? dependenciesResolver.resolvePackages(value)
           : null;
       return new JaxbContextBuilderDetailsImpl(packages, jaxbContextDataMap);
     } else {
-      return buildDetails(value.getClass());
+      return buildDetails(ClassUtils.getUserClass(value));
     }
   }
 
