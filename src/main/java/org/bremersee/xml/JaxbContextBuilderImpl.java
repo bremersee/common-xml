@@ -167,7 +167,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     if ((this.dependenciesResolver == null && resolver != null)
         || (this.dependenciesResolver != null && resolver == null)
         || (this.dependenciesResolver != null
-        && ClassUtils.getUserClass(this.dependenciesResolver)
+        && !ClassUtils.getUserClass(this.dependenciesResolver)
         .equals(ClassUtils.getUserClass(resolver)))) {
       clearCache();
     }
