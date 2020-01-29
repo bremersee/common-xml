@@ -53,6 +53,7 @@ import javax.xml.bind.annotation.XmlType;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 import org.springframework.util.ReflectionUtils.FieldFilter;
@@ -101,7 +102,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
   }
 
   private boolean resolveClasses(final Object value, final Set<ScanResult> scanResults) {
-    if (value == null || stopResolving(value.getClass(), value, scanResults)) {
+    if (value == null || stopResolving(ClassUtils.getUserClass(value), value, scanResults)) {
       return false;
     }
     if (value instanceof Class) {
@@ -119,16 +120,17 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
       }
       return true;
     }
-    resolveSuperClasses(value.getClass(), value, scanResults);
+    Class<?> clazz = ClassUtils.getUserClass(value);
+    resolveSuperClasses(clazz, value, scanResults);
     ReflectionUtils.doWithFields(
-        value.getClass(),
+        clazz,
         new XmlFieldCallback(value, scanResults),
-        new XmlFieldFilter(value.getClass()));
+        new XmlFieldFilter(clazz));
     ReflectionUtils.doWithMethods(
-        value.getClass(),
+        clazz,
         new XmlMethodCallback(value, scanResults),
-        new XmlMethodFilter(value.getClass()));
-    Optional.ofNullable(AnnotationUtils.findAnnotation(value.getClass(), XmlSeeAlso.class))
+        new XmlMethodFilter(clazz));
+    Optional.ofNullable(AnnotationUtils.findAnnotation(clazz, XmlSeeAlso.class))
         .ifPresent(seeAlso -> Arrays.stream(seeAlso.value())
             .forEach(seeAlsoClass -> resolveClasses(seeAlsoClass, scanResults)));
     return true;
@@ -294,7 +296,8 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
         final Object methodValue = ReflectionUtils.invokeMethod(method, value);
         if (methodValue != null) {
           if (methodValue instanceof Collection && ((Collection<?>) methodValue).isEmpty()) {
-            for (ResolvableType rt : ResolvableType.forMethodReturnType(method, value.getClass())
+            for (ResolvableType rt : ResolvableType
+                .forMethodReturnType(method, ClassUtils.getUserClass(value))
                 .getGenerics()) {
               resolveClasses(rt.resolve(), scanResults);
             }
