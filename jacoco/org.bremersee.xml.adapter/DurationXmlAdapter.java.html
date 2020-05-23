@@ -34,7 +34,7 @@ import javax.xml.datatype.DatatypeFactory;
   @Override
   public Duration unmarshal(String v) throws Exception {
 <span class="pc bpc" id="L36" title="1 of 2 branches missed.">    return v == null</span>
-        ? null
+<span class="nc" id="L37">        ? null</span>
 <span class="fc" id="L38">        : xmlDurationToDuration(DatatypeFactory.newInstance().newDuration(v));</span>
   }
 

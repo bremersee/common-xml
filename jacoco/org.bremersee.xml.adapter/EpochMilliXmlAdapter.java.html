@@ -60,7 +60,7 @@ public class EpochMilliXmlAdapter extends XmlAdapter&lt;String, Long&gt; {
   @Override
   public Long unmarshal(String v) throws Exception {
 <span class="fc bfc" id="L62" title="All 2 branches covered.">    return v == null</span>
-        ? null
+<span class="fc" id="L63">        ? null</span>
 <span class="fc" id="L64">        : xmlCalendarToMillis(DatatypeFactory.newInstance().newXMLGregorianCalendar(v));</span>
   }
 

@@ -50,7 +50,7 @@ public class InstantXmlAdapter extends XmlAdapter&lt;String, Instant&gt; {
   @Override
   public Instant unmarshal(String v) throws Exception {
 <span class="fc bfc" id="L52" title="All 2 branches covered.">    return v == null</span>
-        ? null
+<span class="fc" id="L53">        ? null</span>
 <span class="fc" id="L54">        : xmlCalendarToInstant(DatatypeFactory.newInstance().newXMLGregorianCalendar(v));</span>
   }
 

@@ -35,7 +35,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
   @Override
   public OffsetDateTime unmarshal(String v) throws Exception {
 <span class="fc bfc" id="L37" title="All 2 branches covered.">    return v == null</span>
-        ? null
+<span class="fc" id="L38">        ? null</span>
 <span class="fc" id="L39">        : xmlCalendarToOffsetDateTime(DatatypeFactory.newInstance().newXMLGregorianCalendar(v));</span>
   }
 

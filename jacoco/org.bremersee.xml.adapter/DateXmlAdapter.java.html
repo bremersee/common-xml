@@ -63,7 +63,7 @@ public class DateXmlAdapter extends XmlAdapter&lt;String, Date&gt; {
   @Override
   public Date unmarshal(String v) throws Exception {
 <span class="fc bfc" id="L65" title="All 2 branches covered.">    return v == null</span>
-        ? null
+<span class="fc" id="L66">        ? null</span>
 <span class="fc" id="L67">        : xmlCalendarToDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(v));</span>
   }
 

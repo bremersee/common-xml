@@ -68,7 +68,7 @@ class JaxbContextBuilderDetailsImpl implements JaxbContextBuilderDetails {
 <span class="fc" id="L68">    Assert.notEmpty(jaxbContextDataMap, &quot;Jaxb context data map must be present.&quot;);</span>
 <span class="pc bpc" id="L69" title="1 of 4 branches missed.">    final Set&lt;String&gt; packageNames = packages == null || packages.isEmpty()</span>
 <span class="fc" id="L70">        ? jaxbContextDataMap.keySet()</span>
-        : packages;
+<span class="fc" id="L71">        : packages;</span>
 <span class="fc" id="L72">    final List&lt;String&gt; contextPathList = new ArrayList&lt;&gt;();</span>
 <span class="fc" id="L73">    final List&lt;String&gt; schemaLocationList = new ArrayList&lt;&gt;();</span>
 <span class="fc" id="L74">    jaxbContextDataMap.values().stream()</span>
@@ -131,9 +131,9 @@ class JaxbContextBuilderDetailsImpl implements JaxbContextBuilderDetails {
 
   @Override
   public String toString() {
-<span class="fc bfc" id="L134" title="All 2 branches covered.">    return &quot;JaxbContextBuilderDetails {&quot;</span>
-        + &quot;classes=&quot; + (classes == null
-        ? &quot;null&quot;
+<span class="fc" id="L134">    return &quot;JaxbContextBuilderDetails {&quot;</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">        + &quot;classes=&quot; + (classes == null</span>
+<span class="fc" id="L136">        ? &quot;null&quot;</span>
 <span class="fc" id="L137">        : Arrays.stream(classes).map(Class::getName).collect(Collectors.joining(&quot; &quot;)))</span>
         + &quot;, contextPath='&quot; + contextPath + '\''
         + &quot;, schemaLocation='&quot; + schemaLocation + '\''

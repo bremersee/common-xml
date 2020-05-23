@@ -341,8 +341,8 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     }
 <span class="fc bfc" id="L342" title="All 2 branches covered.">    if (jaxbContextDataMap.containsKey(ClassUtils.getUserClass(value).getPackage().getName())) {</span>
 <span class="pc bpc" id="L343" title="1 of 2 branches missed.">      final Set&lt;String&gt; packages = dependenciesResolver != null</span>
-<span class="pc" id="L344">          ? dependenciesResolver.resolvePackages(value)</span>
-          : null;
+<span class="fc" id="L344">          ? dependenciesResolver.resolvePackages(value)</span>
+<span class="pc" id="L345">          : null;</span>
 <span class="fc" id="L346">      return new JaxbContextBuilderDetailsImpl(packages, jaxbContextDataMap);</span>
     } else {
 <span class="fc" id="L348">      return buildDetails(ClassUtils.getUserClass(value));</span>
