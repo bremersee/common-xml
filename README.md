@@ -15,7 +15,7 @@ This library contains
 
 - [Release](https://bremersee.github.io/common-xml/index.html)
 
-- [Snapshot](https://nexus.bremersee.org/repository/maven-sites/common-xml/2.0.1-SNAPSHOT/index.html)
+- [Snapshot](https://nexus.bremersee.org/repository/maven-sites/common-xml/2.1.0-SNAPSHOT/index.html)
 
 ## Usage of JaxbContextBuilder
 
