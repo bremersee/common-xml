@@ -4,7 +4,7 @@ pipeline {
   }
   environment {
     CODECOV_TOKEN = credentials('common-xml-codecov-token')
-    DEPLOY = true
+    DEPLOY = false
     SNAPSHOT_SITE = true
     RELEASE_SITE = true
     DEPLOY_FEATURE = true
