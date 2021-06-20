@@ -27,7 +27,7 @@ under the License.
     <item>
       <title>File: 73,
              Errors: 0,
-             Warnings: 18,
+             Warnings: 17,
              Infos: 0
       </title>
             <link>https://github.com/bremersee/common-xml/checkstyle.html</link>
@@ -598,7 +598,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  2
+                  1
                 </td>
                 <td>
                   0
