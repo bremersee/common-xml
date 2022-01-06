@@ -1,6 +1,6 @@
 # Common XML Processing
 
-[![codecov](https://codecov.io/gh/bremersee/common-xml/branch/master/graph/badge.svg)](https://codecov.io/gh/bremersee/common-xml)
+[![codecov](https://codecov.io/gh/bremersee/common-xml/branch/develop/graph/badge.svg)](https://codecov.io/gh/bremersee/common-xml)
 
 This library contains
 
