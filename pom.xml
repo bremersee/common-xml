@@ -12,7 +12,7 @@
   </parent>
 
   <artifactId>common-xml</artifactId>
-  <version>2.3.1-SNAPSHOT</version>
+  <version>2.3.1</version>
   <packaging>jar</packaging>
 
   <name>common-xml</name>
