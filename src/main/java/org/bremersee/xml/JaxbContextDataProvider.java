@@ -19,17 +19,17 @@ package org.bremersee.xml;
 import java.util.Collection;
 
 /**
- * The provider describes a collection of a java xml model and should be loadable by the
- * {@link java.util.ServiceLoader}.
+ * The provider describes a collection of a java xml model and should be loadable by the {@link
+ * java.util.ServiceLoader}*.
  *
  * @author Christian Bremer
  */
 public interface JaxbContextDataProvider {
 
   /**
-   * Get a collection of the xml meta data.
+   * Get a collection of the xml meta-data.
    *
-   * @return a collection of the xml meta data
+   * @return a collection of the xml meta-data
    */
   Collection<JaxbContextData> getJaxbContextData();
 
