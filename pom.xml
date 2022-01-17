@@ -17,6 +17,7 @@
 
   <name>common-xml</name>
   <description>Common XML Processing</description>
+  <inceptionYear>2020</inceptionYear>
   <url>https://github.com/bremersee/common-xml</url>
 
   <properties>
