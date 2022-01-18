@@ -29,6 +29,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
+ * The instant xml adapter.
+ *
  * @author Christian Bremer
  */
 public class InstantXmlAdapter extends XmlAdapter<String, Instant> {
@@ -37,9 +39,18 @@ public class InstantXmlAdapter extends XmlAdapter<String, Instant> {
 
   private Locale locale;
 
+  /**
+   * Instantiates a new instant xml adapter.
+   */
   public InstantXmlAdapter() {
   }
 
+  /**
+   * Instantiates a new instant xml adapter.
+   *
+   * @param zoneId the zone id
+   * @param locale the locale
+   */
   public InstantXmlAdapter(ZoneId zoneId, Locale locale) {
     if (zoneId != null) {
       this.zoneId = zoneId;

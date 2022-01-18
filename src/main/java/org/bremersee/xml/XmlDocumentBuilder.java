@@ -38,8 +38,8 @@ public interface XmlDocumentBuilder {
 
   /**
    * Configures the {@link DocumentBuilderFactory}. The default xml document builder has the same
-   * default values as the underlying factory except that {@link DocumentBuilderFactory#setNamespaceAware(boolean)}
-   * is set to {@code true}.
+   * default values as the underlying factory except that
+   * {@link DocumentBuilderFactory#setNamespaceAware(boolean)} is set to {@code true}.
    *
    * @param configurator the configurator
    * @return the xml document builder
@@ -49,8 +49,8 @@ public interface XmlDocumentBuilder {
 
   /**
    * Configures the {@link DocumentBuilderFactory}. The default xml document builder has the same
-   * default values as the underlying factory except that {@link DocumentBuilderFactory#setNamespaceAware(boolean)}
-   * is set to {@code true}.
+   * default values as the underlying factory except that
+   * {@link DocumentBuilderFactory#setNamespaceAware(boolean)} is set to {@code true}.
    *
    * <p>A value with {@code null} will be ignored and the default will be used.
    *

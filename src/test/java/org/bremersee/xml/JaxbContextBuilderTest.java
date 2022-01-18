@@ -153,9 +153,6 @@ class JaxbContextBuilderTest {
     Carrier carrier = new Carrier();
     carrier.setPartNumber("123456789");
     carrier.setCapacity("15 kg");
-    Element carrierElement = XmlDocumentBuilder.builder()
-        .buildDocument(carrier, builder.copy().buildMarshaller(carrier))
-        .getDocumentElement();
 
     DirtBikeReseller r0 = new DirtBikeReseller();
     r0.setName("Dirt Bikes");
@@ -166,6 +163,10 @@ class JaxbContextBuilderTest {
     sportBikes.setName("Sport Bikes");
     sportBikes.getChain().add(r0);
     sportBikes.getChain().add(r1);
+
+    Element carrierElement = XmlDocumentBuilder.builder()
+        .buildDocument(carrier, builder.copy().buildMarshaller(carrier))
+        .getDocumentElement();
 
     MountainBike model = new MountainBike();
     model.setSeatHeight(60);

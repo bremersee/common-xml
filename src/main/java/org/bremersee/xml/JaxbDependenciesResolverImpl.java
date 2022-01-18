@@ -426,8 +426,8 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
         return false;
       }
       ScanResult that = (ScanResult) o;
-      return clazz.equals(that.clazz) &&
-          Objects.equals(source, that.source);
+      return clazz.equals(that.clazz)
+          && Objects.equals(source, that.source);
     }
 
     @Override

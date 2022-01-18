@@ -235,8 +235,8 @@ public class JaxbContextWrapper extends JAXBContext {
     }
     if (schema != null && (schemaMode == SchemaMode.ALWAYS
         || schemaMode == SchemaMode.UNMARSHAL
-        || (schemaMode == SchemaMode.EXTERNAL_XSD
-        && StringUtils.hasText(details.getSchemaLocation())))) {
+        || schemaMode == SchemaMode.EXTERNAL_XSD
+        && StringUtils.hasText(details.getSchemaLocation()))) {
       unmarshaller.setSchema(schema);
     }
     if (validationEventHandler != null) {
@@ -261,8 +261,8 @@ public class JaxbContextWrapper extends JAXBContext {
     }
     if (schema != null && (schemaMode == SchemaMode.ALWAYS
         || schemaMode == SchemaMode.MARSHAL
-        || (schemaMode == SchemaMode.EXTERNAL_XSD
-        && StringUtils.hasText(details.getSchemaLocation())))) {
+        || schemaMode == SchemaMode.EXTERNAL_XSD
+        && StringUtils.hasText(details.getSchemaLocation()))) {
       marshaller.setSchema(schema);
     }
     if (validationEventHandler != null) {

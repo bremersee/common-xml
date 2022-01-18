@@ -51,8 +51,8 @@ public interface JaxbContextBuilder {
    * @see #withCanMarshal(BiFunction)
    */
   BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_MARSHAL_ALL
-      = (aClass, predefinedData) -> aClass != null
-      && aClass.isAnnotationPresent(XmlRootElement.class);
+      = (clazz, predefinedData) -> clazz != null
+      && clazz.isAnnotationPresent(XmlRootElement.class);
 
   /**
    * The can unmarshal all function. If this function is set, the builder can unmarshal all objects
@@ -61,8 +61,8 @@ public interface JaxbContextBuilder {
    * @see #withCanUnmarshal(BiFunction)
    */
   BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_UNMARSHAL_ALL
-      = (aClass, predefinedData) -> aClass != null
-      && aClass.isAnnotationPresent(XmlRootElement.class);
+      = (clazz, predefinedData) -> clazz != null
+      && clazz.isAnnotationPresent(XmlRootElement.class);
 
   /**
    * The can marshal only predefined data function. If this function is set, the builder can marshal
@@ -71,9 +71,9 @@ public interface JaxbContextBuilder {
    * @see #withCanMarshal(BiFunction)
    */
   BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_MARSHAL_ONLY_PREDEFINED_DATA
-      = (aClass, predefinedData) -> aClass != null
-      && aClass.isAnnotationPresent(XmlRootElement.class)
-      && predefinedData.containsKey(aClass.getPackage().getName());
+      = (clazz, predefinedData) -> clazz != null
+      && clazz.isAnnotationPresent(XmlRootElement.class)
+      && predefinedData.containsKey(clazz.getPackage().getName());
 
   /**
    * The can unmarshal only predefined data function. If this function is set, the builder can
@@ -82,9 +82,9 @@ public interface JaxbContextBuilder {
    * @see #withCanUnmarshal(BiFunction)
    */
   BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> CAN_UNMARSHAL_ONLY_PREDEFINED_DATA
-      = (aClass, predefinedData) -> aClass != null
-      && aClass.isAnnotationPresent(XmlRootElement.class)
-      && predefinedData.containsKey(aClass.getPackage().getName());
+      = (clazz, predefinedData) -> clazz != null
+      && clazz.isAnnotationPresent(XmlRootElement.class)
+      && predefinedData.containsKey(clazz.getPackage().getName());
 
 
   /**
