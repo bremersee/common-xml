@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -226,9 +226,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
 
     @Override
     public void doWith(final Field field) throws IllegalArgumentException {
-      if (!field.isAccessible()) {
-        ReflectionUtils.makeAccessible(field);
-      }
+      ReflectionUtils.makeAccessible(field);
       processXmlAnnotations(field, scanResults);
       if (value == null) {
         if (Collection.class.isAssignableFrom(field.getType())) {
@@ -280,9 +278,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
 
     @Override
     public void doWith(final Method method) throws IllegalArgumentException {
-      if (!method.isAccessible()) {
-        ReflectionUtils.makeAccessible(method);
-      }
+      ReflectionUtils.makeAccessible(method);
       processXmlAnnotations(method, scanResults);
       if (value == null) {
         if (Collection.class.isAssignableFrom(method.getReturnType())) {
@@ -317,7 +313,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
 
   private static class XmlFieldFilter implements FieldFilter {
 
-    private XmlAccessType accessType;
+    private final XmlAccessType accessType;
 
     /**
      * Instantiates a new xml field filter.
@@ -356,7 +352,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
 
   private static class XmlMethodFilter implements MethodFilter {
 
-    private XmlAccessType accessType;
+    private final XmlAccessType accessType;
 
     /**
      * Instantiates a new xml method filter.

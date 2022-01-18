@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.bremersee.xml;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 import java.io.StringReader;
@@ -32,6 +28,9 @@ import java.util.Arrays;
 import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.bremersee.xml.adapter.DateXmlAdapter;
 import org.bremersee.xml.adapter.DurationXmlAdapter;
 import org.bremersee.xml.adapter.EpochMilliXmlAdapter;
@@ -44,11 +43,10 @@ import org.bremersee.xml.model7b.DirtBikeReseller;
 import org.bremersee.xml.model7b.MountainBike;
 import org.bremersee.xml.model7b.RacingReseller;
 import org.bremersee.xml.model7b.SportBikes;
-import org.bremersee.xml.model7c.BikeSchmied;
 import org.bremersee.xml.model7c.Carrier;
-import org.bremersee.xml.model7c.Fastcycle;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.w3c.dom.Element;
 
 /**
@@ -56,6 +54,7 @@ import org.w3c.dom.Element;
  *
  * @author Christian Bremer
  */
+@ExtendWith({SoftAssertionsExtension.class})
 class JaxbContextBuilderTest {
 
   /**
@@ -145,14 +144,11 @@ class JaxbContextBuilderTest {
   /**
    * Write and read with context path.
    *
+   * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void writeAndReadWithContextPath() throws Exception {
-
-    BikeSchmied producer = new BikeSchmied();
-    producer.setAddress("Somewhere");
-    producer.setName("Smith");
+  void writeAndReadWithContextPath(SoftAssertions softly) throws Exception {
 
     Carrier carrier = new Carrier();
     carrier.setPartNumber("123456789");
@@ -165,9 +161,6 @@ class JaxbContextBuilderTest {
     r0.setName("Dirt Bikes");
     RacingReseller r1 = new RacingReseller();
     r1.setName("Racing Fun");
-
-    Fastcycle r2 = new Fastcycle();
-    r2.setHref("http://fast.org");
 
     SportBikes sportBikes = new SportBikes();
     sportBikes.setName("Sport Bikes");
@@ -184,32 +177,26 @@ class JaxbContextBuilderTest {
     builder.buildMarshaller(model).marshal(model, sw);
 
     String actualXml = sw.toString();
-    assertEquals(XML1, actualXml);
+    softly.assertThat(actualXml)
+        .isEqualTo(XML1);
 
     MountainBike actualModel = (MountainBike) builder.buildUnmarshaller(MountainBike.class)
         .unmarshal(new StringReader(XML1));
-
-    assertNotNull(actualModel);
-    assertEquals(model.getSeatHeight(), actualModel.getSeatHeight());
-    assertEquals(model.getColor(), actualModel.getColor());
-    assertEquals(model.getProducer(), actualModel.getProducer());
-
-    assertNotNull(actualModel.getExtraParts());
-    assertFalse(actualModel.getExtraParts().isEmpty());
-    Element actualCarrierElement = actualModel.getExtraParts().get(0);
-    assertNotNull(actualCarrierElement);
-    Carrier actualCarrier = (Carrier) builder.buildUnmarshaller().unmarshal(actualCarrierElement);
-    assertNotNull(actualCarrier);
-    assertEquals(carrier, actualCarrier);
+    softly.assertThat(actualModel)
+        .isEqualTo(model);
+    softly.assertThat(actualModel.getExtraParts())
+        .map(elem -> builder.buildUnmarshaller().unmarshal(elem))
+        .containsExactly(carrier);
   }
 
   /**
    * Write and read with classes.
    *
+   * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void writeAndReadWithClasses() throws Exception {
+  void writeAndReadWithClasses(SoftAssertions softly) throws Exception {
     StartEnd startEnd = new StartEnd();
     startEnd.setStart(OffsetDateTime
         .parse("2000-01-16T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME));
@@ -221,8 +208,10 @@ class JaxbContextBuilderTest {
     model.setStreetNumber("1234");
     model.setStartEnd(startEnd);
 
-    assertTrue(builder.canMarshal(Address.class));
-    assertTrue(builder.canUnmarshal(Address.class));
+    softly.assertThat(builder.canMarshal(Address.class))
+        .isTrue();
+    softly.assertThat(builder.canUnmarshal(Address.class))
+        .isTrue();
 
     StringWriter sw = new StringWriter();
     builder.buildMarshaller(new Class[]{Address.class, Company.class}).marshal(model, sw);
@@ -230,16 +219,18 @@ class JaxbContextBuilderTest {
 
     Address actual = (Address) builder.buildUnmarshaller(new Class[]{Address.class, Company.class})
         .unmarshal(new StringReader(xml));
-    assertEquals(model, actual);
+    softly.assertThat(actual)
+        .isEqualTo(model);
   }
 
   /**
    * Write and read with class.
    *
+   * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void writeAndReadWithClass() throws Exception {
+  void writeAndReadWithClass(SoftAssertions softly) throws Exception {
     StartEnd startEnd = new StartEnd();
     startEnd.setStart(OffsetDateTime
         .parse("2000-01-16T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME));
@@ -251,39 +242,49 @@ class JaxbContextBuilderTest {
     model.setStreetNumber("1234");
     model.setStartEnd(startEnd);
 
-    assertTrue(builder.canMarshal(Address.class));
-    assertTrue(builder.canUnmarshal(Address.class));
-
     StringWriter sw = new StringWriter();
     builder.buildMarshaller(model).marshal(model, sw);
     String xml = sw.toString();
 
     Address actual = (Address) builder.buildUnmarshaller(Address.class)
         .unmarshal(new StringReader(xml));
-    assertEquals(model, actual);
+    softly.assertThat(actual)
+        .isEqualTo(model);
 
     JaxbContextBuilder jaxbContextBuilder = builder.copy()
         .withXmlAdapters(null)
         .withDependenciesResolver(null);
-    jaxbContextBuilder.buildMarshaller(model).marshal(model, new StringWriter());
+    sw = new StringWriter();
+    jaxbContextBuilder.buildMarshaller(model).marshal(model, sw);
+    actual = (Address) builder.buildUnmarshaller(Address.class)
+        .unmarshal(new StringReader(sw.toString()));
+    softly.assertThat(actual)
+        .isEqualTo(model);
   }
 
   /**
    * Can write and read with class.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void canWriteAndReadWithClass() {
+  void canWriteAndReadWithClass(SoftAssertions softly) {
     JaxbContextBuilder jaxbContextBuilder = builder.copy()
         .withCanMarshal(JaxbContextBuilder.CAN_MARSHAL_ONLY_PREDEFINED_DATA)
         .withCanUnmarshal(JaxbContextBuilder.CAN_UNMARSHAL_ONLY_PREDEFINED_DATA);
 
-    assertFalse(jaxbContextBuilder.canMarshal(Address.class));
-    assertFalse(jaxbContextBuilder.canUnmarshal(Address.class));
+    softly.assertThat(jaxbContextBuilder.canMarshal(Address.class))
+        .isFalse();
+    softly.assertThat(jaxbContextBuilder.canUnmarshal(Address.class))
+        .isFalse();
 
-    assertTrue(jaxbContextBuilder.canMarshal(MountainBike.class));
-    assertTrue(jaxbContextBuilder.canUnmarshal(MountainBike.class));
+    softly.assertThat(jaxbContextBuilder.canMarshal(MountainBike.class))
+        .isTrue();
+    softly.assertThat(jaxbContextBuilder.canUnmarshal(MountainBike.class))
+        .isTrue();
 
-    assertNotNull(jaxbContextBuilder.buildSchema());
+    softly.assertThat(jaxbContextBuilder.buildSchema())
+        .isNotNull();
   }
 
   /**
@@ -293,18 +294,20 @@ class JaxbContextBuilderTest {
   void addContextPath() {
     // We have no valid xml model package here; the test packages produce illegal argument
     // exceptions, because Package.getPackage(java.langString) doesn't work with mvn test.
-    assertThrows(JaxbRuntimeException.class, () -> builder.copy()
-        .add("org.bremersee.xml.adapter")
-        .buildMarshaller());
+    assertThatExceptionOfType(JaxbRuntimeException.class)
+        .isThrownBy(() -> builder.copy()
+            .add("org.bremersee.xml.adapter")
+            .buildMarshaller());
   }
 
   /**
    * Build jaxb context.
    *
+   * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void buildJaxbContext() throws Exception {
+  void buildJaxbContext(SoftAssertions softly) throws Exception {
     JaxbContextWrapper ctx = builder.copy()
         .withFormattedOutput(true)
         .withSchemaMode(SchemaMode.ALWAYS)
@@ -316,18 +319,38 @@ class JaxbContextBuilderTest {
             new DateXmlAdapter()))
         .buildJaxbContext();
 
-    assertNotNull(ctx);
-    assertNotNull(ctx.createJAXBIntrospector());
-    assertNotNull(ctx.createMarshaller());
-    assertNotNull(ctx.createUnmarshaller());
-    assertNotNull(ctx.getAttachmentMarshaller());
-    assertNotNull(ctx.getAttachmentUnmarshaller());
-    assertNotNull(ctx.getXmlAdapters());
-    assertNotNull(ctx.getSchema());
-    assertNotNull(ctx.getDetails());
-    assertNotNull(ctx.getValidationEventHandler());
-    assertTrue(ctx.isFormattedOutput());
-    assertEquals(SchemaMode.ALWAYS, ctx.getSchemaMode());
+    softly.assertThat(ctx)
+        .extracting(JaxbContextWrapper::createJAXBIntrospector)
+        .isNotNull();
+    softly.assertThat(ctx)
+        .extracting(JaxbContextWrapper::getAttachmentMarshaller)
+        .isNotNull();
+    softly.assertThat(ctx)
+        .extracting(JaxbContextWrapper::getAttachmentUnmarshaller)
+        .isNotNull();
+    softly.assertThat(ctx)
+        .extracting(JaxbContextWrapper::getXmlAdapters)
+        .isNotNull();
+    softly.assertThat(ctx)
+        .extracting(JaxbContextWrapper::getSchema)
+        .isNotNull();
+    softly.assertThat(ctx)
+        .extracting(JaxbContextWrapper::getDetails)
+        .isNotNull();
+    softly.assertThat(ctx)
+        .extracting(JaxbContextWrapper::getValidationEventHandler)
+        .isNotNull();
+    softly.assertThat(ctx)
+        .extracting(JaxbContextWrapper::isFormattedOutput, InstanceOfAssertFactories.BOOLEAN)
+        .isTrue();
+    softly.assertThat(ctx)
+        .extracting(JaxbContextWrapper::getSchemaMode)
+        .isEqualTo(SchemaMode.ALWAYS);
+
+    softly.assertThat(ctx.createMarshaller())
+        .isNotNull();
+    softly.assertThat(ctx.createUnmarshaller())
+        .isNotNull();
   }
 
 }

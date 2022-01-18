@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,44 +16,47 @@
 
 package org.bremersee.xml;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.bremersee.xml.model1.ObjectFactory;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * The jaxb context data test.
  *
  * @author Christian Bremer
  */
+@ExtendWith({SoftAssertionsExtension.class})
 class JaxbContextDataTest {
 
   /**
    * Gets name space.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void getNameSpace() {
+  void getNameSpace(SoftAssertions softly) {
     JaxbContextData model = new JaxbContextData(ObjectFactory.class.getPackage());
-    assertEquals(
-        "http://bremersee.org/xmlschemas/common-xml-test-model-1",
-        model.getNameSpace());
+    softly.assertThat(model.getNameSpace())
+        .isEqualTo("http://bremersee.org/xmlschemas/common-xml-test-model-1");
+    softly.assertThat(model)
+        .isEqualTo(model);
+    softly.assertThat(model)
+        .isNotEqualTo(null);
+    softly.assertThat(model)
+        .isNotEqualTo(new Object());
 
-    assertEquals(model, model);
-    assertEquals(model, new JaxbContextData(ObjectFactory.class.getPackage()));
-    assertEquals(
-        model.hashCode(),
-        new JaxbContextData(ObjectFactory.class.getPackage()).hashCode());
-    assertEquals(
-        model.toString(),
-        new JaxbContextData(ObjectFactory.class.getPackage()).toString());
-
-    assertNotEquals(model, null);
-    assertNotEquals(model, new Object());
-
-    assertTrue(
-        model.toString().contains("http://bremersee.org/xmlschemas/common-xml-test-model-1"));
+    softly.assertThat(model)
+        .isEqualTo(new JaxbContextData(ObjectFactory.class.getPackage()));
+    softly.assertThat(model.hashCode())
+        .isEqualTo(new JaxbContextData(ObjectFactory.class.getPackage()).hashCode());
+    softly.assertThat(model.toString())
+        .isEqualTo(new JaxbContextData(ObjectFactory.class.getPackage()).toString());
+    softly.assertThat(model.toString())
+        .contains("http://bremersee.org/xmlschemas/common-xml-test-model-1");
   }
 
   /**
@@ -64,23 +67,26 @@ class JaxbContextDataTest {
     JaxbContextData model = new JaxbContextData(
         org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
         "http://bremersee.github.io/xmlschemas/common-xml-test-model-2.xsd");
-    assertEquals(
-        "http://bremersee.github.io/xmlschemas/common-xml-test-model-2.xsd",
-        model.getSchemaLocation());
+    assertThat(model.getNameSpace())
+        .isEqualTo("http://bremersee.org/xmlschemas/common-xml-test-model-2");
   }
 
   /**
    * Gets package name.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void getPackageName() {
+  void getPackageName(SoftAssertions softly) {
     JaxbContextData model = new JaxbContextData(
         "org.bremersee.xml",
         "http://namespace",
         "http://example.org/namespace.xsd");
-    assertEquals("org.bremersee.xml", model.getPackageName());
+    softly.assertThat(model.getPackageName())
+        .isEqualTo("org.bremersee.xml");
 
     model = new JaxbContextData("org.bremersee.xml");
-    assertEquals("org.bremersee.xml", model.getPackageName());
+    softly.assertThat(model.getPackageName())
+        .isEqualTo("org.bremersee.xml");
   }
 }

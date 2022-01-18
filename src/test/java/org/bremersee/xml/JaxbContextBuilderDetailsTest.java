@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,86 +16,85 @@
 
 package org.bremersee.xml;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.bremersee.xml.model4.Address;
 import org.bremersee.xml.model6.StandaloneModel;
 import org.junit.jupiter.api.Test;
-import org.springframework.util.StringUtils;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * The jaxb context builder details test.
  *
  * @author Christian Bremer
  */
+@ExtendWith({SoftAssertionsExtension.class})
 class JaxbContextBuilderDetailsTest {
 
   /**
    * Empty.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void empty() {
+  void empty(SoftAssertions softly) {
     JaxbContextBuilderDetailsImpl model = new JaxbContextBuilderDetailsImpl();
 
-    assertFalse(model.isBuildWithContextPath());
-    assertNull(model.getContextPath());
-    assertNull(model.getSchemaLocation());
-    assertNotNull(model.getClasses());
-    assertEquals(0, model.getClasses().length);
-    assertTrue(model.getNameSpacesWithLocation().isEmpty());
-    assertTrue(model.getSchemaLocations().isEmpty());
+    softly.assertThat(model.isBuildWithContextPath()).isFalse();
+    softly.assertThat(model.getContextPath()).isNull();
+    softly.assertThat(model.getSchemaLocation()).isNull();
+    softly.assertThat(model.getClasses()).isEmpty();
+    softly.assertThat(model.getNameSpacesWithLocation()).isEmpty();
+    softly.assertThat(model.getSchemaLocations()).isEmpty();
 
-    assertEquals(model, model);
-    assertEquals(model, new JaxbContextBuilderDetailsImpl());
-    assertEquals(model.hashCode(), new JaxbContextBuilderDetailsImpl().hashCode());
-    assertNotEquals(model, null);
-    assertNotEquals(model, new Object());
+    softly.assertThat(model).isEqualTo(new JaxbContextBuilderDetailsImpl());
+    softly.assertThat(model.hashCode()).isEqualTo(new JaxbContextBuilderDetailsImpl().hashCode());
 
-    assertTrue(StringUtils.hasText(model.toString()));
+    softly.assertThat(model.toString()).isNotEmpty();
   }
 
   /**
    * With classes.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void withClasses() {
+  void withClasses(SoftAssertions softly) {
     JaxbContextBuilderDetailsImpl model = new JaxbContextBuilderDetailsImpl(
         Address.class,
         StandaloneModel.class);
 
-    assertFalse(model.isBuildWithContextPath());
-    assertNull(model.getContextPath());
-    assertNull(model.getSchemaLocation());
-    assertNotNull(model.getClasses());
-    assertEquals(2, model.getClasses().length);
-    assertTrue(model.getNameSpacesWithLocation().isEmpty());
-    assertTrue(model.getSchemaLocations().isEmpty());
+    softly.assertThat(model.isBuildWithContextPath()).isFalse();
+    softly.assertThat(model.getContextPath()).isNull();
+    softly.assertThat(model.getSchemaLocation()).isNull();
+    softly.assertThat(model.getClasses()).hasSize(2);
+    softly.assertThat(model.getNameSpacesWithLocation()).isEmpty();
+    softly.assertThat(model.getSchemaLocations()).isEmpty();
 
-    assertEquals(model, model);
-    assertEquals(
-        model,
-        new JaxbContextBuilderDetailsImpl(Address.class, StandaloneModel.class));
-    assertEquals(
-        model.hashCode(),
-        new JaxbContextBuilderDetailsImpl(Address.class, StandaloneModel.class).hashCode());
+    softly.assertThat(model)
+        .isEqualTo(new JaxbContextBuilderDetailsImpl(Address.class, StandaloneModel.class));
+    softly.assertThat(model.hashCode())
+        .isEqualTo(new JaxbContextBuilderDetailsImpl(Address.class, StandaloneModel.class)
+            .hashCode());
+    softly.assertThat(model)
+        .isNotEqualTo(null);
+    softly.assertThat(model)
+        .isNotEqualTo(new Object());
 
-    assertTrue(StringUtils.hasText(model.toString()));
+    softly.assertThat(model.toString()).isNotEmpty();
   }
 
   /**
    * With map but no packages.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void withMapButNoPackages() {
+  void withMapButNoPackages(SoftAssertions softly) {
     Map<String, JaxbContextData> map = new HashMap<>();
     map.put(org.bremersee.xml.model7a.ObjectFactory.class.getPackage().getName(),
         new JaxbContextData(org.bremersee.xml.model7a.ObjectFactory.class.getPackage()));
@@ -106,35 +105,37 @@ class JaxbContextBuilderDetailsTest {
 
     JaxbContextBuilderDetailsImpl model = new JaxbContextBuilderDetailsImpl(null, map);
 
-    assertTrue(model.isBuildWithContextPath());
-    assertEquals(
-        "org.bremersee.xml.model2:org.bremersee.xml.model7a:org.bremersee.xml.model7b",
-        model.getContextPath());
-    assertEquals("http://bremersee.org/xmlschemas/common-xml-test-model-7a "
+    softly.assertThat(model.isBuildWithContextPath()).isTrue();
+    softly.assertThat(model.getContextPath())
+        .isEqualTo("org.bremersee.xml.model2:org.bremersee.xml.model7a:org.bremersee.xml.model7b");
+    softly.assertThat(model.getSchemaLocation())
+        .isEqualTo("http://bremersee.org/xmlschemas/common-xml-test-model-7a "
             + "http://bremersee.github.io/xmlschemas/common-xml-test-model-7a.xsd "
             + "http://bremersee.org/xmlschemas/common-xml-test-model-7b "
-            + "http://bremersee.github.io/xmlschemas/common-xml-test-model-7b.xsd",
-        model.getSchemaLocation());
-    assertNull(model.getClasses());
-    assertEquals(2, model.getNameSpacesWithLocation().size());
-    assertEquals(2, model.getSchemaLocations().size());
+            + "http://bremersee.github.io/xmlschemas/common-xml-test-model-7b.xsd");
+    softly.assertThat(model.getClasses())
+        .isNull();
+    softly.assertThat(model.getNameSpacesWithLocation())
+        .hasSize(2);
+    softly.assertThat(model.getSchemaLocations())
+        .hasSize(2);
 
-    assertEquals(model, model);
-    assertEquals(
-        model,
-        new JaxbContextBuilderDetailsImpl(null, map));
-    assertEquals(
-        model.hashCode(),
-        new JaxbContextBuilderDetailsImpl(null, map).hashCode());
+    softly.assertThat(model)
+        .isEqualTo(new JaxbContextBuilderDetailsImpl(null, map));
+    softly.assertThat(model.hashCode())
+        .isEqualTo(new JaxbContextBuilderDetailsImpl(null, map).hashCode());
 
-    assertTrue(model.toString().contains("org.bremersee.xml.model7a"));
+    softly.assertThat(model.toString())
+        .contains("org.bremersee.xml.model7a");
   }
 
   /**
    * With map.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void withMap() {
+  void withMap(SoftAssertions softly) {
     Set<String> packages = Collections.singleton("org.bremersee.xml.model7a");
 
     Map<String, JaxbContextData> map = new HashMap<>();
@@ -147,26 +148,27 @@ class JaxbContextBuilderDetailsTest {
 
     JaxbContextBuilderDetailsImpl model = new JaxbContextBuilderDetailsImpl(packages, map);
 
-    assertTrue(model.isBuildWithContextPath());
-    assertEquals(
-        "org.bremersee.xml.model7a",
-        model.getContextPath());
-    assertEquals("http://bremersee.org/xmlschemas/common-xml-test-model-7a "
-            + "http://bremersee.github.io/xmlschemas/common-xml-test-model-7a.xsd",
-        model.getSchemaLocation());
-    assertNull(model.getClasses());
-    assertEquals(1, model.getNameSpacesWithLocation().size());
-    assertEquals(1, model.getSchemaLocations().size());
+    softly.assertThat(model.isBuildWithContextPath())
+        .isTrue();
+    softly.assertThat(model.getContextPath())
+        .isEqualTo("org.bremersee.xml.model7a");
+    softly.assertThat(model.getSchemaLocation())
+        .isEqualTo("http://bremersee.org/xmlschemas/common-xml-test-model-7a "
+            + "http://bremersee.github.io/xmlschemas/common-xml-test-model-7a.xsd");
+    softly.assertThat(model.getClasses())
+        .isNull();
+    softly.assertThat(model.getNameSpacesWithLocation())
+        .hasSize(1);
+    softly.assertThat(model.getSchemaLocations())
+        .hasSize(1);
 
-    assertEquals(model, model);
-    assertEquals(
-        model,
-        new JaxbContextBuilderDetailsImpl(packages, map));
-    assertEquals(
-        model.hashCode(),
-        new JaxbContextBuilderDetailsImpl(packages, map).hashCode());
+    softly.assertThat(model)
+        .isEqualTo(new JaxbContextBuilderDetailsImpl(packages, map));
+    softly.assertThat(model.hashCode())
+        .isEqualTo(new JaxbContextBuilderDetailsImpl(packages, map).hashCode());
 
-    assertTrue(model.toString().contains("org.bremersee.xml.model7a"));
+    softly.assertThat(model.toString())
+        .contains("org.bremersee.xml.model7a");
   }
 
 }

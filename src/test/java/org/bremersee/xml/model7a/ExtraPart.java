@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package org.bremersee.xml.model7a;
 
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * The extra part.
@@ -28,42 +29,10 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlType(name = "extraPartType")
 @XmlAccessorType(XmlAccessType.FIELD)
+@Data
+@NoArgsConstructor
 public abstract class ExtraPart {
 
   private String partNumber;
 
-  /**
-   * Gets part number.
-   *
-   * @return the part number
-   */
-  public String getPartNumber() {
-    return partNumber;
-  }
-
-  /**
-   * Sets part number.
-   *
-   * @param partNumber the part number
-   */
-  public void setPartNumber(String partNumber) {
-    this.partNumber = partNumber;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ExtraPart extraPart = (ExtraPart) o;
-    return Objects.equals(partNumber, extraPart.partNumber);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(partNumber);
-  }
 }

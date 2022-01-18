@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.bremersee.xml.model3;
 
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * The type Company.
@@ -27,50 +28,10 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement(name = "company")
 @XmlType(name = "companyType")
-@SuppressWarnings("unused")
+@Data
+@NoArgsConstructor
 public class Company {
 
   private String name;
 
-  /**
-   * Gets name.
-   *
-   * @return the name
-   */
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * Sets name.
-   *
-   * @param name the name
-   */
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  @Override
-  public String toString() {
-    return "Company{"
-        + "name='" + name + '\''
-        + '}';
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof Company)) {
-      return false;
-    }
-    Company company = (Company) o;
-    return Objects.equals(name, company.name);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name);
-  }
 }

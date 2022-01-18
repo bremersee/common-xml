@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 package org.bremersee.xml;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
@@ -43,13 +41,15 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.bremersee.xml.model1.Person;
 import org.bremersee.xml.model3.Company;
 import org.bremersee.xml.model3.ObjectFactory;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.ErrorHandler;
@@ -60,19 +60,21 @@ import org.xml.sax.InputSource;
  *
  * @author Christian Bremer
  */
+@ExtendWith({SoftAssertionsExtension.class})
 class XmlDocumentBuilderTest {
 
-  private JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder
+  private final JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder
       .builder()
       .processAll(ServiceLoader.load(JaxbContextDataProvider.class));
 
   /**
    * Test with namespaces.
    *
+   * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void testWithNamespaces() throws Exception {
+  void testWithNamespaces(SoftAssertions softly) throws Exception {
     Person expected = new Person();
     expected.setFirstName("Anna Livia");
     expected.setLastName("Plurabelle");
@@ -87,7 +89,8 @@ class XmlDocumentBuilderTest {
     transformer.transform(domSource, streamResult);
 
     Person actual = (Person) jaxbContextBuilder.buildUnmarshaller().unmarshal(document);
-    assertEquals(expected, actual);
+    softly.assertThat(actual)
+        .isEqualTo(expected);
 
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     jaxbContextBuilder.buildMarshaller().marshal(expected, out);
@@ -103,7 +106,8 @@ class XmlDocumentBuilderTest {
     document = builder.buildDocument(new ByteArrayInputStream(out.toByteArray()));
 
     actual = (Person) jaxbContextBuilder.buildUnmarshaller().unmarshal(document);
-    assertEquals(expected, actual);
+    softly.assertThat(actual)
+        .isEqualTo(expected);
   }
 
   /**
@@ -125,8 +129,7 @@ class XmlDocumentBuilderTest {
       StreamResult streamResult = new StreamResult(sw);
       transformer.transform(domSource, streamResult);
 
-      Person actual = (Person) jaxbContextBuilder.buildUnmarshaller().unmarshal(document);
-      assertEquals(expected, actual);
+      jaxbContextBuilder.buildUnmarshaller().unmarshal(document);
 
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       jaxbContextBuilder.buildMarshaller().marshal(expected, out);
@@ -141,18 +144,18 @@ class XmlDocumentBuilderTest {
           null);
       document = builder.buildDocument(new ByteArrayInputStream(out.toByteArray()));
 
-      actual = (Person) jaxbContextBuilder.buildUnmarshaller().unmarshal(document);
-      assertEquals(expected, actual);
+      jaxbContextBuilder.buildUnmarshaller().unmarshal(document);
     });
   }
 
   /**
    * Test without namespaces.
    *
+   * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void testWithoutNamespaces() throws Exception {
+  void testWithoutNamespaces(SoftAssertions softly) throws Exception {
     JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
 
     Company expected = new Company();
@@ -175,10 +178,12 @@ class XmlDocumentBuilderTest {
     StringWriter sw = new StringWriter();
     StreamResult streamResult = new StreamResult(sw);
     transformer.transform(domSource, streamResult);
-    assertTrue(StringUtils.hasText(sw.toString()));
+    softly.assertThat(sw.toString())
+        .isNotEmpty();
 
     Company actual = (Company) jaxbContextBuilder.buildUnmarshaller().unmarshal(document);
-    assertEquals(expected, actual);
+    softly.assertThat(actual)
+        .isEqualTo(expected);
   }
 
   /**
@@ -193,7 +198,8 @@ class XmlDocumentBuilderTest {
         .configureEntityResolver(mock(EntityResolver.class))
         .configureErrorHandler(mock(ErrorHandler.class))
         .buildDocumentBuilder();
-    assertNotNull(builder);
+    assertThat(builder)
+        .isNotNull();
   }
 
   /**
@@ -203,29 +209,33 @@ class XmlDocumentBuilderTest {
   void buildDocument() {
     Document document = XmlDocumentBuilder.builder()
         .buildDocument();
-    assertNotNull(document);
+    assertThat(document)
+        .isNotNull();
   }
 
   /**
    * Build document with input stream.
    *
+   * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void buildDocumentWithInputStream() throws Exception {
+  void buildDocumentWithInputStream(SoftAssertions softly) throws Exception {
     Document document = XmlDocumentBuilder.builder()
         .configureFactorySchema(SchemaBuilder.builder()
             .buildSchema("classpath:common-xml-test-model-1.xsd"))
         .buildDocument(new DefaultResourceLoader()
             .getResource("classpath:person.xml").getInputStream());
-    assertNotNull(document);
+    softly.assertThat(document)
+        .isNotNull();
 
     document = XmlDocumentBuilder.builder()
         .configureFactorySchema(SchemaBuilder.builder()
             .buildSchema("classpath:common-xml-test-model-1.xsd"))
         .buildDocument(new DefaultResourceLoader()
             .getResource("classpath:person.xml").getInputStream(), "systemId");
-    assertNotNull(document);
+    softly.assertThat(document)
+        .isNotNull();
   }
 
   /**
@@ -238,7 +248,8 @@ class XmlDocumentBuilderTest {
     Document document = XmlDocumentBuilder.builder()
         .buildDocument(new InputSource(new DefaultResourceLoader()
             .getResource("classpath:person.xml").getInputStream()));
-    assertNotNull(document);
+    assertThat(document)
+        .isNotNull();
   }
 
   /**
@@ -248,7 +259,8 @@ class XmlDocumentBuilderTest {
   void buildDocumentFromUri() {
     Document document = XmlDocumentBuilder.builder()
         .buildDocument("http://bremersee.github.io/xmlschemas/common-xml-test-model-2.xsd");
-    assertNotNull(document);
+    assertThat(document)
+        .isNotNull();
   }
 
   /**
@@ -256,8 +268,9 @@ class XmlDocumentBuilderTest {
    */
   @Test
   void buildDocumentFromIllegalUri() {
-    assertThrows(XmlRuntimeException.class, () -> XmlDocumentBuilder.builder()
-        .buildDocument("http://localhost/" + UUID.randomUUID() + ".xml"));
+    assertThatExceptionOfType(XmlRuntimeException.class)
+        .isThrownBy(() -> XmlDocumentBuilder.builder()
+            .buildDocument("http://localhost/" + UUID.randomUUID() + ".xml"));
   }
 
   /**
@@ -279,7 +292,8 @@ class XmlDocumentBuilderTest {
     }
     Document document = XmlDocumentBuilder.builder()
         .buildDocument(file);
-    assertNotNull(document);
+    assertThat(document)
+        .isNotNull();
   }
 
   /**
@@ -287,45 +301,58 @@ class XmlDocumentBuilderTest {
    */
   @Test
   void buildDocumentFromFileAndExpectException() {
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> XmlDocumentBuilder.builder().buildDocument((File) null));
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> XmlDocumentBuilder.builder().buildDocument((File) null));
   }
 
   /**
    * Build document from illegal file and expect exception.
    *
+   * @param softly the soft assertions
    * @throws IOException the io exception
    */
   @Test
-  void buildDocumentFromIllegalFileAndExpectException() throws IOException {
+  void buildDocumentFromIllegalFileAndExpectException(SoftAssertions softly)
+      throws IOException {
+
     final File file = File.createTempFile("junit", ".test",
         new File(System.getProperty("java.io.tmpdir")));
     file.deleteOnExit();
 
-    assertThrows(XmlRuntimeException.class, () -> XmlDocumentBuilder.builder().buildDocument(file));
+    softly.assertThatThrownBy(() -> XmlDocumentBuilder.builder()
+            .buildDocument(file))
+        .extracting(Object::getClass)
+        .isEqualTo(XmlRuntimeException.class);
 
     try (InputStream in = new FileInputStream(file)) {
-      assertThrows(XmlRuntimeException.class, () -> XmlDocumentBuilder.builder()
-          .buildDocument(in));
+      softly.assertThatThrownBy(() -> XmlDocumentBuilder.builder()
+              .buildDocument(in))
+          .extracting(Object::getClass)
+          .isEqualTo(XmlRuntimeException.class);
     }
 
     try (InputStream in = new FileInputStream(file)) {
-      assertThrows(XmlRuntimeException.class, () -> XmlDocumentBuilder.builder()
-          .buildDocument(in, "system-id"));
+      softly.assertThatThrownBy(() -> XmlDocumentBuilder.builder()
+              .buildDocument(in, "system-id"))
+          .extracting(Object::getClass)
+          .isEqualTo(XmlRuntimeException.class);
     }
 
     try (InputStream in = new FileInputStream(file)) {
-      assertThrows(XmlRuntimeException.class, () -> XmlDocumentBuilder.builder()
-          .buildDocument(new InputSource(in)));
+      softly.assertThatThrownBy(() -> XmlDocumentBuilder.builder()
+              .buildDocument(new InputSource(in)))
+          .extracting(Object::getClass)
+          .isEqualTo(XmlRuntimeException.class);
     }
   }
 
   /**
    * Build document with marshaller.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void buildDocumentWithMarshaller() {
+  void buildDocumentWithMarshaller(SoftAssertions softly) {
     Person person = new Person();
     person.setFirstName("Anna Livia");
     person.setLastName("Plurabelle");
@@ -336,20 +363,26 @@ class XmlDocumentBuilderTest {
 
     Document document = XmlDocumentBuilder.builder()
         .buildDocument(person, jaxbContextBuilder.buildMarshaller());
-    assertNotNull(document);
+    softly.assertThat(document)
+        .isNotNull();
 
-    assertNull(XmlDocumentBuilder.builder()
-        .buildDocument(null, jaxbContextBuilder.buildMarshaller()));
+    softly.assertThat(XmlDocumentBuilder.builder()
+            .buildDocument(null, jaxbContextBuilder.buildMarshaller()))
+        .isNull();
 
-    assertThrows(JaxbRuntimeException.class, () -> XmlDocumentBuilder.builder()
-        .buildDocument("", jaxbContextBuilder.buildMarshaller()));
+    softly.assertThatThrownBy(() -> XmlDocumentBuilder.builder()
+            .buildDocument("", jaxbContextBuilder.buildMarshaller()))
+        .extracting(Object::getClass)
+        .isEqualTo(JaxbRuntimeException.class);
   }
 
   /**
    * Build document with jaxb context.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void buildDocumentWithJaxbContext() {
+  void buildDocumentWithJaxbContext(SoftAssertions softly) {
     Person person = new Person();
     person.setFirstName("Anna Livia");
     person.setLastName("Plurabelle");
@@ -366,20 +399,28 @@ class XmlDocumentBuilderTest {
 
     Document document = XmlDocumentBuilder.builder()
         .buildDocument(person, jaxbContextBuilder.buildJaxbContext());
-    assertNotNull(document);
+    softly.assertThat(document)
+        .isNotNull();
 
-    assertNull(XmlDocumentBuilder.builder()
-        .buildDocument(null, jaxbContextBuilder.buildJaxbContext()));
+    softly.assertThat(XmlDocumentBuilder.builder()
+            .buildDocument(null, jaxbContextBuilder.buildJaxbContext()))
+        .isNull();
 
-    assertThrows(JaxbRuntimeException.class, () -> XmlDocumentBuilder.builder()
-        .buildDocument("", jaxbContextBuilder.buildJaxbContext()));
+    softly.assertThatThrownBy(() -> XmlDocumentBuilder.builder()
+            .buildDocument("", jaxbContextBuilder.buildJaxbContext()))
+        .extracting(Object::getClass)
+        .isEqualTo(JaxbRuntimeException.class);
   }
 
+  /**
+   * Configure factory attribute.
+   */
   @Test
   void configureFactoryAttribute() {
-    assertThrows(IllegalArgumentException.class, () -> XmlDocumentBuilder.builder()
-        .configureFactoryAttribute("don't know", new Object())
-        .buildDocumentBuilder());
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> XmlDocumentBuilder.builder()
+            .configureFactoryAttribute("don't know", new Object())
+            .buildDocumentBuilder());
   }
 
 }

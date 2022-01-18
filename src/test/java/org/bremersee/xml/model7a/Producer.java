@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package org.bremersee.xml.model7a;
 
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * The producer.
@@ -28,45 +29,10 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlType(name = "producerType")
 @XmlAccessorType(XmlAccessType.FIELD)
+@Data
+@NoArgsConstructor
 public abstract class Producer {
 
-  /**
-   * The name.
-   */
-  String name;
+  private String name;
 
-  /**
-   * Gets name.
-   *
-   * @return the name
-   */
-  public String getName() {
-    return name;
-  }
-
-  /**
-   * Sets name.
-   *
-   * @param name the name
-   */
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    Producer producer = (Producer) o;
-    return Objects.equals(name, producer.name);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name);
-  }
 }

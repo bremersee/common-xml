@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package org.bremersee.xml.model7a;
 
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * The fender.
@@ -30,46 +34,13 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement(name = "Fender")
 @XmlType(name = "fenderType")
 @XmlAccessorType(XmlAccessType.FIELD)
-@SuppressWarnings("unused")
+@Getter
+@Setter
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class Fender extends ExtraPart {
 
   private Boolean front;
 
-  /**
-   * Gets front.
-   *
-   * @return the front
-   */
-  public Boolean getFront() {
-    return front;
-  }
-
-  /**
-   * Sets front.
-   *
-   * @param front the front
-   */
-  public void setFront(Boolean front) {
-    this.front = front;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    if (!super.equals(o)) {
-      return false;
-    }
-    Fender fender = (Fender) o;
-    return Objects.equals(front, fender.front);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), front);
-  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,16 @@ package org.bremersee.xml.model7a;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlType;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.w3c.dom.Element;
 
 /**
@@ -33,71 +37,26 @@ import org.w3c.dom.Element;
  */
 @XmlType(name = "bicycleType")
 @XmlAccessorType(XmlAccessType.FIELD)
+@ToString
+@EqualsAndHashCode(exclude = {"extraParts"})
+@NoArgsConstructor
 public abstract class Bicycle {
 
+  @Getter
+  @Setter
   private Producer producer;
 
+  @Getter
+  @Setter
   private Integer gear;
 
+  @Getter
+  @Setter
   private String color;
 
   @XmlElementWrapper(name = "extraParts")
   @XmlAnyElement
   private List<Element> extraParts;
-
-  /**
-   * Gets producer.
-   *
-   * @return the producer
-   */
-  public Producer getProducer() {
-    return producer;
-  }
-
-  /**
-   * Sets producer.
-   *
-   * @param producer the producer
-   */
-  public void setProducer(Producer producer) {
-    this.producer = producer;
-  }
-
-  /**
-   * Gets gear.
-   *
-   * @return the gear
-   */
-  public Integer getGear() {
-    return gear;
-  }
-
-  /**
-   * Sets gear.
-   *
-   * @param gear the gear
-   */
-  public void setGear(Integer gear) {
-    this.gear = gear;
-  }
-
-  /**
-   * Gets color.
-   *
-   * @return the color
-   */
-  public String getColor() {
-    return color;
-  }
-
-  /**
-   * Sets color.
-   *
-   * @param color the color
-   */
-  public void setColor(String color) {
-    this.color = color;
-  }
 
   /**
    * Gets extra parts.
@@ -111,23 +70,4 @@ public abstract class Bicycle {
     return extraParts;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    Bicycle bicycle = (Bicycle) o;
-    return Objects.equals(producer, bicycle.producer) &&
-        Objects.equals(gear, bicycle.gear) &&
-        Objects.equals(color, bicycle.color) &&
-        Objects.equals(extraParts, bicycle.extraParts);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(producer, gear, color, extraParts);
-  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,33 @@
 
 package org.bremersee.xml;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * The jaxb runtime exception test.
  *
  * @author Christian Bremer
  */
+@ExtendWith({SoftAssertionsExtension.class})
 class JaxbRuntimeExceptionTest {
 
   /**
    * Test constructors.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void testConstructors() {
+  void testConstructors(SoftAssertions softly) {
     Exception cause = new Exception("Something went wrong");
-    assertEquals(cause, new JaxbRuntimeException(cause).getCause());
-    assertEquals(cause, new JaxbRuntimeException("Message", cause).getCause());
-    assertEquals("Message", new JaxbRuntimeException("Message", cause).getMessage());
+    softly.assertThat(cause)
+        .isEqualTo(new JaxbRuntimeException(cause).getCause());
+    softly.assertThat(cause)
+        .isEqualTo(new JaxbRuntimeException("Message", cause).getCause());
+    softly.assertThat(new JaxbRuntimeException("Message", cause).getMessage())
+        .isEqualTo("Message");
   }
 
 }

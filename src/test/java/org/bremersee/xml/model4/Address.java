@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.bremersee.xml.model4;
 
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bremersee.xml.model5.StartEnd;
 
 /**
@@ -28,7 +29,8 @@ import org.bremersee.xml.model5.StartEnd;
  */
 @XmlRootElement(name = "address")
 @XmlType(name = "addressType")
-@SuppressWarnings("unused")
+@Data
+@NoArgsConstructor
 public class Address {
 
   private String street;
@@ -37,75 +39,4 @@ public class Address {
 
   private StartEnd startEnd;
 
-  /**
-   * Gets street.
-   *
-   * @return the street
-   */
-  public String getStreet() {
-    return street;
-  }
-
-  /**
-   * Sets street.
-   *
-   * @param street the street
-   */
-  public void setStreet(String street) {
-    this.street = street;
-  }
-
-  /**
-   * Gets street number.
-   *
-   * @return the street number
-   */
-  public String getStreetNumber() {
-    return streetNumber;
-  }
-
-  /**
-   * Sets street number.
-   *
-   * @param streetNumber the street number
-   */
-  public void setStreetNumber(String streetNumber) {
-    this.streetNumber = streetNumber;
-  }
-
-  public StartEnd getStartEnd() {
-    return startEnd;
-  }
-
-  public void setStartEnd(StartEnd startEnd) {
-    this.startEnd = startEnd;
-  }
-
-  @Override
-  public String toString() {
-    return "Address{"
-        + "street='" + street + '\''
-        + ", streetNumber='" + streetNumber + '\''
-        + ", startEnd='" + startEnd + '\''
-        + '}';
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof Address)) {
-      return false;
-    }
-    Address address = (Address) o;
-    return Objects.equals(street, address.street)
-        && Objects.equals(streetNumber, address.streetNumber)
-        && Objects.equals(startEnd, address.startEnd);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(street, streetNumber);
-  }
 }

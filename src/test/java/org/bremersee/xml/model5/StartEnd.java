@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,13 @@ package org.bremersee.xml.model5;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bremersee.xml.adapter.DurationXmlAdapter;
 import org.bremersee.xml.adapter.OffsetDateTimeXmlAdapter;
 
@@ -39,7 +40,8 @@ import org.bremersee.xml.adapter.OffsetDateTimeXmlAdapter;
     "duration"
 })
 @XmlAccessorType(XmlAccessType.FIELD)
-@SuppressWarnings("unused")
+@Data
+@NoArgsConstructor
 public class StartEnd {
 
   @XmlJavaTypeAdapter(OffsetDateTimeXmlAdapter.class)
@@ -51,85 +53,4 @@ public class StartEnd {
   @XmlJavaTypeAdapter(DurationXmlAdapter.class)
   private Duration duration;
 
-  /**
-   * Gets start.
-   *
-   * @return the start
-   */
-  public OffsetDateTime getStart() {
-    return start;
-  }
-
-  /**
-   * Sets start.
-   *
-   * @param start the start
-   */
-  public void setStart(OffsetDateTime start) {
-    this.start = start;
-  }
-
-  /**
-   * Gets end.
-   *
-   * @return the end
-   */
-  public OffsetDateTime getEnd() {
-    return end;
-  }
-
-  /**
-   * Sets end.
-   *
-   * @param end the end
-   */
-  public void setEnd(OffsetDateTime end) {
-    this.end = end;
-  }
-
-  /**
-   * Gets duration.
-   *
-   * @return the duration
-   */
-  public Duration getDuration() {
-    return duration;
-  }
-
-  /**
-   * Sets duration.
-   *
-   * @param duration the duration
-   */
-  public void setDuration(Duration duration) {
-    this.duration = duration;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    StartEnd startEnd = (StartEnd) o;
-    return Objects.equals(start, startEnd.start)
-        && Objects.equals(end, startEnd.end)
-        && Objects.equals(duration, startEnd.duration);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(start, end, duration);
-  }
-
-  @Override
-  public String toString() {
-    return "StartEnd{"
-        + "start=" + start
-        + ", end=" + end
-        + ", duration=" + duration
-        + '}';
-  }
 }
