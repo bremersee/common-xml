@@ -16,7 +16,6 @@
 
 package org.bremersee.xml;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 import java.io.StringReader;
@@ -25,6 +24,8 @@ import java.security.PrivilegedAction;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
@@ -38,13 +39,16 @@ import org.bremersee.xml.adapter.OffsetDateTimeXmlAdapter;
 import org.bremersee.xml.model3.Company;
 import org.bremersee.xml.model4.Address;
 import org.bremersee.xml.model5.StartEnd;
+import org.bremersee.xml.model6.StandaloneModel;
+import org.bremersee.xml.model7a.Fender;
 import org.bremersee.xml.model7a.ObjectFactory;
 import org.bremersee.xml.model7b.DirtBikeReseller;
 import org.bremersee.xml.model7b.MountainBike;
 import org.bremersee.xml.model7b.RacingReseller;
 import org.bremersee.xml.model7b.SportBikes;
 import org.bremersee.xml.model7c.Carrier;
-import org.junit.jupiter.api.BeforeAll;
+import org.bremersee.xml.model8.AnyElementList;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.w3c.dom.Element;
@@ -111,13 +115,13 @@ class JaxbContextBuilderTest {
       + "</extraParts>"
       + "<ns2:seatHeight>60</ns2:seatHeight></ns2:MountainBike>";
 
-  private static JaxbContextBuilder builder;
+  private JaxbContextBuilder builder;
 
   /**
    * Sets up.
    */
-  @BeforeAll
-  static void setUp() {
+  @BeforeEach
+  void setUp() {
     ClassLoader classLoader;
     if (System.getSecurityManager() == null) {
       classLoader = Thread.currentThread().getContextClassLoader();
@@ -165,7 +169,7 @@ class JaxbContextBuilderTest {
     sportBikes.getChain().add(r1);
 
     Element carrierElement = XmlDocumentBuilder.builder()
-        .buildDocument(carrier, builder.copy().buildMarshaller(carrier))
+        .buildDocument(carrier, builder.buildMarshaller(carrier))
         .getDocumentElement();
 
     MountainBike model = new MountainBike();
@@ -211,8 +215,12 @@ class JaxbContextBuilderTest {
 
     softly.assertThat(builder.canMarshal(Address.class))
         .isTrue();
+    softly.assertThat(builder.canMarshalWithoutExtending(Address.class))
+        .isFalse();
     softly.assertThat(builder.canUnmarshal(Address.class))
         .isTrue();
+    softly.assertThat(builder.canUnmarshalWithoutExtending(Address.class))
+        .isFalse();
 
     StringWriter sw = new StringWriter();
     builder.buildMarshaller(new Class[]{Address.class, Company.class}).marshal(model, sw);
@@ -252,7 +260,7 @@ class JaxbContextBuilderTest {
     softly.assertThat(actual)
         .isEqualTo(model);
 
-    JaxbContextBuilder jaxbContextBuilder = builder.copy()
+    JaxbContextBuilder jaxbContextBuilder = builder
         .withXmlAdapters(null)
         .withDependenciesResolver(null);
     sw = new StringWriter();
@@ -270,35 +278,20 @@ class JaxbContextBuilderTest {
    */
   @Test
   void canWriteAndReadWithClass(SoftAssertions softly) {
-    JaxbContextBuilder jaxbContextBuilder = builder.copy()
-        .withCanMarshal(JaxbContextBuilder.CAN_MARSHAL_ONLY_PREDEFINED_DATA)
-        .withCanUnmarshal(JaxbContextBuilder.CAN_UNMARSHAL_ONLY_PREDEFINED_DATA);
+    JaxbContextBuilder jaxbContextBuilder = builder;
 
-    softly.assertThat(jaxbContextBuilder.canMarshal(Address.class))
+    softly.assertThat(jaxbContextBuilder.canMarshalWithoutExtending(Address.class))
         .isFalse();
-    softly.assertThat(jaxbContextBuilder.canUnmarshal(Address.class))
+    softly.assertThat(jaxbContextBuilder.canUnmarshalWithoutExtending(Address.class))
         .isFalse();
 
-    softly.assertThat(jaxbContextBuilder.canMarshal(MountainBike.class))
+    softly.assertThat(jaxbContextBuilder.canMarshalWithoutExtending(MountainBike.class))
         .isTrue();
-    softly.assertThat(jaxbContextBuilder.canUnmarshal(MountainBike.class))
+    softly.assertThat(jaxbContextBuilder.canUnmarshalWithoutExtending(MountainBike.class))
         .isTrue();
 
     softly.assertThat(jaxbContextBuilder.buildSchema())
         .isNotNull();
-  }
-
-  /**
-   * Add context path.
-   */
-  @Test
-  void addContextPath() {
-    // We have no valid xml model package here; the test packages produce illegal argument
-    // exceptions, because Package.getPackage(java.langString) doesn't work with mvn test.
-    assertThatExceptionOfType(JaxbRuntimeException.class)
-        .isThrownBy(() -> builder.copy()
-            .add("org.bremersee.xml.adapter")
-            .buildMarshaller());
   }
 
   /**
@@ -311,7 +304,7 @@ class JaxbContextBuilderTest {
   void buildJaxbContext(SoftAssertions softly) throws Exception {
     JaxbContextWrapper ctx = builder.copy()
         .withFormattedOutput(true)
-        .withSchemaMode(SchemaMode.ALWAYS)
+        .withSchemaMode(SchemaMode.EXTERNAL_XSD)
         .withAttachmentMarshaller(mock(AttachmentMarshaller.class))
         .withAttachmentUnmarshaller(mock(AttachmentUnmarshaller.class))
         .withValidationEventHandler(mock(ValidationEventHandler.class))
@@ -346,12 +339,109 @@ class JaxbContextBuilderTest {
         .isTrue();
     softly.assertThat(ctx)
         .extracting(JaxbContextWrapper::getSchemaMode)
-        .isEqualTo(SchemaMode.ALWAYS);
+        .isEqualTo(SchemaMode.EXTERNAL_XSD);
 
     softly.assertThat(ctx.createMarshaller())
         .isNotNull();
     softly.assertThat(ctx.createUnmarshaller())
         .isNotNull();
+  }
+
+  /**
+   * Build unmarshaller.
+   *
+   * @param softly the soft assertions
+   */
+  @Test
+  void buildUnmarshaller(SoftAssertions softly) {
+    JaxbContextBuilder builder = JaxbContextBuilder.builder()
+        .withSchemaMode(SchemaMode.EXTERNAL_XSD)
+        .add("org.bremersee.xml.model7a:org.bremersee.xml.model7b:org.bremersee.xml.model7c");
+    softly.assertThat(builder.buildUnmarshaller(null)).isNotNull();
+    softly.assertThat(builder.buildUnmarshaller(new Fender())).isNotNull();
+    softly.assertThat(builder.buildUnmarshaller(new StandaloneModel())).isNotNull();
+  }
+
+  /**
+   * Build marshaller.
+   *
+   * @param softly the soft assertions
+   */
+  @Test
+  void buildMarshaller(SoftAssertions softly) {
+    JaxbContextBuilder builder = JaxbContextBuilder.builder()
+        .withSchemaMode(SchemaMode.EXTERNAL_XSD)
+        .add("org.bremersee.xml.model7a:org.bremersee.xml.model7b:org.bremersee.xml.model7c");
+    softly.assertThat(builder.buildMarshaller(null)).isNotNull();
+    softly.assertThat(builder.buildMarshaller(new Fender())).isNotNull();
+    softly.assertThat(builder.buildMarshaller(new StandaloneModel())).isNotNull();
+  }
+
+  /**
+   * Write any elements.
+   *
+   * @param softly the soft assertions
+   * @throws Exception the exception
+   */
+  @Test
+  void writeAnyElements(SoftAssertions softly) throws Exception {
+    OffsetDateTime start = OffsetDateTime
+        .parse("2000-01-16T12:00:00.000Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    AnyElementList list = new AnyElementList(List.of(
+
+        // Company has no namespace.
+        new Company("UnitTest"),
+
+        // Address has no namespace, but StartEnd has one.
+        new Address("Surefire", "123", new StartEnd(start, null, null)),
+
+        // StandaloneModel has a namespace, too.
+        new StandaloneModel("assert")
+    ));
+
+    // Empty jaxb context
+    JaxbContextBuilder emptyBuilder = JaxbContextBuilder
+        .builder();
+    softly.assertThat(emptyBuilder.canMarshalWithoutExtending(AnyElementList.class)).isFalse();
+    softly.assertThat(emptyBuilder.canMarshalWithoutExtending(Company.class)).isFalse();
+    softly.assertThat(emptyBuilder.canMarshalWithoutExtending(Address.class)).isFalse();
+    softly.assertThat(emptyBuilder.canMarshalWithoutExtending(StandaloneModel.class)).isFalse();
+
+    // We need a new object because we use soft assertions here.
+    JaxbContextBuilder builder = JaxbContextBuilder
+        .builder();
+    Marshaller marshaller = builder.buildMarshaller(list);
+    StringWriter sw = new StringWriter();
+    marshaller.marshal(list, sw);
+
+    // Empty jaxb context was extended:
+    softly.assertThat(builder.canMarshalWithoutExtending(AnyElementList.class)).isTrue();
+    softly.assertThat(builder.canMarshalWithoutExtending(Company.class)).isTrue();
+    softly.assertThat(builder.canMarshalWithoutExtending(Address.class)).isTrue();
+
+    // It's still false, because it has no package with jaxb meta-data.
+    softly.assertThat(emptyBuilder.canMarshalWithoutExtending(StandaloneModel.class)).isFalse();
+
+    String xml = sw.toString();
+
+    AnyElementList actual = (AnyElementList) builder
+        .buildUnmarshaller().unmarshal(new StringReader(xml));
+    softly.assertThat(actual)
+        .isNotEqualTo(list); // unmarshalling of StandaloneModel is not possible
+    softly.assertThat(actual.getContent())
+        .hasSize(3)
+        .contains(
+            new Company("UnitTest"),
+            new Address("Surefire", "123", new StartEnd(start, null, null)))
+        .anyMatch(entry -> entry instanceof Element);
+    // StandaloneModel was unmarshalled as org.w3c.dom.Element
+
+    Element element = (Element) actual.getContent().get(2);
+    StandaloneModel actualStandaloneModel = (StandaloneModel) builder
+        .buildUnmarshaller(StandaloneModel.class)
+        .unmarshal(element);
+    softly.assertThat(actualStandaloneModel)
+        .isEqualTo(new StandaloneModel("assert"));
   }
 
 }

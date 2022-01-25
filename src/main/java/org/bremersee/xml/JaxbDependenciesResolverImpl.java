@@ -19,6 +19,7 @@ package org.bremersee.xml;
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.lang.reflect.Modifier.isTransient;
+import static org.springframework.util.ObjectUtils.isEmpty;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -27,7 +28,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -50,6 +50,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import lombok.EqualsAndHashCode;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
@@ -102,7 +103,8 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
   }
 
   private boolean resolveClasses(final Object value, final Set<ScanResult> scanResults) {
-    if (value == null || stopResolving(ClassUtils.getUserClass(value), value, scanResults)) {
+    if (isEmpty(value)
+        || stopResolving(ClassUtils.getUserClass(value), value, scanResults)) {
       return false;
     }
     if (value instanceof Class) {
@@ -167,7 +169,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
 
   private boolean stopResolving(final Class<?> clazz, final Object source,
       final Set<ScanResult> scanResults) {
-    return clazz == null
+    return isEmpty(clazz)
         || (!isAnnotatedWithXml(clazz) && !Collection.class.isAssignableFrom(clazz))
         || scanResults.contains(new ScanResult(clazz, source));
   }
@@ -228,7 +230,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     public void doWith(final Field field) throws IllegalArgumentException {
       ReflectionUtils.makeAccessible(field);
       processXmlAnnotations(field, scanResults);
-      if (value == null) {
+      if (isEmpty(value)) {
         if (Collection.class.isAssignableFrom(field.getType())) {
           for (ResolvableType rt : ResolvableType.forField(field).getGenerics()) {
             resolveClasses(rt.resolve(), scanResults);
@@ -238,7 +240,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
         }
       } else {
         final Object fieldValue = ReflectionUtils.getField(field, value);
-        if (fieldValue != null) {
+        if (!isEmpty(fieldValue)) {
           if (fieldValue instanceof Collection && ((Collection<?>) fieldValue).isEmpty()) {
             for (ResolvableType rt : ResolvableType.forField(field).getGenerics()) {
               resolveClasses(rt.resolve(), scanResults);
@@ -280,7 +282,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     public void doWith(final Method method) throws IllegalArgumentException {
       ReflectionUtils.makeAccessible(method);
       processXmlAnnotations(method, scanResults);
-      if (value == null) {
+      if (isEmpty(value)) {
         if (Collection.class.isAssignableFrom(method.getReturnType())) {
           for (ResolvableType rt : ResolvableType.forMethodReturnType(method).getGenerics()) {
             resolveClasses(rt.resolve(), scanResults);
@@ -290,7 +292,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
         }
       } else {
         final Object methodValue = ReflectionUtils.invokeMethod(method, value);
-        if (methodValue != null) {
+        if (!isEmpty(methodValue)) {
           if (methodValue instanceof Collection && ((Collection<?>) methodValue).isEmpty()) {
             for (ResolvableType rt : ResolvableType
                 .forMethodReturnType(method, ClassUtils.getUserClass(value))
@@ -390,6 +392,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     }
   }
 
+  @EqualsAndHashCode
   private static class ScanResult {
 
     private final Class<?> clazz;
@@ -415,24 +418,6 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
      */
     Class<?> getClazz() {
       return clazz;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      ScanResult that = (ScanResult) o;
-      return clazz.equals(that.clazz)
-          && Objects.equals(source, that.source);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(clazz, source);
     }
   }
 

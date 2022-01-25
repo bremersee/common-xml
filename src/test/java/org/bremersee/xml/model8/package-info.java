@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022  the original author or authors.
+ * Copyright 2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,12 @@
  * limitations under the License.
  */
 
-package org.bremersee.xml.model7a;
-
-import javax.xml.bind.annotation.XmlRegistry;
-
 /**
- * The xml object factory.
+ * Test model 8 package.
  *
  * @author Christian Bremer
  */
-@XmlRegistry
-@SuppressWarnings("unused")
-public class ObjectFactory {
-
-  /**
-   * Create fender.
-   *
-   * @return the fender
-   */
-  public Fender createFender() {
-    return new Fender();
-  }
-
-}
+@javax.xml.bind.annotation.XmlSchema(
+    namespace = "http://bremersee.org/xmlschemas/common-xml-test-model-8",
+    elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+package org.bremersee.xml.model8;

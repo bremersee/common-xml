@@ -3,11 +3,11 @@
 This library contains
 
 - some xml adapters (for java.util.Date, java.time.Duration, java.time.Instant, java.time.OffsetDateTime etc.),
-- a pojo to describe an xml model (`JaxbContextData`) with package name, namespace and schema location,
+- a pojo to describe a xml model (`JaxbContextData`) with package name, namespace and schema location,
 - a provider (`JaxbContextDataProvider`) of these descriptions that may be loaded with java.util.ServiceLoader into
 - a JAXB context builder (`JaxbContextBuilder`) which is able to generate a JAXB context on runtime,
 - a schema builder (`SchemaBuilder`)
-- and an xml document builder (`XmlDocumentBuilder`).
+- and a xml document builder (`XmlDocumentBuilder`).
 
 ## Usage of JaxbContextBuilder
 
@@ -41,9 +41,9 @@ public class Example {
 }
 ```
 
-Another advantage of using `JaxbContextData` is the possibility to add a schema location to an xml
-model that was generated with an xjc maven plugin, because the generated `package-info.java` files
-don't have information about the schema location and I haven't found a way to add the schema 
+Another advantage of using `JaxbContextData` is the possibility to add a schema location to a xml
+model that was generated with a xjc maven plugin, because the generated `package-info.java` files
+don't have information about the schema location, and I haven't found a way to add the schema 
 location during generation.
 
 If such provider is not present, it is possible to add the packages in different ways and combine 

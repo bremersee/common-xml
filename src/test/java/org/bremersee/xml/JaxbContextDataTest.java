@@ -17,10 +17,12 @@
 package org.bremersee.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
-import org.bremersee.xml.model1.ObjectFactory;
+import org.bremersee.xml.adapter.DateXmlAdapter;
+import org.bremersee.xml.model1.Person;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -39,7 +41,7 @@ class JaxbContextDataTest {
    */
   @Test
   void getNameSpace(SoftAssertions softly) {
-    JaxbContextData model = new JaxbContextData(ObjectFactory.class.getPackage());
+    JaxbContextData model = new JaxbContextData(Person.class);
     softly.assertThat(model.getNameSpace())
         .isEqualTo("http://bremersee.org/xmlschemas/common-xml-test-model-1");
     softly.assertThat(model)
@@ -50,43 +52,64 @@ class JaxbContextDataTest {
         .isNotEqualTo(new Object());
 
     softly.assertThat(model)
-        .isEqualTo(new JaxbContextData(ObjectFactory.class.getPackage()));
+        .isEqualTo(new JaxbContextData(Person.class.getPackage()));
     softly.assertThat(model.hashCode())
-        .isEqualTo(new JaxbContextData(ObjectFactory.class.getPackage()).hashCode());
+        .isEqualTo(new JaxbContextData(Person.class.getPackage()).hashCode());
     softly.assertThat(model.toString())
-        .isEqualTo(new JaxbContextData(ObjectFactory.class.getPackage()).toString());
+        .isEqualTo(new JaxbContextData(Person.class.getPackage()).toString());
     softly.assertThat(model.toString())
         .contains("http://bremersee.org/xmlschemas/common-xml-test-model-1");
   }
 
   /**
    * Gets schema location.
-   */
-  @Test
-  void getSchemaLocation() {
-    JaxbContextData model = new JaxbContextData(
-        org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
-        "http://bremersee.github.io/xmlschemas/common-xml-test-model-2.xsd");
-    assertThat(model.getNameSpace())
-        .isEqualTo("http://bremersee.org/xmlschemas/common-xml-test-model-2");
-  }
-
-  /**
-   * Gets package name.
    *
    * @param softly the soft assertions
    */
   @Test
-  void getPackageName(SoftAssertions softly) {
+  void getSchemaLocation(SoftAssertions softly) {
     JaxbContextData model = new JaxbContextData(
-        "org.bremersee.xml",
-        "http://namespace",
-        "http://example.org/namespace.xsd");
-    softly.assertThat(model.getPackageName())
-        .isEqualTo("org.bremersee.xml");
-
-    model = new JaxbContextData("org.bremersee.xml");
-    softly.assertThat(model.getPackageName())
-        .isEqualTo("org.bremersee.xml");
+        org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
+        "http://bremersee.github.io/xmlschemas/common-xml-test-model-2.xsd");
+    softly.assertThat(model.getNameSpace())
+        .isEqualTo("http://bremersee.org/xmlschemas/common-xml-test-model-2");
+    softly.assertThat(model)
+        .isEqualTo(new JaxbContextData(
+            "org.bremersee.xml.model2",
+            "http://bremersee.org/xmlschemas/common-xml-test-model-2",
+            "http://bremersee.github.io/xmlschemas/common-xml-test-model-2.xsd"));
   }
+
+  /**
+   * Gets package name.
+   */
+  @Test
+  void getPackageName() {
+    JaxbContextData model = new JaxbContextData(Person.class.getPackage().getName());
+    assertThat(model.getPackageName())
+        .isEqualTo("org.bremersee.xml.model1");
+  }
+
+  /**
+   * From class.
+   *
+   * @param softly the soft assertions
+   */
+  @Test
+  void fromClass(SoftAssertions softly) {
+    softly.assertThat(JaxbContextData.fromClass(DateXmlAdapter.class)).isEmpty();
+
+    softly.assertThat(JaxbContextData.fromClass(Person.class))
+        .hasValue(new JaxbContextData(Person.class));
+  }
+
+  /**
+   * With illegal package name.
+   */
+  @Test
+  void withIllegalPackageName() {
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> new JaxbContextData((Package) null, "", ""));
+  }
+
 }

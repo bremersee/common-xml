@@ -16,13 +16,8 @@
 
 package org.bremersee.xml;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
- * The jaxb dependencies resolver is used to determine the classes or packages to build the jaxb
- * context.
+ * The jaxb dependencies resolver is used to determine the classes to build the jaxb context.
  *
  * <p>This can be nice if you have to support plenty of xml name spaces which normally are all
  * added to the xml file. With a dependency resolver only these name spaces are added to the xml
@@ -31,20 +26,6 @@ import java.util.stream.Collectors;
  * @author Christian Bremer
  */
 public interface JaxbDependenciesResolver {
-
-  /**
-   * Resolve dependencies to other packages to add their name space to the schema location tag of
-   * the xml file.
-   *
-   * @param value the value (POJO) that should be processed by the marshaller or unmarshaller or
-   *     a single class or an array of classes
-   * @return the set with package names
-   */
-  default Set<String> resolvePackages(Object value) {
-    return Arrays.stream(resolveClasses(value))
-        .map(clazz -> clazz.getPackage().getName())
-        .collect(Collectors.toSet());
-  }
 
   /**
    * Resolve dependencies to other classes.

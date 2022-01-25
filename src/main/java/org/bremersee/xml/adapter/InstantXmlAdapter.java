@@ -66,7 +66,7 @@ public class InstantXmlAdapter extends XmlAdapter<String, Instant> {
   }
 
   @Override
-  public String marshal(Instant v) throws Exception {
+  public String marshal(Instant v) {
     return Optional
         .ofNullable(instantToXmlCalendar(v, zoneId, locale))
         .map(XMLGregorianCalendar::toXMLFormat)

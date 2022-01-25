@@ -98,6 +98,7 @@ class SchemaBuilderTest {
 
     Schema schema = SchemaBuilder.builder()
         .withSchemaLanguage(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+        .withFactory("com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory")
         .withClassLoader(null)
         .withResourceLoader(null)
         .withResourceResolver(null)

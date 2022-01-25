@@ -43,6 +43,9 @@ class JaxbRuntimeExceptionTest {
         .isEqualTo(new JaxbRuntimeException("Message", cause).getCause());
     softly.assertThat(new JaxbRuntimeException("Message", cause).getMessage())
         .isEqualTo("Message");
+    softly.assertThat(new JaxbRuntimeException("Some Text"))
+        .extracting(JaxbRuntimeException::getMessage)
+        .isEqualTo("Some Text");
   }
 
 }

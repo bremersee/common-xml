@@ -19,12 +19,11 @@ package org.bremersee.xml;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
 
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.MarshalException;
 import javax.xml.bind.UnmarshalException;
@@ -39,7 +38,6 @@ import org.bremersee.xml.model2.Vehicle;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.w3c.dom.Node;
 
 /**
@@ -52,7 +50,7 @@ class JaxbContextWrapperTest {
 
   private static JAXBContext jaxbContext;
 
-  private static Map<String, JaxbContextData> map;
+  private static JaxbContextDetails detailsOfJaxbContext;
 
   /**
    * Sets up.
@@ -65,13 +63,15 @@ class JaxbContextWrapperTest {
         org.bremersee.xml.model2.ObjectFactory.class.getPackage().getName()
             + ":"
             + org.bremersee.xml.model5.ObjectFactory.class.getPackage().getName());
-
-    map = new HashMap<>();
-    map.put(org.bremersee.xml.model2.ObjectFactory.class.getPackage().getName(),
-        new JaxbContextData(org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
-            "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd"));
-    map.put(org.bremersee.xml.model5.ObjectFactory.class.getPackage().getName(),
-        new JaxbContextData(org.bremersee.xml.model5.ObjectFactory.class.getPackage()));
+    JaxbContextData data0 = new JaxbContextData(
+        org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
+        "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd");
+    JaxbContextData data1 = new JaxbContextData(
+        org.bremersee.xml.model5.ObjectFactory.class.getPackage());
+    detailsOfJaxbContext = JaxbContextDetails.builder()
+        .add(data0)
+        .add(data1)
+        .build();
   }
 
   /**
@@ -100,11 +100,10 @@ class JaxbContextWrapperTest {
     softly.assertThat(actual)
         .isNotEqualTo(new Object());
 
-    JaxbContextBuilderDetails details = new JaxbContextBuilderDetailsImpl(null, map);
-    wrapper = new JaxbContextWrapper(jaxbContext, details);
+    wrapper = new JaxbContextWrapper(jaxbContext, detailsOfJaxbContext);
     softly.assertThat(wrapper)
         .extracting(JaxbContextWrapper::getDetails)
-        .isEqualTo(details);
+        .isEqualTo(detailsOfJaxbContext);
   }
 
   /**
@@ -156,7 +155,7 @@ class JaxbContextWrapperTest {
     softly.assertThat(wrapper.getAttachmentMarshaller())
         .isNull();
 
-    AttachmentMarshaller marshaller = Mockito.mock(AttachmentMarshaller.class);
+    AttachmentMarshaller marshaller = mock(AttachmentMarshaller.class);
     wrapper.setAttachmentMarshaller(marshaller);
     softly.assertThat(wrapper.getAttachmentMarshaller())
         .isNotNull();
@@ -174,7 +173,7 @@ class JaxbContextWrapperTest {
     softly.assertThat(wrapper.getAttachmentUnmarshaller())
         .isNull();
 
-    AttachmentUnmarshaller unmarshaller = Mockito.mock(AttachmentUnmarshaller.class);
+    AttachmentUnmarshaller unmarshaller = mock(AttachmentUnmarshaller.class);
     wrapper.setAttachmentUnmarshaller(unmarshaller);
     softly.assertThat(wrapper.getAttachmentUnmarshaller())
         .isNotNull();
@@ -188,8 +187,7 @@ class JaxbContextWrapperTest {
    */
   @Test
   void useSchema(SoftAssertions softly) throws Exception {
-    JaxbContextBuilderDetails details = new JaxbContextBuilderDetailsImpl(null, map);
-    JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext, details);
+    JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext, detailsOfJaxbContext);
     softly.assertThat(wrapper.getSchema())
         .isNull();
 
@@ -235,8 +233,7 @@ class JaxbContextWrapperTest {
    */
   @Test
   void useSchemaAndExpectValidationFails(SoftAssertions softly) {
-    JaxbContextBuilderDetails details = new JaxbContextBuilderDetailsImpl(null, map);
-    JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext, details);
+    JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext, detailsOfJaxbContext);
     softly.assertThat(wrapper.getSchema())
         .isNull();
 
@@ -287,7 +284,7 @@ class JaxbContextWrapperTest {
     softly.assertThat(wrapper.getValidationEventHandler())
         .isNull();
 
-    ValidationEventHandler handler = Mockito.mock(ValidationEventHandler.class);
+    ValidationEventHandler handler = mock(ValidationEventHandler.class);
     wrapper.setValidationEventHandler(handler);
     softly.assertThat(wrapper.getValidationEventHandler())
         .isNotNull();

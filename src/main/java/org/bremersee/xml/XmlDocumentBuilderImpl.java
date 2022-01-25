@@ -16,6 +16,9 @@
 
 package org.bremersee.xml;
 
+import static java.util.Objects.isNull;
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,7 +59,7 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
   @Override
   public XmlDocumentBuilder configureFactory(
       final XmlDocumentBuilderFactoryConfigurator configurator) {
-    if (configurator != null) {
+    if (!isEmpty(configurator)) {
       configurator.configure(factory);
     }
     return this;
@@ -72,25 +75,25 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
       final Boolean validating,
       final Boolean xIncludeAware) {
 
-    if (coalescing != null) {
+    if (!isEmpty(coalescing)) {
       factory.setCoalescing(coalescing);
     }
-    if (expandEntityReferences != null) {
+    if (!isEmpty(expandEntityReferences)) {
       factory.setExpandEntityReferences(expandEntityReferences);
     }
-    if (ignoringComments != null) {
+    if (!isEmpty(ignoringComments)) {
       factory.setIgnoringComments(ignoringComments);
     }
-    if (ignoringElementContentWhitespace != null) {
+    if (!isEmpty(ignoringElementContentWhitespace)) {
       factory.setIgnoringElementContentWhitespace(ignoringElementContentWhitespace);
     }
-    if (namespaceAware != null) {
+    if (!isEmpty(namespaceAware)) {
       factory.setNamespaceAware(namespaceAware);
     }
-    if (validating != null) {
+    if (!isEmpty(validating)) {
       factory.setValidating(validating);
     }
-    if (xIncludeAware != null) {
+    if (!isEmpty(xIncludeAware)) {
       factory.setXIncludeAware(xIncludeAware);
     }
     return this;
@@ -138,10 +141,10 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
     } catch (ParserConfigurationException e) {
       throw new XmlRuntimeException(e);
     }
-    if (entityResolver != null) {
+    if (!isEmpty(entityResolver)) {
       documentBuilder.setEntityResolver(entityResolver);
     }
-    if (errorHandler != null) {
+    if (!isEmpty(errorHandler)) {
       documentBuilder.setErrorHandler(errorHandler);
     }
     return documentBuilder;
@@ -204,7 +207,7 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
 
   @Override
   public Document buildDocument(Object jaxbElement, JAXBContext jaxbContext) {
-    if (jaxbElement == null) {
+    if (isNull(jaxbElement)) {
       return null;
     }
     try {
@@ -216,7 +219,7 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
 
   @Override
   public Document buildDocument(Object jaxbElement, Marshaller marshaller) {
-    if (jaxbElement == null) {
+    if (isNull(jaxbElement)) {
       return null;
     }
     final Document document = buildDocument();

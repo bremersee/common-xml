@@ -20,7 +20,7 @@ import java.util.Collection;
 
 /**
  * The provider describes a collection of a java xml model and should be loadable by the {@link
- * java.util.ServiceLoader}*.
+ * java.util.ServiceLoader}.
  *
  * @author Christian Bremer
  */

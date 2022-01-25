@@ -54,7 +54,7 @@ public interface SchemaBuilder {
    * @param schemaLanguage specifies the schema language which the used schema factory will
    *     understand
    * @return the schema builder
-   * @see SchemaFactory#newInstance(String)
+   * @see SchemaFactory#newInstance(String) SchemaFactory#newInstance(String)
    */
   SchemaBuilder withSchemaLanguage(String schemaLanguage);
 
@@ -63,7 +63,8 @@ public interface SchemaBuilder {
    *
    * @param factoryClassName the factory class name
    * @return the schema builder
-   * @see SchemaFactory#newInstance(String, String, ClassLoader)
+   * @see SchemaFactory#newInstance(String, String, ClassLoader) SchemaFactory#newInstance(String,
+   *     String, ClassLoader)
    */
   SchemaBuilder withFactory(String factoryClassName);
 
@@ -72,7 +73,8 @@ public interface SchemaBuilder {
    *
    * @param classLoader the class loader
    * @return the schema builder
-   * @see SchemaFactory#newInstance(String, String, ClassLoader)
+   * @see SchemaFactory#newInstance(String, String, ClassLoader) SchemaFactory#newInstance(String,
+   *     String, ClassLoader)
    */
   SchemaBuilder withClassLoader(ClassLoader classLoader);
 
@@ -92,7 +94,7 @@ public interface SchemaBuilder {
    *
    * @param resourceResolver the resource resolver
    * @return the schema builder
-   * @see SchemaFactory#setResourceResolver(LSResourceResolver)
+   * @see SchemaFactory#setResourceResolver(LSResourceResolver) SchemaFactory#setResourceResolver(LSResourceResolver)
    */
   SchemaBuilder withResourceResolver(LSResourceResolver resourceResolver);
 
@@ -101,7 +103,7 @@ public interface SchemaBuilder {
    *
    * @param errorHandler the error handler
    * @return the schema builder
-   * @see SchemaFactory#setErrorHandler(ErrorHandler)
+   * @see SchemaFactory#setErrorHandler(ErrorHandler) SchemaFactory#setErrorHandler(ErrorHandler)
    */
   SchemaBuilder withErrorHandler(ErrorHandler errorHandler);
 
@@ -111,7 +113,7 @@ public interface SchemaBuilder {
    * @param name the name
    * @param value the value
    * @return the schema builder
-   * @see SchemaFactory#setFeature(String, boolean)
+   * @see SchemaFactory#setFeature(String, boolean) SchemaFactory#setFeature(String, boolean)
    */
   SchemaBuilder withFeature(String name, Boolean value);
 
@@ -121,7 +123,7 @@ public interface SchemaBuilder {
    * @param name the name
    * @param value the value
    * @return the schema builder
-   * @see SchemaFactory#setProperty(String, Object)
+   * @see SchemaFactory#setProperty(String, Object) SchemaFactory#setProperty(String, Object)
    */
   SchemaBuilder withProperty(String name, Object value);
 
@@ -132,7 +134,7 @@ public interface SchemaBuilder {
    *
    * @param locations the locations
    * @return the list
-   * @see #withResourceLoader(ResourceLoader)
+   * @see #withResourceLoader(ResourceLoader) #withResourceLoader(ResourceLoader)
    */
   default List<Source> fetchSchemaSources(String... locations) {
     return Optional.ofNullable(locations)
@@ -147,7 +149,7 @@ public interface SchemaBuilder {
    *
    * @param locations the locations
    * @return the schema files as source list
-   * @see #withResourceLoader(ResourceLoader)
+   * @see #withResourceLoader(ResourceLoader) #withResourceLoader(ResourceLoader)
    */
   List<Source> fetchSchemaSources(Collection<String> locations);
 
@@ -170,7 +172,7 @@ public interface SchemaBuilder {
    *
    * @param url the url
    * @return the schema
-   * @see SchemaFactory#newSchema(URL)
+   * @see SchemaFactory#newSchema(URL) SchemaFactory#newSchema(URL)
    */
   Schema buildSchema(URL url);
 
@@ -179,7 +181,7 @@ public interface SchemaBuilder {
    *
    * @param file the file
    * @return the schema
-   * @see SchemaFactory#newSchema(File)
+   * @see SchemaFactory#newSchema(File) SchemaFactory#newSchema(File)
    */
   Schema buildSchema(File file);
 
@@ -188,7 +190,7 @@ public interface SchemaBuilder {
    *
    * @param source the source
    * @return the schema
-   * @see SchemaFactory#newSchema(Source)
+   * @see SchemaFactory#newSchema(Source) SchemaFactory#newSchema(Source)
    */
   default Schema buildSchema(Source source) {
     return Optional.ofNullable(source)
@@ -201,7 +203,7 @@ public interface SchemaBuilder {
    *
    * @param sources the sources
    * @return the schema
-   * @see SchemaFactory#newSchema(Source[])
+   * @see SchemaFactory#newSchema(Source[]) SchemaFactory#newSchema(Source[])
    */
   Schema buildSchema(Source[] sources);
 
@@ -210,7 +212,7 @@ public interface SchemaBuilder {
    *
    * @param sources the sources
    * @return the schema
-   * @see SchemaFactory#newSchema(Source[])
+   * @see SchemaFactory#newSchema(Source[]) SchemaFactory#newSchema(Source[])
    */
   default Schema buildSchema(Collection<? extends Source> sources) {
     return Optional.ofNullable(sources)

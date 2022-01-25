@@ -16,6 +16,8 @@
 
 package org.bremersee.xml;
 
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,9 +25,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -37,8 +39,8 @@ import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.validation.Schema;
+import org.bremersee.xml.JaxbContextDetails.JaxbContextDetailsBuilder;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * The jaxb context builder.
@@ -52,9 +54,9 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
    */
   private final Map<String, JaxbContextData> jaxbContextDataMap = new ConcurrentHashMap<>();
 
-  private final Map<JaxbContextBuilderDetails, Schema> schemaCache = new ConcurrentHashMap<>();
+  private final Map<JaxbContextDetails, Schema> schemaCache = new ConcurrentHashMap<>();
 
-  private final Map<JaxbContextBuilderDetails, JAXBContext> jaxbContextCache
+  private final Map<JaxbContextDetails, JAXBContext> jaxbContextCache
       = new ConcurrentHashMap<>();
 
   private JaxbDependenciesResolver dependenciesResolver = DEFAULT_DEPENDENCIES_RESOLVER;
@@ -66,11 +68,6 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
   private boolean formattedOutput = true;
 
   private SchemaMode schemaMode = SchemaMode.NEVER;
-
-  private BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> canMarshal = CAN_MARSHAL_ALL;
-
-  private BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> canUnmarshal
-      = CAN_UNMARSHAL_ALL;
 
   private List<XmlAdapter<?, ?>> xmlAdapters;
 
@@ -93,11 +90,11 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   private ClassLoader getContextClassLoader() {
-    if (classLoader == null) {
-      if (System.getSecurityManager() == null) {
-        classLoader = Thread.currentThread().getContextClassLoader();
+    if (isEmpty(classLoader)) {
+      if (isEmpty(System.getSecurityManager())) {
+        return Thread.currentThread().getContextClassLoader();
       } else {
-        classLoader = (ClassLoader) java.security.AccessController.doPrivileged(
+        return (ClassLoader) java.security.AccessController.doPrivileged(
             (PrivilegedAction) () -> Thread.currentThread().getContextClassLoader());
       }
     }
@@ -110,8 +107,6 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     copy.dependenciesResolver = dependenciesResolver;
     copy.schemaMode = schemaMode;
     copy.schemaCache.putAll(schemaCache);
-    copy.canUnmarshal = canUnmarshal;
-    copy.canMarshal = canMarshal;
     copy.classLoader = classLoader;
     copy.attachmentMarshaller = attachmentMarshaller;
     copy.attachmentUnmarshaller = attachmentUnmarshaller;
@@ -120,35 +115,15 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     copy.jaxbContextDataMap.putAll(jaxbContextDataMap);
     copy.schemaBuilder = schemaBuilder.copy();
     copy.validationEventHandler = validationEventHandler;
-    if (xmlAdapters != null) {
+    if (!isEmpty(xmlAdapters)) {
       copy.xmlAdapters = new ArrayList<>(xmlAdapters);
     }
     return copy;
   }
 
   @Override
-  public JaxbContextBuilder withCanMarshal(
-      final BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> function) {
-
-    if (function != null) {
-      this.canMarshal = function;
-    }
-    return this;
-  }
-
-  @Override
-  public JaxbContextBuilder withCanUnmarshal(
-      final BiFunction<Class<?>, Map<String, JaxbContextData>, Boolean> function) {
-
-    if (function != null) {
-      this.canUnmarshal = function;
-    }
-    return this;
-  }
-
-  @Override
   public JaxbContextBuilder withSchemaMode(final SchemaMode schemaMode) {
-    if (schemaMode != null) {
+    if (!isEmpty(schemaMode)) {
       this.schemaMode = schemaMode;
     }
     return this;
@@ -156,7 +131,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @Override
   public JaxbContextBuilder withSchemaBuilder(SchemaBuilder schemaBuilder) {
-    if (schemaBuilder != null) {
+    if (!isEmpty(schemaBuilder)) {
       this.schemaBuilder = schemaBuilder;
     }
     return this;
@@ -164,10 +139,10 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @Override
   public JaxbContextBuilder withDependenciesResolver(final JaxbDependenciesResolver resolver) {
-    if ((this.dependenciesResolver == null && resolver != null)
-        || (this.dependenciesResolver != null && resolver == null)
-        || (this.dependenciesResolver != null
-        && !ClassUtils.getUserClass(this.dependenciesResolver)
+    if ((isEmpty(dependenciesResolver) && !isEmpty(resolver))
+        || (!isEmpty(dependenciesResolver) && isEmpty(resolver))
+        || (!isEmpty(dependenciesResolver)
+        && !ClassUtils.getUserClass(dependenciesResolver)
         .equals(ClassUtils.getUserClass(resolver)))) {
       clearCache();
     }
@@ -191,13 +166,13 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
   public JaxbContextBuilder withXmlAdapters(
       final Collection<? extends XmlAdapter<?, ?>> xmlAdapters) {
 
-    if (xmlAdapters != null && !xmlAdapters.isEmpty()) {
+    if (isEmpty(xmlAdapters)) {
+      this.xmlAdapters = null;
+    } else {
       this.xmlAdapters = xmlAdapters
           .stream()
           .filter(Objects::nonNull)
           .collect(Collectors.toList());
-    } else {
-      this.xmlAdapters = null;
     }
     return this;
   }
@@ -225,29 +200,35 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @Override
   public JaxbContextBuilder add(final JaxbContextData data) {
-    if (data != null && StringUtils.hasText(data.getPackageName())) {
-      clearCache();
-      jaxbContextDataMap.put(data.getPackageName(), data);
-    }
-    return this;
+    return Optional.ofNullable(data)
+        .map(d -> {
+          clearCache();
+          jaxbContextDataMap.put(data.getPackageName(), data);
+          return this;
+        })
+        .orElse(this);
   }
 
 
   @Override
-  public boolean canUnmarshal(final Class<?> clazz) { // decode
-    return canUnmarshal.apply(clazz, jaxbContextDataMap);
+  public boolean canUnmarshalWithoutExtending(Class<?> clazz) {
+    return Optional.ofNullable(clazz)
+        .filter(c -> allClassesAreSupported(new Class<?>[]{c}))
+        .isPresent();
   }
 
   @Override
-  public boolean canMarshal(final Class<?> clazz) { // encode
-    return canMarshal.apply(clazz, jaxbContextDataMap);
+  public boolean canMarshalWithoutExtending(Class<?> clazz) {
+    return Optional.ofNullable(clazz)
+        .filter(c -> allClassesAreSupported(new Class<?>[]{c}))
+        .isPresent();
   }
 
   @Override
   public Unmarshaller buildUnmarshaller(final Object value) {
     final JaxbContextWrapper jaxbContext;
     if (value instanceof Class<?>[]) {
-      if (areAllClassesAreSupported((Class<?>[]) value)) {
+      if (allClassesAreSupported((Class<?>[]) value)) {
         jaxbContext = computeJaxbContext(null);
       } else {
         jaxbContext = computeJaxbContext(value);
@@ -255,7 +236,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     } else if (value instanceof Class<?>) {
       return buildUnmarshaller(new Class[]{(Class<?>) value});
     } else if (value == null
-        || areAllClassesAreSupported(new Class[]{ClassUtils.getUserClass(value)})) {
+        || allClassesAreSupported(new Class[]{ClassUtils.getUserClass(value)})) {
       jaxbContext = computeJaxbContext(null);
     } else {
       jaxbContext = computeJaxbContext(value);
@@ -264,7 +245,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     if (mode == SchemaMode.ALWAYS
         || mode == SchemaMode.UNMARSHAL
         || (mode == SchemaMode.EXTERNAL_XSD
-        && StringUtils.hasText(jaxbContext.getDetails().getSchemaLocation()))) {
+        && !isEmpty(jaxbContext.getDetails().getSchemaLocation()))) {
       jaxbContext.setSchema(computeSchema(jaxbContext));
     }
     try {
@@ -282,7 +263,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     if (mode == SchemaMode.ALWAYS
         || mode == SchemaMode.MARSHAL
         || (mode == SchemaMode.EXTERNAL_XSD
-        && StringUtils.hasText(jaxbContext.getDetails().getSchemaLocation()))) {
+        && !isEmpty(jaxbContext.getDetails().getSchemaLocation()))) {
       jaxbContext.setSchema(computeSchema(jaxbContext));
     }
     try {
@@ -308,7 +289,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
         || mode == SchemaMode.MARSHAL
         || mode == SchemaMode.UNMARSHAL
         || (mode == SchemaMode.EXTERNAL_XSD
-        && StringUtils.hasText(wrapper.getDetails().getSchemaLocation()))) {
+        && !isEmpty(wrapper.getDetails().getSchemaLocation()))) {
       wrapper.setSchema(computeSchema(wrapper));
     }
     return wrapper;
@@ -319,52 +300,74 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     return computeSchema(value);
   }
 
-  private JaxbContextBuilderDetails buildDetails(final Object value) {
-    if (value == null) {
-      return new JaxbContextBuilderDetailsImpl(null, jaxbContextDataMap);
+  private JaxbContextDetails buildDetails() {
+    return jaxbContextDataMap.values().stream()
+        .map(data -> JaxbContextDetails.builder().add(data))
+        .reduce((a, b) -> a.merge(b.build()))
+        .map(JaxbContextDetailsBuilder::build)
+        .orElseGet(() -> JaxbContextDetails.builder().build());
+  }
+
+  private JaxbContextDetails buildDetails(final Object value) {
+    if (isEmpty(value)) {
+      return buildDetails();
     }
     if (value instanceof Class<?>) {
       return buildDetails(new Class<?>[]{(Class<?>) value});
     }
+    final Class<?>[] classes;
     if (value instanceof Class<?>[]) {
-      final Class<?>[] classes = (Class<?>[]) value;
-      if (areAllClassesAreSupported(classes)) {
-        final Set<String> packages = Arrays.stream(classes)
-            .map(clazz -> clazz.getPackage().getName())
-            .collect(Collectors.toSet());
-        return new JaxbContextBuilderDetailsImpl(packages, jaxbContextDataMap);
-      } else if (dependenciesResolver != null) {
-        return new JaxbContextBuilderDetailsImpl(dependenciesResolver.resolveClasses(classes));
-      } else {
-        return new JaxbContextBuilderDetailsImpl(classes);
-      }
-    }
-    if (jaxbContextDataMap.containsKey(ClassUtils.getUserClass(value).getPackage().getName())) {
-      final Set<String> packages = dependenciesResolver != null
-          ? dependenciesResolver.resolvePackages(value)
-          : null;
-      return new JaxbContextBuilderDetailsImpl(packages, jaxbContextDataMap);
+      classes = isEmpty(dependenciesResolver)
+          ? (Class<?>[]) value
+          : dependenciesResolver.resolveClasses(value);
     } else {
-      return buildDetails(ClassUtils.getUserClass(value));
+      classes = isEmpty(dependenciesResolver)
+          ? new Class<?>[]{value.getClass()}
+          : dependenciesResolver.resolveClasses(value);
     }
+    return buildDetailsWithClasses(classes);
   }
 
-  private boolean areAllClassesAreSupported(final Class<?>[] classes) {
+  private JaxbContextDetails buildDetailsWithClasses(final Class<?>[] classes) {
+    JaxbContextDetails details = Arrays.stream(classes)
+        .map(clazz -> Optional
+            .ofNullable(jaxbContextDataMap.get(clazz.getPackage().getName()))
+            .or(() -> JaxbContextData.fromClass(clazz))
+            .map(data -> {
+              if (!jaxbContextDataMap.containsKey(data.getPackageName())) {
+                add(data);
+              }
+              return JaxbContextDetails.builder().add(data);
+            })
+            .orElseGet(() -> JaxbContextDetails.builder().add(clazz)))
+        .reduce((a, b) -> a.merge(b.build()))
+        .map(JaxbContextDetailsBuilder::build)
+        .orElseThrow(() -> new JaxbRuntimeException(
+            "There are no classes to build the jaxb context details."));
+    return isEmpty(details.getClasses()) ? details : JaxbContextDetails.builder()
+        .add(classes)
+        .addSchemaLocation(details.getSchemaLocation())
+        .build();
+  }
+
+  private boolean allClassesAreSupported(final Class<?>[] classes) {
     return Arrays.stream(classes)
         .map(clazz -> clazz.getPackage().getName())
         .allMatch(jaxbContextDataMap::containsKey);
   }
 
   private JaxbContextWrapper computeJaxbContext(final Object value) {
-    final JaxbContextBuilderDetails details = buildDetails(value);
+    final JaxbContextDetails details = buildDetails(value);
     final JAXBContext jaxbContext = jaxbContextCache.computeIfAbsent(details, key -> {
       try {
-        return key.isBuildWithContextPath()
-            ? JAXBContext.newInstance(details.getContextPath(), getContextClassLoader())
+        return isEmpty(key.getClasses())
+            ? JAXBContext.newInstance(key.getContextPath(), getContextClassLoader())
             : JAXBContext.newInstance(key.getClasses());
 
       } catch (final Exception e) {
-        throw new JaxbRuntimeException(e);
+        throw new JaxbRuntimeException(
+            String.format("Creating jaxb context failed with builder context: %s", key),
+            e);
       }
     });
     final JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext, details);
@@ -382,7 +385,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
   }
 
   private Schema computeSchema(final JaxbContextWrapper jaxbContext) {
-    final JaxbContextBuilderDetails details = jaxbContext.getDetails();
+    final JaxbContextDetails details = jaxbContext.getDetails();
     return schemaCache.computeIfAbsent(details, key -> {
       final SchemaSourcesResolver sourcesResolver = new SchemaSourcesResolver();
       try {
@@ -391,8 +394,8 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
         throw new JaxbRuntimeException(e);
       }
       final List<Source> sources = new ArrayList<>(
-          sourcesResolver.toSources(details.getNameSpacesWithLocation()));
-      final Set<String> locations = details.getSchemaLocations();
+          sourcesResolver.toSources(key.getNameSpaces()));
+      final Set<String> locations = key.getSchemaLocations();
       sources.addAll(schemaBuilder.fetchSchemaSources(locations));
       return schemaBuilder.buildSchema(sources);
     });

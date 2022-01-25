@@ -18,6 +18,7 @@ package org.bremersee.xml.model3;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -30,6 +31,7 @@ import lombok.NoArgsConstructor;
 @XmlType(name = "companyType")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Company {
 
   private String name;

@@ -16,6 +16,8 @@
 
 package org.bremersee.xml;
 
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +40,6 @@ import javax.xml.validation.SchemaFactory;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
@@ -99,24 +100,25 @@ class SchemaBuilderImpl implements SchemaBuilder {
    */
   SchemaFactory createSchemaFactory() {
     final SchemaFactory schemaFactory;
-    if (factoryClassName != null) {
-      if (classLoader == null) {
-        if (System.getSecurityManager() == null) {
-          classLoader = Thread.currentThread().getContextClassLoader();
+    if (!isEmpty(factoryClassName)) {
+      ClassLoader cl = classLoader;
+      if (isEmpty(cl)) {
+        if (isEmpty(System.getSecurityManager())) {
+          cl = Thread.currentThread().getContextClassLoader();
         } else {
           //noinspection unchecked,rawtypes
-          classLoader = (ClassLoader) java.security.AccessController.doPrivileged(
+          cl = (ClassLoader) java.security.AccessController.doPrivileged(
               (PrivilegedAction) () -> Thread.currentThread().getContextClassLoader());
         }
       }
-      schemaFactory = SchemaFactory.newInstance(schemaLanguage, factoryClassName, classLoader);
+      schemaFactory = SchemaFactory.newInstance(schemaLanguage, factoryClassName, cl);
     } else {
       schemaFactory = SchemaFactory.newInstance(schemaLanguage);
     }
-    if (resourceResolver != null) {
+    if (!isEmpty(resourceResolver)) {
       schemaFactory.setResourceResolver(resourceResolver);
     }
-    if (errorHandler != null) {
+    if (!isEmpty(errorHandler)) {
       schemaFactory.setErrorHandler(errorHandler);
     }
     try {
@@ -149,7 +151,7 @@ class SchemaBuilderImpl implements SchemaBuilder {
 
   @Override
   public SchemaBuilder withSchemaLanguage(final String schemaLanguage) {
-    if (StringUtils.hasText(schemaLanguage)) {
+    if (isEmpty(schemaLanguage)) {
       this.schemaLanguage = schemaLanguage;
     }
     return this;
@@ -169,7 +171,7 @@ class SchemaBuilderImpl implements SchemaBuilder {
 
   @Override
   public SchemaBuilder withResourceLoader(final ResourceLoader resourceLoader) {
-    if (resourceLoader != null) {
+    if (!isEmpty(resourceLoader)) {
       this.resourceLoader = resourceLoader;
     }
     return this;
@@ -189,7 +191,7 @@ class SchemaBuilderImpl implements SchemaBuilder {
 
   @Override
   public SchemaBuilder withFeature(final String name, final Boolean value) {
-    if (StringUtils.hasText(name)) {
+    if (!isEmpty(name)) {
       features.put(name, value);
     }
     return this;
@@ -197,7 +199,7 @@ class SchemaBuilderImpl implements SchemaBuilder {
 
   @Override
   public SchemaBuilder withProperty(final String name, final Object value) {
-    if (StringUtils.hasText(name)) {
+    if (!isEmpty(name)) {
       properties.put(name, value);
     }
     return this;
@@ -205,7 +207,7 @@ class SchemaBuilderImpl implements SchemaBuilder {
 
   @Override
   public List<Source> fetchSchemaSources(final Collection<String> locations) {
-    if (locations == null || locations.size() == 0) {
+    if (isEmpty(locations)) {
       return Collections.emptyList();
     }
     final Set<String> locationSet = new LinkedHashSet<>(locations);
@@ -224,7 +226,7 @@ class SchemaBuilderImpl implements SchemaBuilder {
   @Override
   public Schema buildSchema(final URL url) {
     try {
-      if (url == null) {
+      if (isEmpty(url)) {
         return createSchemaFactory().newSchema();
       }
       return createSchemaFactory().newSchema(url);
@@ -236,7 +238,7 @@ class SchemaBuilderImpl implements SchemaBuilder {
   @Override
   public Schema buildSchema(final File file) {
     try {
-      if (file == null) {
+      if (isEmpty(file)) {
         return createSchemaFactory().newSchema();
       }
       return createSchemaFactory().newSchema(file);
@@ -248,7 +250,7 @@ class SchemaBuilderImpl implements SchemaBuilder {
   @Override
   public Schema buildSchema(final Source[] sources) {
     try {
-      if (sources == null || sources.length == 0) {
+      if (isEmpty(sources)) {
         return createSchemaFactory().newSchema();
       }
       return createSchemaFactory().newSchema(sources);

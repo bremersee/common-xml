@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022  the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,35 +14,43 @@
  * limitations under the License.
  */
 
-package org.bremersee.xml.model6;
+package org.bremersee.xml.model8;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
- * The standalone model.
+ * The any element list.
  *
  * @author Christian Bremer
  */
-@XmlRootElement(
-    name = "standaloneModel",
-    namespace = "http://bremersee.org/xmlschemas/common-xml-test-model-6")
-@XmlType(
-    name = "standaloneModelType",
-    namespace = "http://bremersee.org/xmlschemas/common-xml-test-model-6")
+@XmlRootElement(name = "anyElementList")
+@XmlType(name = "anyElementListType")
 @XmlAccessorType(XmlAccessType.FIELD)
-@Data
-@NoArgsConstructor
+@Getter
+@EqualsAndHashCode
+@ToString
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 @AllArgsConstructor
-public class StandaloneModel {
+public class AnyElementList {
 
-  @XmlValue
-  private String value;
+  /**
+   * The Content.
+   */
+  @XmlElementWrapper(name = "content")
+  @XmlAnyElement(lax = true)
+  List<Object> content = new ArrayList<>();
 
 }

@@ -16,6 +16,8 @@
 
 package org.bremersee.xml;
 
+import org.springframework.util.ObjectUtils;
+
 /**
  * The {@link JaxbContextBuilder} throws this exception instead of {@link
  * javax.xml.bind.JAXBException}.
@@ -31,6 +33,15 @@ public class JaxbRuntimeException extends RuntimeException {
    */
   public JaxbRuntimeException(Throwable cause) {
     this("Creating JAXB context failed.", cause);
+  }
+
+  /**
+   * Instantiates a new jaxb runtime exception.
+   *
+   * @param message the message
+   */
+  public JaxbRuntimeException(String message) {
+    super(ObjectUtils.isEmpty(message) ? "Creating JAXB context failed." : message);
   }
 
   /**

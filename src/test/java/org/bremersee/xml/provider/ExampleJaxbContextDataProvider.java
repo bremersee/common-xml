@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import org.bremersee.xml.JaxbContextData;
 import org.bremersee.xml.JaxbContextDataProvider;
+import org.bremersee.xml.model4.ObjectFactory;
 
 /**
  * The example jaxb context data provider for the tests.
@@ -37,7 +38,7 @@ public class ExampleJaxbContextDataProvider implements JaxbContextDataProvider {
             "http://bremersee.github.io/xmlschemas/common-xml-test-model-2.xsd"),
         new JaxbContextData(
             org.bremersee.xml.model3.ObjectFactory.class.getPackage()),
-        new JaxbContextData(org.bremersee.xml.model4.ObjectFactory.class.getPackage())
+        new JaxbContextData(ObjectFactory.class.getPackage())
     );
   }
 }

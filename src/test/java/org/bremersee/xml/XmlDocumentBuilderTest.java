@@ -407,7 +407,7 @@ class XmlDocumentBuilderTest {
         .isNull();
 
     softly.assertThatThrownBy(() -> XmlDocumentBuilder.builder()
-            .buildDocument("", jaxbContextBuilder.buildJaxbContext()))
+            .buildDocument("no-xml", jaxbContextBuilder.buildJaxbContext()))
         .extracting(Object::getClass)
         .isEqualTo(JaxbRuntimeException.class);
   }

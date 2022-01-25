@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bremersee.xml.adapter.DurationXmlAdapter;
@@ -42,6 +43,7 @@ import org.bremersee.xml.adapter.OffsetDateTimeXmlAdapter;
 @XmlAccessorType(XmlAccessType.FIELD)
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class StartEnd {
 
   @XmlJavaTypeAdapter(OffsetDateTimeXmlAdapter.class)

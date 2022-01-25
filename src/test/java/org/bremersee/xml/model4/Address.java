@@ -18,6 +18,7 @@ package org.bremersee.xml.model4;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bremersee.xml.model5.StartEnd;
@@ -31,6 +32,7 @@ import org.bremersee.xml.model5.StartEnd;
 @XmlType(name = "addressType")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Address {
 
   private String street;

@@ -17,11 +17,15 @@
 package org.bremersee.xml;
 
 import static org.springframework.core.annotation.AnnotationUtils.findAnnotation;
+import static org.springframework.util.ObjectUtils.isEmpty;
 
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.Optional;
 import javax.xml.bind.annotation.XmlSchema;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -29,6 +33,9 @@ import org.springframework.util.ClassUtils;
  *
  * @author Christian Bremer
  */
+@Getter
+@EqualsAndHashCode
+@ToString
 public class JaxbContextData implements Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -40,7 +47,16 @@ public class JaxbContextData implements Serializable {
   private final String packageName;
 
   /**
-   * Instantiates new jaxb meta data.
+   * Instantiates a new Jaxb context data.
+   *
+   * @param clazz the clazz
+   */
+  public JaxbContextData(Class<?> clazz) {
+    this(isEmpty(clazz) ? null : clazz.getPackage());
+  }
+
+  /**
+   * Instantiates new jaxb meta-data.
    *
    * @param packageName the package name
    */
@@ -49,7 +65,7 @@ public class JaxbContextData implements Serializable {
   }
 
   /**
-   * Instantiates new jaxb meta data.
+   * Instantiates new jaxb meta-data.
    *
    * @param packageName the package name
    * @param nameSpace the name space (can be empty or {@code null})
@@ -63,7 +79,7 @@ public class JaxbContextData implements Serializable {
   }
 
   /**
-   * Instantiates new jaxb meta data.
+   * Instantiates new jaxb meta-data.
    *
    * @param pakkage the package
    */
@@ -72,7 +88,7 @@ public class JaxbContextData implements Serializable {
   }
 
   /**
-   * Instantiates new jaxb meta data.
+   * Instantiates new jaxb meta-data.
    *
    * @param pakkage the package
    * @param schemaLocation the schema location (can be {@code null})
@@ -84,7 +100,7 @@ public class JaxbContextData implements Serializable {
   }
 
   /**
-   * Instantiates new jaxb meta data.
+   * Instantiates new jaxb meta-data.
    *
    * @param pakkage the package
    * @param nameSpace the name space (can be empty or {@code null})
@@ -95,29 +111,43 @@ public class JaxbContextData implements Serializable {
       final String nameSpace,
       final String schemaLocation) {
 
-    if (pakkage == null) {
+    if (isEmpty(pakkage)) {
       throw new IllegalArgumentException("Package must be present.");
+    }
+    if (!objectFactoryExists(pakkage) && !jaxbIndexExists(pakkage)) {
+      throw new IllegalArgumentException(String.format(
+          "Package '%s' does not contain 'ObjectFactory.class' or 'jaxb.index'.",
+          pakkage.getName()));
     }
     this.packageName = pakkage.getName();
     final XmlSchema xmlSchema = findAnnotation(pakkage, XmlSchema.class);
-    if (nameSpace != null && nameSpace.trim().length() > 0) {
-      this.nameSpace = nameSpace.trim();
-    } else if (xmlSchema != null) {
-      this.nameSpace = xmlSchema.namespace().trim();
+    if (!isEmpty(nameSpace)) {
+      this.nameSpace = nameSpace;
+    } else if (!isEmpty(xmlSchema)) {
+      this.nameSpace = xmlSchema.namespace();
     } else {
       this.nameSpace = "";
     }
-    if (schemaLocation != null
-        && schemaLocation.trim().length() > 0
-        && !XmlSchema.NO_LOCATION.equalsIgnoreCase(schemaLocation.trim())) {
-      this.schemaLocation = schemaLocation.trim();
-    } else if (xmlSchema != null
-        && xmlSchema.location().trim().length() > 0
-        && !XmlSchema.NO_LOCATION.equalsIgnoreCase(xmlSchema.location().trim())) {
-      this.schemaLocation = xmlSchema.location().trim();
+    if (!isEmpty(schemaLocation)
+        && !XmlSchema.NO_LOCATION.equalsIgnoreCase(schemaLocation)) {
+      this.schemaLocation = schemaLocation;
+    } else if (!isEmpty(xmlSchema)
+        && !XmlSchema.NO_LOCATION.equalsIgnoreCase(xmlSchema.location())) {
+      this.schemaLocation = xmlSchema.location();
     } else {
       this.schemaLocation = null;
     }
+  }
+
+  /**
+   * Gets name space with schema location.
+   *
+   * @return the name space with schema location
+   */
+  public Optional<String> getNameSpaceWithSchemaLocation() {
+    return !isEmpty(getNameSpace()) && !isEmpty(getSchemaLocation())
+        ? Optional.of(getNameSpace() + " " + getSchemaLocation())
+        : Optional.empty();
   }
 
   private static Package getPackageByName(String name) {
@@ -128,55 +158,48 @@ public class JaxbContextData implements Serializable {
   }
 
   /**
-   * Gets name space.
+   * From class optional.
    *
-   * @return the name space
+   * @param clazz the clazz
+   * @return the optional
    */
-  public String getNameSpace() {
-    return nameSpace;
+  public static Optional<JaxbContextData> fromClass(Class<?> clazz) {
+    return Optional.ofNullable(clazz)
+        .filter(c -> objectFactoryExists(c) || jaxbIndexExists(c))
+        .map(Class::getPackage)
+        .map(JaxbContextData::new);
   }
 
-  /**
-   * Gets schema location.
-   *
-   * @return the schema location
-   */
-  public String getSchemaLocation() {
-    return schemaLocation;
+  private static boolean objectFactoryExists(Class<?> clazz) {
+    return Optional.ofNullable(clazz)
+        .map(Class::getPackage)
+        .map(JaxbContextData::objectFactoryExists)
+        .orElse(false);
   }
 
-  /**
-   * Get the package name of the xml model.
-   *
-   * @return the package name of the xml model
-   */
-  public String getPackageName() {
-    return packageName;
-  }
-
-  @Override
-  public String toString() {
-    return "JaxbContextData {"
-        + "nameSpace='" + nameSpace + '\''
-        + ", schemaLocation='" + schemaLocation + '\''
-        + ", package=" + nameSpace
-        + '}';
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  private static boolean objectFactoryExists(Package pakkage) {
+    try {
+      Class.forName(pakkage.getName() + ".ObjectFactory");
       return true;
-    }
-    if (!(o instanceof JaxbContextData)) {
+    } catch (ClassNotFoundException e) {
       return false;
     }
-    JaxbContextData that = (JaxbContextData) o;
-    return Objects.equals(packageName, that.packageName);
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(packageName);
+  private static boolean jaxbIndexExists(Class<?> clazz) {
+    return Optional.ofNullable(clazz)
+        .map(Class::getPackage)
+        .map(JaxbContextData::jaxbIndexExists)
+        .orElse(false);
   }
+
+  private static boolean jaxbIndexExists(Package pakkage) {
+    return Optional.ofNullable(pakkage)
+        .map(Package::getName)
+        .map(p -> p.replace('.', '/'))
+        .map(path -> path + "/jaxb.index")
+        .map(resource -> new ClassPathResource(resource).exists())
+        .orElse(false);
+  }
+
 }
