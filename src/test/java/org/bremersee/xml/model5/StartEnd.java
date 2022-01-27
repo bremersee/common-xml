@@ -21,6 +21,7 @@ import java.time.OffsetDateTime;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
@@ -47,12 +48,15 @@ import org.bremersee.xml.adapter.OffsetDateTimeXmlAdapter;
 public class StartEnd {
 
   @XmlJavaTypeAdapter(OffsetDateTimeXmlAdapter.class)
+  @XmlSchemaType(name = "dateTime")
   private OffsetDateTime start;
 
   @XmlJavaTypeAdapter(OffsetDateTimeXmlAdapter.class)
+  @XmlSchemaType(name = "dateTime", type = OffsetDateTime.class)
   private OffsetDateTime end;
 
   @XmlJavaTypeAdapter(DurationXmlAdapter.class)
+  @XmlSchemaType(name = "duration", type = Duration.class)
   private Duration duration;
 
 }
