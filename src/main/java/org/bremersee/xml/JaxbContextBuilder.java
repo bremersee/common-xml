@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
@@ -43,7 +42,7 @@ public interface JaxbContextBuilder {
   /**
    * The default dependencies resolver implementation.
    *
-   * @see #withDependenciesResolver(JaxbDependenciesResolver) #withDependenciesResolver(JaxbDependenciesResolver)
+   * @see #withDependenciesResolver(JaxbDependenciesResolver) #withDependenciesResolver(JaxbDependenciesResolver)#withDependenciesResolver(JaxbDependenciesResolver)
    */
   JaxbDependenciesResolver DEFAULT_DEPENDENCIES_RESOLVER = new JaxbDependenciesResolverImpl();
 
@@ -71,11 +70,11 @@ public interface JaxbContextBuilder {
    *
    * @param schemaMode the schema mode
    * @return the jaxb context builder
-   * @see SchemaMode#NEVER SchemaMode#NEVER
-   * @see SchemaMode#ALWAYS SchemaMode#ALWAYS
-   * @see SchemaMode#MARSHAL SchemaMode#MARSHAL
-   * @see SchemaMode#UNMARSHAL SchemaMode#UNMARSHAL
-   * @see SchemaMode#EXTERNAL_XSD SchemaMode#EXTERNAL_XSD
+   * @see SchemaMode#NEVER SchemaMode#NEVERSchemaMode#NEVER
+   * @see SchemaMode#ALWAYS SchemaMode#ALWAYSSchemaMode#ALWAYS
+   * @see SchemaMode#MARSHAL SchemaMode#MARSHALSchemaMode#MARSHAL
+   * @see SchemaMode#UNMARSHAL SchemaMode#UNMARSHALSchemaMode#UNMARSHAL
+   * @see SchemaMode#EXTERNAL_XSD SchemaMode#EXTERNAL_XSDSchemaMode#EXTERNAL_XSD
    */
   JaxbContextBuilder withSchemaMode(SchemaMode schemaMode);
 
@@ -147,23 +146,6 @@ public interface JaxbContextBuilder {
    */
   JaxbContextBuilder withValidationEventHandler(ValidationEventHandler validationEventHandler);
 
-
-  /**
-   * Add the given context path (package names which are separated by colon) to the jaxb context
-   * builder. This is the same as {@link javax.xml.bind.JAXBContext#newInstance(String)}.
-   *
-   * @param contextPath the context path (package names which are separated by colon)
-   * @return the jaxb context builder
-   */
-  default JaxbContextBuilder add(final String contextPath) {
-    return addAll(JaxbContextDetails.builder()
-        .addContextPath(contextPath)
-        .build()
-        .getPackageNames()
-        .stream()
-        .map(JaxbContextData::new)
-        .collect(Collectors.toSet()));
-  }
 
   /**
    * Add jaxb context meta-data to the jaxb context builder.
@@ -252,21 +234,10 @@ public interface JaxbContextBuilder {
    */
   default boolean canUnmarshal(Class<?> clazz) {
     return Optional.ofNullable(clazz)
-        .filter(c -> canUnmarshalWithoutExtending(c)
-            || c.isAnnotationPresent(XmlRootElement.class)
+        .filter(c -> c.isAnnotationPresent(XmlRootElement.class)
             || c.isAnnotationPresent(XmlType.class))
         .isPresent();
   }
-
-  /**
-   * Determines whether the unmarshaller can decode xml into an object of the given class without
-   * extending the internal jaxb context configuration.
-   *
-   * @param clazz the class
-   * @return {@code true} if the unmarshaller can decode xml into an object of the given class,
-   *     otherwise {@code false}
-   */
-  boolean canUnmarshalWithoutExtending(Class<?> clazz);
 
   /**
    * Determines whether the marshaller can encode an object of the given class into xml.
@@ -277,42 +248,21 @@ public interface JaxbContextBuilder {
    */
   default boolean canMarshal(Class<?> clazz) {
     return Optional.ofNullable(clazz)
-        .filter(c -> canMarshalWithoutExtending(c)
-            || c.isAnnotationPresent(XmlRootElement.class))
+        .filter(c -> c.isAnnotationPresent(XmlRootElement.class))
         .isPresent();
   }
 
   /**
-   * Determines whether the marshaller can encode an object of the given class into xml without
-   * extending the internal jaxb context configuration.
+   * Build unmarshaller for the given classes with the specified dependencies-resolver. If
+   * dependency resolving is turned off, an unmarshaller of the default context (defined by the
+   * added meta-data) will be returned or one that is created with {@link
+   * javax.xml.bind.JAXBContext#newInstance(Class[])}*.
    *
-   * @param clazz the class
-   * @return {@code true} if the marshaller can decode an object of the given class into xml,
-   *     otherwise {@code false}
-   */
-  boolean canMarshalWithoutExtending(Class<?> clazz);
-
-  /**
-   * Build unmarshaller with the context which is defined by the added meta-data.
-   *
-   * @return the unmarshaller
-   */
-  default Unmarshaller buildUnmarshaller() {
-    return buildUnmarshaller(null);
-  }
-
-  /**
-   * Build unmarshaller for the given object (POJO) or for the given class or array of classes with
-   * the specified dependencies-resolver. If dependency resolving is turned off, an unmarshaller of
-   * the default context (defined by the added meta-data) will be returned or one that is created
-   * with {@link javax.xml.bind.JAXBContext#newInstance(Class[])}.
-   *
-   * @param value the value (POJO) that should be processed by the unmarshaller or a single
-   *     class or an array of classes
+   * @param classes the classes that should be processed by the unmarshaller
    * @return the unmarshaller
    * @see JaxbDependenciesResolver
    */
-  Unmarshaller buildUnmarshaller(Object value);
+  Unmarshaller buildUnmarshaller(Class<?>... classes);
 
   /**
    * Build marshaller with the context which is defined by the added meta-data.

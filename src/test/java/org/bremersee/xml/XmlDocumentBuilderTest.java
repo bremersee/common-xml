@@ -389,9 +389,9 @@ class XmlDocumentBuilderTest {
 
     List<JaxbContextData> ctxData = new ArrayList<>();
     ctxData.add(new JaxbContextData(
-        org.bremersee.xml.model1.ObjectFactory.class.getPackage().getName()));
+        org.bremersee.xml.model1.ObjectFactory.class.getPackage()));
     ctxData.add(new JaxbContextData(
-        org.bremersee.xml.model2.ObjectFactory.class.getPackage().getName()));
+        org.bremersee.xml.model2.ObjectFactory.class.getPackage()));
 
     JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder
         .builder()

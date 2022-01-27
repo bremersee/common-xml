@@ -24,6 +24,7 @@ import static org.mockito.Mockito.mock;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Collections;
+import java.util.stream.Stream;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.MarshalException;
 import javax.xml.bind.UnmarshalException;
@@ -68,10 +69,8 @@ class JaxbContextWrapperTest {
         "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd");
     JaxbContextData data1 = new JaxbContextData(
         org.bremersee.xml.model5.ObjectFactory.class.getPackage());
-    detailsOfJaxbContext = JaxbContextDetails.builder()
-        .add(data0)
-        .add(data1)
-        .build();
+    detailsOfJaxbContext = Stream.of(data0, data1)
+        .collect(JaxbContextDetails.contextDataCollector());
   }
 
   /**

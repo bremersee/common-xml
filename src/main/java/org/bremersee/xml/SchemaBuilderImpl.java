@@ -37,6 +37,8 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.FileCopyUtils;
@@ -51,6 +53,7 @@ import org.xml.sax.SAXNotSupportedException;
  *
  * @author Christian Bremer
  */
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 class SchemaBuilderImpl implements SchemaBuilder {
 
   /**

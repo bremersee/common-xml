@@ -16,15 +16,17 @@
 
 package org.bremersee.xml;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.security.PrivilegedAction;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ServiceLoader;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.attachment.AttachmentMarshaller;
@@ -36,6 +38,8 @@ import org.bremersee.xml.adapter.DateXmlAdapter;
 import org.bremersee.xml.adapter.DurationXmlAdapter;
 import org.bremersee.xml.adapter.EpochMilliXmlAdapter;
 import org.bremersee.xml.adapter.OffsetDateTimeXmlAdapter;
+import org.bremersee.xml.model1.Person;
+import org.bremersee.xml.model2.Vehicle;
 import org.bremersee.xml.model3.Company;
 import org.bremersee.xml.model4.Address;
 import org.bremersee.xml.model5.StartEnd;
@@ -44,11 +48,11 @@ import org.bremersee.xml.model7a.Fender;
 import org.bremersee.xml.model7a.ObjectFactory;
 import org.bremersee.xml.model7b.DirtBikeReseller;
 import org.bremersee.xml.model7b.MountainBike;
+import org.bremersee.xml.model7b.RacingBike;
 import org.bremersee.xml.model7b.RacingReseller;
 import org.bremersee.xml.model7b.SportBikes;
 import org.bremersee.xml.model7c.Carrier;
 import org.bremersee.xml.model8.AnyElementList;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.w3c.dom.Element;
@@ -115,44 +119,30 @@ class JaxbContextBuilderTest {
       + "</extraParts>"
       + "<ns2:seatHeight>60</ns2:seatHeight></ns2:MountainBike>";
 
-  private JaxbContextBuilder builder;
-
   /**
-   * Sets up.
-   */
-  @BeforeEach
-  void setUp() {
-    ClassLoader classLoader;
-    if (System.getSecurityManager() == null) {
-      classLoader = Thread.currentThread().getContextClassLoader();
-    } else {
-      //noinspection unchecked,rawtypes
-      classLoader = (ClassLoader) java.security.AccessController.doPrivileged(
-          (PrivilegedAction) () -> Thread.currentThread().getContextClassLoader());
-    }
-    builder = JaxbContextBuilder
-        .builder()
-        .withContextClassLoader(classLoader)
-        .withDependenciesResolver(new JaxbDependenciesResolverImpl())
-        .withXmlAdapters(Arrays.asList(new OffsetDateTimeXmlAdapter(), new DurationXmlAdapter()))
-        .withFormattedOutput(false)
-        .withSchemaMode(SchemaMode.ALWAYS)
-        .withSchemaBuilder(SchemaBuilder.builder())
-        .addAll(Arrays.asList(
-            new JaxbContextData(ObjectFactory.class.getPackage()),
-            new JaxbContextData(org.bremersee.xml.model7b.ObjectFactory.class.getPackage()),
-            new JaxbContextData(org.bremersee.xml.model7c.ObjectFactory.class.getPackage())))
-        .initJaxbContext();
-  }
-
-  /**
-   * Write and read with context path.
+   * Read and write element.
    *
    * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void writeAndReadWithContextPath(SoftAssertions softly) throws Exception {
+  void readAndWriteElement(SoftAssertions softly) throws Exception {
+
+    JaxbContextBuilder builder = JaxbContextBuilder
+        .builder()
+        .withDependenciesResolver(new JaxbDependenciesResolverImpl())
+        .withXmlAdapters(Arrays.asList(new OffsetDateTimeXmlAdapter(), new DurationXmlAdapter()))
+        .copy()
+        .withFormattedOutput(false)
+        .withSchemaMode(SchemaMode.MARSHAL)
+        .withSchemaBuilder(SchemaBuilder.builder())
+        .withContextClassLoader(Thread.currentThread().getContextClassLoader())
+        .addAll(Arrays.asList(
+            new JaxbContextData(ObjectFactory.class.getPackage()),
+            new JaxbContextData(org.bremersee.xml.model7b.ObjectFactory.class.getPackage()),
+            new JaxbContextData(org.bremersee.xml.model7c.ObjectFactory.class.getPackage())))
+        .process(() -> List.of(new JaxbContextData(StandaloneModel.class)))
+        .processAll(ServiceLoader.load(JaxbContextDataProvider.class));
 
     Carrier carrier = new Carrier();
     carrier.setPartNumber("123456789");
@@ -178,35 +168,83 @@ class JaxbContextBuilderTest {
     model.setProducer(sportBikes);
     model.getExtraParts().add(carrierElement);
 
-    StringWriter sw = new StringWriter();
-    builder.buildMarshaller(model).marshal(model, sw);
-
-    String actualXml = sw.toString();
-    softly.assertThat(actualXml)
-        .isEqualTo(XML1);
-
-    MountainBike actualModel = (MountainBike) builder.buildUnmarshaller(MountainBike.class)
+    MountainBike actualModel = (MountainBike) builder
+        .copy()
+        .withDependenciesResolver(null)
+        .buildUnmarshaller(MountainBike.class)
         .unmarshal(new StringReader(XML1));
     softly.assertThat(actualModel)
         .isEqualTo(model);
     softly.assertThat(actualModel.getExtraParts())
-        .map(elem -> builder.buildUnmarshaller().unmarshal(elem))
+        .map(elem -> builder
+            .buildUnmarshaller().unmarshal(elem))
         .containsExactly(carrier);
+
+    StringWriter sw = new StringWriter();
+    builder.buildMarshaller(model).marshal(model, sw);
+    String actualXml = sw.toString();
+    softly.assertThat(actualXml)
+        .isEqualTo(XML1);
   }
 
   /**
-   * Write and read with classes.
+   * Write and read any elements.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  void writeAndReadAnyElements() throws Exception {
+    OffsetDateTime start = OffsetDateTime
+        .parse("2000-01-16T12:00:00.000Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    AnyElementList list = new AnyElementList(List.of(
+
+        // Company has no namespace.
+        new Company("UnitTest"),
+
+        // Address has no namespace, but StartEnd has one.
+        new Address("Surefire", "123", new StartEnd(start, null, null)),
+
+        // StandaloneModel has a namespace, too.
+        new StandaloneModel("assert")
+    ));
+
+    JaxbContextBuilder builder = JaxbContextBuilder
+        .builder();
+    Marshaller marshaller = builder.buildMarshaller(list);
+    StringWriter sw = new StringWriter();
+    marshaller.marshal(list, sw);
+
+    String xml = sw.toString();
+
+    AnyElementList actual = (AnyElementList) builder
+        .buildUnmarshaller().unmarshal(new StringReader(xml));
+    assertThat(actual)
+        .isEqualTo(list);
+  }
+
+  /**
+   * Write and read date time.
    *
    * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void writeAndReadWithClasses(SoftAssertions softly) throws Exception {
+  void writeAndReadDateTime(SoftAssertions softly) throws Exception {
+
+    JaxbContextBuilder builder = JaxbContextBuilder
+        .builder()
+        .initJaxbContext()
+        .withFormattedOutput(true)
+        .withSchemaMode(SchemaMode.ALWAYS)
+        .addAll(List.of(new JaxbContextData(Address.class)).iterator())
+        .initJaxbContext();
+
     StartEnd startEnd = new StartEnd();
     startEnd.setStart(OffsetDateTime
         .parse("2000-01-16T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-    startEnd.setStart(OffsetDateTime
+    startEnd.setEnd(OffsetDateTime
         .parse("2000-01-20T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+    startEnd.setDuration(Duration.ofDays(4));
 
     Address model = new Address();
     model.setStreet("Casparstreet");
@@ -215,35 +253,36 @@ class JaxbContextBuilderTest {
 
     softly.assertThat(builder.canMarshal(Address.class))
         .isTrue();
-    softly.assertThat(builder.canMarshalWithoutExtending(Address.class))
-        .isFalse();
     softly.assertThat(builder.canUnmarshal(Address.class))
         .isTrue();
-    softly.assertThat(builder.canUnmarshalWithoutExtending(Address.class))
-        .isFalse();
 
     StringWriter sw = new StringWriter();
-    builder.buildMarshaller(new Class[]{Address.class, Company.class}).marshal(model, sw);
+    builder.buildMarshaller().marshal(model, sw);
     String xml = sw.toString();
 
-    Address actual = (Address) builder.buildUnmarshaller(new Class[]{Address.class, Company.class})
+    Address actual = (Address) builder.buildUnmarshaller(Address.class, Company.class)
         .unmarshal(new StringReader(xml));
     softly.assertThat(actual)
         .isEqualTo(model);
   }
 
   /**
-   * Write and read with class.
+   * Write and read date time with empty context.
    *
    * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void writeAndReadWithClass(SoftAssertions softly) throws Exception {
+  void writeAndReadDateTimeWithEmptyContext(SoftAssertions softly) throws Exception {
+
+    JaxbContextBuilder builder = JaxbContextBuilder
+        .builder()
+        .withSchemaMode(SchemaMode.UNMARSHAL);
+
     StartEnd startEnd = new StartEnd();
     startEnd.setStart(OffsetDateTime
         .parse("2000-01-16T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-    startEnd.setStart(OffsetDateTime
+    startEnd.setEnd(OffsetDateTime
         .parse("2000-01-20T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 
     Address model = new Address();
@@ -252,7 +291,7 @@ class JaxbContextBuilderTest {
     model.setStartEnd(startEnd);
 
     StringWriter sw = new StringWriter();
-    builder.buildMarshaller(model).marshal(model, sw);
+    builder.buildMarshaller(new Class[]{Address.class, Company.class}).marshal(model, sw);
     String xml = sw.toString();
 
     Address actual = (Address) builder.buildUnmarshaller(Address.class)
@@ -260,38 +299,17 @@ class JaxbContextBuilderTest {
     softly.assertThat(actual)
         .isEqualTo(model);
 
-    JaxbContextBuilder jaxbContextBuilder = builder
+    JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder.builder()
         .withXmlAdapters(null)
         .withDependenciesResolver(null);
     sw = new StringWriter();
     jaxbContextBuilder.buildMarshaller(model).marshal(model, sw);
+    xml = sw.toString();
+
     actual = (Address) builder.buildUnmarshaller(Address.class)
-        .unmarshal(new StringReader(sw.toString()));
+        .unmarshal(new StringReader(xml));
     softly.assertThat(actual)
         .isEqualTo(model);
-  }
-
-  /**
-   * Can write and read with class.
-   *
-   * @param softly the soft assertions
-   */
-  @Test
-  void canWriteAndReadWithClass(SoftAssertions softly) {
-    JaxbContextBuilder jaxbContextBuilder = builder;
-
-    softly.assertThat(jaxbContextBuilder.canMarshalWithoutExtending(Address.class))
-        .isFalse();
-    softly.assertThat(jaxbContextBuilder.canUnmarshalWithoutExtending(Address.class))
-        .isFalse();
-
-    softly.assertThat(jaxbContextBuilder.canMarshalWithoutExtending(MountainBike.class))
-        .isTrue();
-    softly.assertThat(jaxbContextBuilder.canUnmarshalWithoutExtending(MountainBike.class))
-        .isTrue();
-
-    softly.assertThat(jaxbContextBuilder.buildSchema())
-        .isNotNull();
   }
 
   /**
@@ -302,7 +320,7 @@ class JaxbContextBuilderTest {
    */
   @Test
   void buildJaxbContext(SoftAssertions softly) throws Exception {
-    JaxbContextWrapper ctx = builder.copy()
+    JaxbContextWrapper ctx = JaxbContextBuilder.builder().copy()
         .withFormattedOutput(true)
         .withSchemaMode(SchemaMode.EXTERNAL_XSD)
         .withAttachmentMarshaller(mock(AttachmentMarshaller.class))
@@ -311,6 +329,7 @@ class JaxbContextBuilderTest {
         .withXmlAdapters(Arrays.asList(
             new EpochMilliXmlAdapter(),
             new DateXmlAdapter()))
+        .add(new JaxbContextData(RacingBike.class))
         .buildJaxbContext();
 
     softly.assertThat(ctx)
@@ -355,11 +374,9 @@ class JaxbContextBuilderTest {
   @Test
   void buildUnmarshaller(SoftAssertions softly) {
     JaxbContextBuilder builder = JaxbContextBuilder.builder()
-        .withSchemaMode(SchemaMode.EXTERNAL_XSD)
-        .add("org.bremersee.xml.model7a:org.bremersee.xml.model7b:org.bremersee.xml.model7c");
-    softly.assertThat(builder.buildUnmarshaller(null)).isNotNull();
-    softly.assertThat(builder.buildUnmarshaller(new Fender())).isNotNull();
-    softly.assertThat(builder.buildUnmarshaller(new StandaloneModel())).isNotNull();
+        .withSchemaMode(SchemaMode.EXTERNAL_XSD);
+    softly.assertThat(builder.buildUnmarshaller(Fender.class)).isNotNull();
+    softly.assertThat(builder.buildUnmarshaller(StandaloneModel.class)).isNotNull();
   }
 
   /**
@@ -370,78 +387,28 @@ class JaxbContextBuilderTest {
   @Test
   void buildMarshaller(SoftAssertions softly) {
     JaxbContextBuilder builder = JaxbContextBuilder.builder()
-        .withSchemaMode(SchemaMode.EXTERNAL_XSD)
-        .add("org.bremersee.xml.model7a:org.bremersee.xml.model7b:org.bremersee.xml.model7c");
-    softly.assertThat(builder.buildMarshaller(null)).isNotNull();
+        .withSchemaMode(SchemaMode.EXTERNAL_XSD);
     softly.assertThat(builder.buildMarshaller(new Fender())).isNotNull();
-    softly.assertThat(builder.buildMarshaller(new StandaloneModel())).isNotNull();
+    softly.assertThat(builder.buildMarshaller(StandaloneModel.class)).isNotNull();
+    softly.assertThat(builder
+            .copy()
+            .withDependenciesResolver(null)
+            .buildMarshaller(new Class<?>[]{Person.class, Vehicle.class}))
+        .isNotNull();
   }
 
   /**
-   * Write any elements.
+   * Build schema.
    *
    * @param softly the soft assertions
-   * @throws Exception the exception
    */
   @Test
-  void writeAnyElements(SoftAssertions softly) throws Exception {
-    OffsetDateTime start = OffsetDateTime
-        .parse("2000-01-16T12:00:00.000Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-    AnyElementList list = new AnyElementList(List.of(
-
-        // Company has no namespace.
-        new Company("UnitTest"),
-
-        // Address has no namespace, but StartEnd has one.
-        new Address("Surefire", "123", new StartEnd(start, null, null)),
-
-        // StandaloneModel has a namespace, too.
-        new StandaloneModel("assert")
-    ));
-
-    // Empty jaxb context
-    JaxbContextBuilder emptyBuilder = JaxbContextBuilder
-        .builder();
-    softly.assertThat(emptyBuilder.canMarshalWithoutExtending(AnyElementList.class)).isFalse();
-    softly.assertThat(emptyBuilder.canMarshalWithoutExtending(Company.class)).isFalse();
-    softly.assertThat(emptyBuilder.canMarshalWithoutExtending(Address.class)).isFalse();
-    softly.assertThat(emptyBuilder.canMarshalWithoutExtending(StandaloneModel.class)).isFalse();
-
-    // We need a new object because we use soft assertions here.
-    JaxbContextBuilder builder = JaxbContextBuilder
-        .builder();
-    Marshaller marshaller = builder.buildMarshaller(list);
-    StringWriter sw = new StringWriter();
-    marshaller.marshal(list, sw);
-
-    // Empty jaxb context was extended:
-    softly.assertThat(builder.canMarshalWithoutExtending(AnyElementList.class)).isTrue();
-    softly.assertThat(builder.canMarshalWithoutExtending(Company.class)).isTrue();
-    softly.assertThat(builder.canMarshalWithoutExtending(Address.class)).isTrue();
-
-    // It's still false, because it has no package with jaxb meta-data.
-    softly.assertThat(emptyBuilder.canMarshalWithoutExtending(StandaloneModel.class)).isFalse();
-
-    String xml = sw.toString();
-
-    AnyElementList actual = (AnyElementList) builder
-        .buildUnmarshaller().unmarshal(new StringReader(xml));
-    softly.assertThat(actual)
-        .isNotEqualTo(list); // unmarshalling of StandaloneModel is not possible
-    softly.assertThat(actual.getContent())
-        .hasSize(3)
-        .contains(
-            new Company("UnitTest"),
-            new Address("Surefire", "123", new StartEnd(start, null, null)))
-        .anyMatch(entry -> entry instanceof Element);
-    // StandaloneModel was unmarshalled as org.w3c.dom.Element
-
-    Element element = (Element) actual.getContent().get(2);
-    StandaloneModel actualStandaloneModel = (StandaloneModel) builder
-        .buildUnmarshaller(StandaloneModel.class)
-        .unmarshal(element);
-    softly.assertThat(actualStandaloneModel)
-        .isEqualTo(new StandaloneModel("assert"));
+  void buildSchema(SoftAssertions softly) {
+    JaxbContextBuilder builder = JaxbContextBuilder.builder()
+        .withSchemaMode(SchemaMode.EXTERNAL_XSD)
+        .add(new JaxbContextData(Person.class));
+    softly.assertThat(builder.buildSchema()).isNotNull();
+    softly.assertThat(builder.buildSchema(new Fender())).isNotNull();
   }
 
 }

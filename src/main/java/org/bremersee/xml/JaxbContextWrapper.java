@@ -35,6 +35,7 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.validation.Schema;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -53,7 +54,7 @@ public class JaxbContextWrapper extends JAXBContext {
 
   private final JAXBContext jaxbContext;
 
-  @Getter
+  @Getter(AccessLevel.PACKAGE)
   private final JaxbContextDetails details;
 
   @Getter
@@ -90,7 +91,7 @@ public class JaxbContextWrapper extends JAXBContext {
    *
    * @param jaxbContext the jaxb context
    */
-  public JaxbContextWrapper(
+  JaxbContextWrapper(
       final JAXBContext jaxbContext) {
     this(jaxbContext, null);
   }
@@ -101,7 +102,7 @@ public class JaxbContextWrapper extends JAXBContext {
    * @param jaxbContext the jaxb context
    * @param details the details
    */
-  public JaxbContextWrapper(
+  JaxbContextWrapper(
       final JAXBContext jaxbContext,
       final JaxbContextDetails details) {
     Assert.notNull(jaxbContext, "Jaxb context must be present.");

@@ -50,7 +50,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
@@ -66,6 +68,7 @@ import org.springframework.util.ReflectionUtils.MethodFilter;
  *
  * @author Christian Bremer
  */
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
 
   @SuppressWarnings("unchecked")
@@ -95,11 +98,10 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     } else {
       resolveClasses(value, scanResults);
     }
-    //noinspection FuseStreamOperations
-    return scanResults.stream()
+    return ClassUtils.toClassArray(scanResults
+        .stream()
         .map(ScanResult::getClazz)
-        .collect(Collectors.toSet())
-        .toArray(new Class[0]);
+        .collect(Collectors.toSet()));
   }
 
   private boolean resolveClasses(final Object value, final Set<ScanResult> scanResults) {
@@ -320,7 +322,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     /**
      * Instantiates a new xml field filter.
      *
-     * @param clazz the clazz
+     * @param clazz the class
      */
     XmlFieldFilter(final Class<?> clazz) {
       this.accessType = Optional
@@ -359,7 +361,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     /**
      * Instantiates a new xml method filter.
      *
-     * @param clazz the clazz
+     * @param clazz the class
      */
     XmlMethodFilter(final Class<?> clazz) {
       this.accessType = Optional
@@ -402,7 +404,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     /**
      * Instantiates a new scan result.
      *
-     * @param clazz the clazz
+     * @param clazz the class
      * @param source the source
      */
     ScanResult(final Class<?> clazz, final Object source) {
@@ -414,7 +416,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     /**
      * Gets clazz.
      *
-     * @return the clazz
+     * @return the class
      */
     Class<?> getClazz() {
       return clazz;

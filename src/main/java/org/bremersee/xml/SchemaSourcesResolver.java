@@ -31,12 +31,15 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * The schema sources resolver.
  *
  * @author Christian Bremer
  */
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 class SchemaSourcesResolver extends SchemaOutputResolver {
 
   private final Map<String, StreamResult> buffers = new LinkedHashMap<>();

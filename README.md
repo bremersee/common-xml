@@ -137,7 +137,7 @@ public class Example {
         .processAll(ServiceLoader.load(JaxbContextDataProvider.class))
         .buildMarshaller() // builds a marshaller with the whole jaxb context
         .marshal(model, sw);
-    System.out.println(sw.toString());
+    System.out.println(sw);
   }
 }
 ```
@@ -175,7 +175,7 @@ public class Example {
         .processAll(ServiceLoader.load(JaxbContextDataProvider.class))
         .buildMarshaller(model) // builds a marshaller with a subset jaxb context
         .marshal(model, sw);
-    System.out.println(sw.toString());
+    System.out.println(sw);
   }
 }
 ```
@@ -219,7 +219,7 @@ public class Example {
         .processAll(ServiceLoader.load(JaxbContextDataProvider.class))
         .buildMarshaller(model)
         .marshal(model, sw);
-    System.out.println(sw.toString());
+    System.out.println(sw);
   }
 }
 ```
@@ -309,7 +309,7 @@ public class Example {
 
     StringWriter sw = new StringWriter();
     JaxbContextBuilder.builder().buildMarshaller(container).marshal(container, sw);
-    System.out.println(sw.toString());
+    System.out.println(sw);
   }
 }
 ```
