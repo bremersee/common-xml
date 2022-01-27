@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Christian Bremer
  */
-interface JaxbContextDetails {
+public interface JaxbContextDetails {
 
   /**
    * Context data collector collector.
