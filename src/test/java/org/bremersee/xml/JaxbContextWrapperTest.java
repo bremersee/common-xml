@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.stream.Stream;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.MarshalException;
 import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.ValidationEventHandler;
@@ -101,6 +102,23 @@ class JaxbContextWrapperTest {
 
     wrapper = new JaxbContextWrapper(jaxbContext, detailsOfJaxbContext);
     softly.assertThat(wrapper)
+        .extracting(JaxbContextWrapper::getDetails)
+        .isEqualTo(detailsOfJaxbContext);
+  }
+
+  /**
+   * Gets details with jaxb context data stream.
+   *
+   * @throws JAXBException the jaxb exception
+   */
+  @Test
+  void getDetailsWithJaxbContextDataStream() throws JAXBException {
+    JaxbContextData data0 = new JaxbContextData(
+        org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
+        "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd");
+    JaxbContextData data1 = new JaxbContextData(
+        org.bremersee.xml.model5.ObjectFactory.class.getPackage());
+    assertThat(new JaxbContextWrapper(Stream.of(data0, data1)))
         .extracting(JaxbContextWrapper::getDetails)
         .isEqualTo(detailsOfJaxbContext);
   }

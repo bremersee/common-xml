@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.xml.bind.Binder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -93,6 +94,21 @@ public class JaxbContextWrapper extends JAXBContext {
   public JaxbContextWrapper(
       final JAXBContext jaxbContext) {
     this(jaxbContext, null);
+  }
+
+  /**
+   * Instantiates a new jaxb context wrapper.
+   *
+   * @param data the data
+   * @param classLoaders the class loaders
+   * @throws JAXBException the jaxb exception
+   */
+  public JaxbContextWrapper(Stream<JaxbContextData> data, ClassLoader... classLoaders)
+      throws JAXBException {
+    Assert.notNull(data, "Stream of jaxb context data must be present.");
+    this.details = data.collect(JaxbContextDetails.contextDataCollector());
+    Assert.isTrue(!details.isEmpty(), "There is no jaxb model.");
+    this.jaxbContext = JAXBContext.newInstance(this.details.getClasses(classLoaders));
   }
 
   /**
