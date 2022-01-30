@@ -92,7 +92,7 @@ public class JaxbContextWrapper extends JAXBContext {
    * @param jaxbContext the jaxb context
    */
   public JaxbContextWrapper(
-      final JAXBContext jaxbContext) {
+      JAXBContext jaxbContext) {
     this(jaxbContext, null);
   }
 
@@ -118,8 +118,8 @@ public class JaxbContextWrapper extends JAXBContext {
    * @param details the details
    */
   JaxbContextWrapper(
-      final JAXBContext jaxbContext,
-      final JaxbContextDetails details) {
+      JAXBContext jaxbContext,
+      JaxbContextDetails details) {
     Assert.notNull(jaxbContext, "Jaxb context must be present.");
     this.jaxbContext = jaxbContext;
     this.details = Optional.ofNullable(details)
@@ -149,7 +149,7 @@ public class JaxbContextWrapper extends JAXBContext {
 
   @Override
   public Marshaller createMarshaller() throws JAXBException {
-    final Marshaller marshaller = jaxbContext.createMarshaller();
+    Marshaller marshaller = jaxbContext.createMarshaller();
     marshaller.setProperty(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.name());
     marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formattedOutput);
     if (!isEmpty(details.getSchemaLocation())) {

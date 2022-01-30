@@ -58,7 +58,7 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
 
   @Override
   public XmlDocumentBuilder configureFactory(
-      final XmlDocumentBuilderFactoryConfigurator configurator) {
+      XmlDocumentBuilderFactoryConfigurator configurator) {
     if (!isEmpty(configurator)) {
       configurator.configure(factory);
     }
@@ -67,13 +67,13 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
 
   @Override
   public XmlDocumentBuilder configureFactory(
-      final Boolean coalescing,
-      final Boolean expandEntityReferences,
-      final Boolean ignoringComments,
-      final Boolean ignoringElementContentWhitespace,
-      final Boolean namespaceAware,
-      final Boolean validating,
-      final Boolean xIncludeAware) {
+      Boolean coalescing,
+      Boolean expandEntityReferences,
+      Boolean ignoringComments,
+      Boolean ignoringElementContentWhitespace,
+      Boolean namespaceAware,
+      Boolean validating,
+      Boolean xIncludeAware) {
 
     if (!isEmpty(coalescing)) {
       factory.setCoalescing(coalescing);
@@ -100,13 +100,13 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
   }
 
   @Override
-  public XmlDocumentBuilder configureFactoryAttribute(final String name, final Object value) {
+  public XmlDocumentBuilder configureFactoryAttribute(String name, Object value) {
     factory.setAttribute(name, value);
     return this;
   }
 
   @Override
-  public XmlDocumentBuilder configureFactoryFeature(final String name, final boolean value) {
+  public XmlDocumentBuilder configureFactoryFeature(String name, boolean value) {
     try {
       factory.setFeature(name, value);
     } catch (ParserConfigurationException e) {
@@ -116,7 +116,7 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
   }
 
   @Override
-  public XmlDocumentBuilder configureFactorySchema(final Schema schema) {
+  public XmlDocumentBuilder configureFactorySchema(Schema schema) {
     factory.setSchema(schema);
     return this;
   }
@@ -135,7 +135,7 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
 
   @Override
   public DocumentBuilder buildDocumentBuilder() {
-    final DocumentBuilder documentBuilder;
+    DocumentBuilder documentBuilder;
     try {
       documentBuilder = factory.newDocumentBuilder();
     } catch (ParserConfigurationException e) {
@@ -222,7 +222,7 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
     if (isNull(jaxbElement)) {
       return null;
     }
-    final Document document = buildDocument();
+    Document document = buildDocument();
     try {
       marshaller.marshal(jaxbElement, document);
     } catch (JAXBException e) {

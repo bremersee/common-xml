@@ -34,8 +34,8 @@ public class BufferSchemaOutputResolver extends SchemaOutputResolver {
 
   @Override
   public Result createOutput(String namespaceUri, String suggestedFileName) {
-    final StringWriter out = new StringWriter();
-    final StreamResult res = new StreamResult(out);
+    StringWriter out = new StringWriter();
+    StreamResult res = new StreamResult(out);
     res.setSystemId(suggestedFileName);
     buffers.put(namespaceUri, res);
     return res;
@@ -51,7 +51,7 @@ public class BufferSchemaOutputResolver extends SchemaOutputResolver {
 
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder();
+    StringBuilder sb = new StringBuilder();
     for (String s : buffers.keySet()) {
       sb.append("***** Begin schema ").append(s).append(", system-id=").append(getSystemId(s))
           .append(" *****");

@@ -198,7 +198,7 @@ class SchemaBuilderTest {
    */
   @Test
   void buildSchemaWithIllegalFile() throws IOException {
-    final File file = File.createTempFile("junit", ".test",
+    File file = File.createTempFile("junit", ".test",
         new File(System.getProperty("java.io.tmpdir")));
     file.deleteOnExit();
     assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
@@ -212,7 +212,7 @@ class SchemaBuilderTest {
    */
   @Test
   void buildSchemaWithIllegalStreamSource() throws IOException {
-    final File file = File.createTempFile("junit", ".test",
+    File file = File.createTempFile("junit", ".test",
         new File(System.getProperty("java.io.tmpdir")));
     file.deleteOnExit();
     assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()

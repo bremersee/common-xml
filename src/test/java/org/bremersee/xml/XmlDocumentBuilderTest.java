@@ -315,7 +315,7 @@ class XmlDocumentBuilderTest {
   void buildDocumentFromIllegalFileAndExpectException(SoftAssertions softly)
       throws IOException {
 
-    final File file = File.createTempFile("junit", ".test",
+    File file = File.createTempFile("junit", ".test",
         new File(System.getProperty("java.io.tmpdir")));
     file.deleteOnExit();
 

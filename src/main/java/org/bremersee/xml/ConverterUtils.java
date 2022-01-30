@@ -49,7 +49,7 @@ public abstract class ConverterUtils {
     if (xmlDuration == null) {
       return null;
     }
-    final Date tmp = new Date(0L);
+    Date tmp = new Date(0L);
     xmlDuration.addTo(tmp);
     return tmp.getTime();
   }
@@ -161,7 +161,7 @@ public abstract class ConverterUtils {
     if (xmlGregorianCalendar == null) {
       return null;
     }
-    final TimeZone tz = xmlGregorianCalendar.getTimeZone(0);
+    TimeZone tz = xmlGregorianCalendar.getTimeZone(0);
     return OffsetDateTime.ofInstant(xmlCalendarToInstant(xmlGregorianCalendar), tz.toZoneId());
   }
 
@@ -231,8 +231,8 @@ public abstract class ConverterUtils {
     if (date == null) {
       return null;
     }
-    final TimeZone tz = zone != null ? zone : TimeZone.getTimeZone("GMT");
-    final GregorianCalendar calendar;
+    TimeZone tz = zone != null ? zone : TimeZone.getTimeZone("GMT");
+    GregorianCalendar calendar;
     if (locale != null) {
       calendar = new GregorianCalendar(tz, locale);
     } else {
@@ -320,7 +320,7 @@ public abstract class ConverterUtils {
     if (instant == null) {
       return null;
     }
-    final TimeZone tz = zoneId != null ? TimeZone.getTimeZone(zoneId) : TimeZone.getTimeZone("GMT");
+    TimeZone tz = zoneId != null ? TimeZone.getTimeZone(zoneId) : TimeZone.getTimeZone("GMT");
     return dateToXmlCalendar(Date.from(instant), tz, locale);
   }
 

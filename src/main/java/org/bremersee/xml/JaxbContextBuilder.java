@@ -159,7 +159,7 @@ public interface JaxbContextBuilder {
    * @param data the data
    * @return the jaxb context builder
    */
-  default JaxbContextBuilder addAll(final Iterable<? extends JaxbContextData> data) {
+  default JaxbContextBuilder addAll(Iterable<? extends JaxbContextData> data) {
     return Optional.ofNullable(data)
         .map(d -> addAll(d.iterator()))
         .orElse(this);
@@ -171,7 +171,7 @@ public interface JaxbContextBuilder {
    * @param data the data
    * @return the jaxb context builder
    */
-  default JaxbContextBuilder addAll(final Iterator<? extends JaxbContextData> data) {
+  default JaxbContextBuilder addAll(Iterator<? extends JaxbContextData> data) {
     return Optional.ofNullable(data)
         .map(iter -> Spliterators.spliteratorUnknownSize(iter, Spliterator.ORDERED))
         .stream()
@@ -187,7 +187,7 @@ public interface JaxbContextBuilder {
    * @param dataProvider the data provider
    * @return the jaxb context builder
    */
-  default JaxbContextBuilder process(final JaxbContextDataProvider dataProvider) {
+  default JaxbContextBuilder process(JaxbContextDataProvider dataProvider) {
     return Optional.ofNullable(dataProvider)
         .map(provider -> addAll(provider.getJaxbContextData()))
         .orElse(this);
@@ -200,7 +200,7 @@ public interface JaxbContextBuilder {
    * @return the jaxb context builder
    */
   default JaxbContextBuilder processAll(
-      final Iterable<? extends JaxbContextDataProvider> dataProviders) {
+      Iterable<? extends JaxbContextDataProvider> dataProviders) {
     return Optional.ofNullable(dataProviders)
         .map(providers -> processAll(providers.iterator()))
         .orElse(this);
@@ -213,7 +213,7 @@ public interface JaxbContextBuilder {
    * @return the jaxb context builder
    */
   default JaxbContextBuilder processAll(
-      final Iterator<? extends JaxbContextDataProvider> dataProviders) {
+      Iterator<? extends JaxbContextDataProvider> dataProviders) {
     return Optional.ofNullable(dataProviders)
         .map(iter -> Spliterators.spliteratorUnknownSize(iter, Spliterator.ORDERED))
         .stream()
