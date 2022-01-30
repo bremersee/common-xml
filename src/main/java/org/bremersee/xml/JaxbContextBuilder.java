@@ -41,8 +41,6 @@ public interface JaxbContextBuilder {
 
   /**
    * The default dependencies resolver implementation.
-   *
-   * @see #withDependenciesResolver(JaxbDependenciesResolver) #withDependenciesResolver(JaxbDependenciesResolver)#withDependenciesResolver(JaxbDependenciesResolver)
    */
   JaxbDependenciesResolver DEFAULT_DEPENDENCIES_RESOLVER = new JaxbDependenciesResolverImpl();
 
@@ -70,11 +68,11 @@ public interface JaxbContextBuilder {
    *
    * @param schemaMode the schema mode
    * @return the jaxb context builder
-   * @see SchemaMode#NEVER SchemaMode#NEVERSchemaMode#NEVER
-   * @see SchemaMode#ALWAYS SchemaMode#ALWAYSSchemaMode#ALWAYS
-   * @see SchemaMode#MARSHAL SchemaMode#MARSHALSchemaMode#MARSHAL
-   * @see SchemaMode#UNMARSHAL SchemaMode#UNMARSHALSchemaMode#UNMARSHAL
-   * @see SchemaMode#EXTERNAL_XSD SchemaMode#EXTERNAL_XSDSchemaMode#EXTERNAL_XSD
+   * @see SchemaMode#NEVER
+   * @see SchemaMode#ALWAYS
+   * @see SchemaMode#MARSHAL
+   * @see SchemaMode#UNMARSHAL
+   * @see SchemaMode#EXTERNAL_XSD
    */
   JaxbContextBuilder withSchemaMode(SchemaMode schemaMode);
 

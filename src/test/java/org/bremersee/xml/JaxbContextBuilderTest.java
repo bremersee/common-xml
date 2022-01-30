@@ -128,6 +128,20 @@ class JaxbContextBuilderTest {
   @Test
   void readAndWriteElement(SoftAssertions softly) throws Exception {
 
+    Carrier carrier = new Carrier();
+    carrier.setPartNumber("123456789");
+    carrier.setCapacity("15 kg");
+
+    DirtBikeReseller r0 = new DirtBikeReseller();
+    r0.setName("Dirt Bikes");
+    RacingReseller r1 = new RacingReseller();
+    r1.setName("Racing Fun");
+
+    SportBikes sportBikes = new SportBikes();
+    sportBikes.setName("Sport Bikes");
+    sportBikes.getChain().add(r0);
+    sportBikes.getChain().add(r1);
+
     JaxbContextBuilder builder = JaxbContextBuilder
         .builder()
         .withDependenciesResolver(new JaxbDependenciesResolverImpl())
@@ -144,28 +158,14 @@ class JaxbContextBuilderTest {
         .process(() -> List.of(new JaxbContextData(StandaloneModel.class)))
         .processAll(ServiceLoader.load(JaxbContextDataProvider.class));
 
-    Carrier carrier = new Carrier();
-    carrier.setPartNumber("123456789");
-    carrier.setCapacity("15 kg");
-
-    DirtBikeReseller r0 = new DirtBikeReseller();
-    r0.setName("Dirt Bikes");
-    RacingReseller r1 = new RacingReseller();
-    r1.setName("Racing Fun");
-
-    SportBikes sportBikes = new SportBikes();
-    sportBikes.setName("Sport Bikes");
-    sportBikes.getChain().add(r0);
-    sportBikes.getChain().add(r1);
-
-    Element carrierElement = XmlDocumentBuilder.builder()
-        .buildDocument(carrier, builder.buildMarshaller(carrier))
-        .getDocumentElement();
-
     MountainBike model = new MountainBike();
     model.setSeatHeight(60);
     model.setColor("Red");
     model.setProducer(sportBikes);
+
+    Element carrierElement = XmlDocumentBuilder.builder()
+        .buildDocument(carrier, builder.buildMarshaller(carrier))
+        .getDocumentElement();
     model.getExtraParts().add(carrierElement);
 
     MountainBike actualModel = (MountainBike) builder
@@ -239,6 +239,11 @@ class JaxbContextBuilderTest {
         .addAll(List.of(new JaxbContextData(Address.class)).iterator())
         .initJaxbContext();
 
+    softly.assertThat(builder.canMarshal(Address.class))
+        .isTrue();
+    softly.assertThat(builder.canUnmarshal(Address.class))
+        .isTrue();
+
     StartEnd startEnd = new StartEnd();
     startEnd.setStart(OffsetDateTime
         .parse("2000-01-16T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME));
@@ -250,11 +255,6 @@ class JaxbContextBuilderTest {
     model.setStreet("Casparstreet");
     model.setStreetNumber("1234");
     model.setStartEnd(startEnd);
-
-    softly.assertThat(builder.canMarshal(Address.class))
-        .isTrue();
-    softly.assertThat(builder.canUnmarshal(Address.class))
-        .isTrue();
 
     StringWriter sw = new StringWriter();
     builder.buildMarshaller().marshal(model, sw);
@@ -275,10 +275,6 @@ class JaxbContextBuilderTest {
   @Test
   void writeAndReadDateTimeWithEmptyContext(SoftAssertions softly) throws Exception {
 
-    JaxbContextBuilder builder = JaxbContextBuilder
-        .builder()
-        .withSchemaMode(SchemaMode.UNMARSHAL);
-
     StartEnd startEnd = new StartEnd();
     startEnd.setStart(OffsetDateTime
         .parse("2000-01-16T12:00:00Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME));
@@ -289,6 +285,10 @@ class JaxbContextBuilderTest {
     model.setStreet("Casparstreet");
     model.setStreetNumber("1234");
     model.setStartEnd(startEnd);
+
+    JaxbContextBuilder builder = JaxbContextBuilder
+        .builder()
+        .withSchemaMode(SchemaMode.UNMARSHAL);
 
     StringWriter sw = new StringWriter();
     builder.buildMarshaller(new Class[]{Address.class, Company.class}).marshal(model, sw);

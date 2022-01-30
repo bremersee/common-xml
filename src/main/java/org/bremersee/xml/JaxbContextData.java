@@ -201,13 +201,13 @@ public final class JaxbContextData implements Comparable<JaxbContextData> {
 
   @Override
   public String toString() {
-    return "JaxbContextData{" +
-        "clazz=" + (nonNull(clazz) ? clazz.getName() : "null") +
-        ", clazzElementSchemaLocation='" + clazzElementSchemaLocation + '\'' +
-        ", clazzTypeSchemaLocation='" + clazzTypeSchemaLocation + '\'' +
-        ", pakkage=" + (nonNull(pakkage) ? pakkage.getName() : "null") +
-        ", pakkageSchemaLocation='" + pakkageSchemaLocation + '\'' +
-        '}';
+    return "JaxbContextData{"
+        + "clazz=" + (nonNull(clazz) ? clazz.getName() : "null")
+        + ", clazzElementSchemaLocation='" + clazzElementSchemaLocation + '\''
+        + ", clazzTypeSchemaLocation='" + clazzTypeSchemaLocation + '\''
+        + ", pakkage=" + (nonNull(pakkage) ? pakkage.getName() : "null")
+        + ", pakkageSchemaLocation='" + pakkageSchemaLocation + '\''
+        + '}';
   }
 
   @Override

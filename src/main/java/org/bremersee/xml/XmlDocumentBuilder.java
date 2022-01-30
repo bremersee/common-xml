@@ -38,8 +38,8 @@ public interface XmlDocumentBuilder {
 
   /**
    * Configures the {@link DocumentBuilderFactory}. The default xml document builder has the same
-   * default values as the underlying factory except that {@link DocumentBuilderFactory#setNamespaceAware(boolean)}
-   * is set to {@code true}.
+   * default values as the underlying factory except that
+   * {@link DocumentBuilderFactory#setNamespaceAware(boolean)} is set to {@code true}.
    *
    * @param configurator the configurator
    * @return the xml document builder
@@ -49,8 +49,8 @@ public interface XmlDocumentBuilder {
 
   /**
    * Configures the {@link DocumentBuilderFactory}. The default xml document builder has the same
-   * default values as the underlying factory except that {@link DocumentBuilderFactory#setNamespaceAware(boolean)}
-   * is set to {@code true}.
+   * default values as the underlying factory except that
+   * {@link DocumentBuilderFactory#setNamespaceAware(boolean)} is set to {@code true}.
    *
    * <p>A value with {@code null} will be ignored and the default will be used.
    *
@@ -89,8 +89,7 @@ public interface XmlDocumentBuilder {
    * @param name the name
    * @param value the value
    * @return the xml document builder
-   * @see DocumentBuilderFactory#setAttribute(String, Object) DocumentBuilderFactory#setAttribute(String,
-   *     Object)
+   * @see DocumentBuilderFactory#setAttribute(String, Object)
    */
   XmlDocumentBuilder configureFactoryAttribute(String name, Object value);
 
@@ -100,8 +99,7 @@ public interface XmlDocumentBuilder {
    * @param name the name
    * @param value the value
    * @return the xml document builder
-   * @see DocumentBuilderFactory#setFeature(String, boolean) DocumentBuilderFactory#setFeature(String,
-   *     boolean)
+   * @see DocumentBuilderFactory#setFeature(String, boolean)
    */
   XmlDocumentBuilder configureFactoryFeature(String name, boolean value);
 
@@ -110,7 +108,7 @@ public interface XmlDocumentBuilder {
    *
    * @param schema the schema
    * @return the xml document builder
-   * @see DocumentBuilderFactory#setSchema(Schema) DocumentBuilderFactory#setSchema(Schema)
+   * @see DocumentBuilderFactory#setSchema(Schema)
    */
   XmlDocumentBuilder configureFactorySchema(Schema schema);
 
@@ -119,7 +117,7 @@ public interface XmlDocumentBuilder {
    *
    * @param entityResolver the entity resolver
    * @return the xml document builder
-   * @see DocumentBuilder#setEntityResolver(EntityResolver) DocumentBuilder#setEntityResolver(EntityResolver)
+   * @see DocumentBuilder#setEntityResolver(EntityResolver)
    */
   XmlDocumentBuilder configureEntityResolver(EntityResolver entityResolver);
 
@@ -128,7 +126,7 @@ public interface XmlDocumentBuilder {
    *
    * @param errorHandler the error handler
    * @return the xml document builder
-   * @see DocumentBuilder#setErrorHandler(ErrorHandler) DocumentBuilder#setErrorHandler(ErrorHandler)
+   * @see DocumentBuilder#setErrorHandler(ErrorHandler)
    */
   XmlDocumentBuilder configureErrorHandler(ErrorHandler errorHandler);
 
