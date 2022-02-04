@@ -39,6 +39,15 @@ import org.xml.sax.ErrorHandler;
 public interface SchemaBuilder {
 
   /**
+   * Creates a new schema builder.
+   *
+   * @return the schema builder
+   */
+  static SchemaBuilder newInstance() {
+    return new SchemaBuilderImpl();
+  }
+
+  /**
    * Copy schema builder.
    *
    * @return the schema builder
@@ -216,15 +225,6 @@ public interface SchemaBuilder {
     return Optional.ofNullable(sources)
         .map(c -> buildSchema(c.toArray(new Source[0])))
         .orElseGet(() -> buildSchema((Source[]) null));
-  }
-
-  /**
-   * Creates a new schema builder.
-   *
-   * @return the schema builder
-   */
-  static SchemaBuilder builder() {
-    return new SchemaBuilderImpl();
   }
 
 }

@@ -143,13 +143,13 @@ class JaxbContextBuilderTest {
     sportBikes.getChain().add(r1);
 
     JaxbContextBuilder builder = JaxbContextBuilder
-        .builder()
+        .newInstance()
         .withDependenciesResolver(new JaxbDependenciesResolverImpl())
         .withXmlAdapters(Arrays.asList(new OffsetDateTimeXmlAdapter(), new DurationXmlAdapter()))
         .copy()
         .withFormattedOutput(false)
         .withSchemaMode(SchemaMode.MARSHAL)
-        .withSchemaBuilder(SchemaBuilder.builder())
+        .withSchemaBuilder(SchemaBuilder.newInstance())
         .withContextClassLoader(Thread.currentThread().getContextClassLoader())
         .addAll(Arrays.asList(
             new JaxbContextData(ObjectFactory.class.getPackage()),
@@ -163,7 +163,7 @@ class JaxbContextBuilderTest {
     model.setColor("Red");
     model.setProducer(sportBikes);
 
-    Element carrierElement = XmlDocumentBuilder.builder()
+    Element carrierElement = XmlDocumentBuilder.newInstance()
         .buildDocument(carrier, builder.buildMarshaller(carrier))
         .getDocumentElement();
     model.getExtraParts().add(carrierElement);
@@ -209,7 +209,7 @@ class JaxbContextBuilderTest {
     ));
 
     JaxbContextBuilder builder = JaxbContextBuilder
-        .builder();
+        .newInstance();
     Marshaller marshaller = builder.buildMarshaller(list);
     StringWriter sw = new StringWriter();
     marshaller.marshal(list, sw);
@@ -232,7 +232,7 @@ class JaxbContextBuilderTest {
   void writeAndReadDateTime(SoftAssertions softly) throws Exception {
 
     JaxbContextBuilder builder = JaxbContextBuilder
-        .builder()
+        .newInstance()
         .initJaxbContext()
         .withFormattedOutput(true)
         .withSchemaMode(SchemaMode.ALWAYS)
@@ -287,7 +287,7 @@ class JaxbContextBuilderTest {
     model.setStartEnd(startEnd);
 
     JaxbContextBuilder builder = JaxbContextBuilder
-        .builder()
+        .newInstance()
         .withSchemaMode(SchemaMode.UNMARSHAL);
 
     StringWriter sw = new StringWriter();
@@ -299,7 +299,7 @@ class JaxbContextBuilderTest {
     softly.assertThat(actual)
         .isEqualTo(model);
 
-    JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder.builder()
+    JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder.newInstance()
         .withXmlAdapters(null)
         .withDependenciesResolver(null);
     sw = new StringWriter();
@@ -320,7 +320,7 @@ class JaxbContextBuilderTest {
    */
   @Test
   void buildJaxbContext(SoftAssertions softly) throws Exception {
-    JaxbContextWrapper ctx = JaxbContextBuilder.builder().copy()
+    JaxbContextWrapper ctx = JaxbContextBuilder.newInstance().copy()
         .withFormattedOutput(true)
         .withSchemaMode(SchemaMode.EXTERNAL_XSD)
         .withAttachmentMarshaller(mock(AttachmentMarshaller.class))
@@ -373,7 +373,7 @@ class JaxbContextBuilderTest {
    */
   @Test
   void buildUnmarshaller(SoftAssertions softly) {
-    JaxbContextBuilder builder = JaxbContextBuilder.builder()
+    JaxbContextBuilder builder = JaxbContextBuilder.newInstance()
         .withSchemaMode(SchemaMode.EXTERNAL_XSD);
     softly.assertThat(builder.buildUnmarshaller(Fender.class)).isNotNull();
     softly.assertThat(builder.buildUnmarshaller(StandaloneModel.class)).isNotNull();
@@ -386,7 +386,7 @@ class JaxbContextBuilderTest {
    */
   @Test
   void buildMarshaller(SoftAssertions softly) {
-    JaxbContextBuilder builder = JaxbContextBuilder.builder()
+    JaxbContextBuilder builder = JaxbContextBuilder.newInstance()
         .withSchemaMode(SchemaMode.EXTERNAL_XSD);
     softly.assertThat(builder.buildMarshaller(new Fender())).isNotNull();
     softly.assertThat(builder.buildMarshaller(StandaloneModel.class)).isNotNull();
@@ -404,7 +404,7 @@ class JaxbContextBuilderTest {
    */
   @Test
   void buildSchema(SoftAssertions softly) {
-    JaxbContextBuilder builder = JaxbContextBuilder.builder()
+    JaxbContextBuilder builder = JaxbContextBuilder.newInstance()
         .withSchemaMode(SchemaMode.EXTERNAL_XSD)
         .add(new JaxbContextData(Person.class));
     softly.assertThat(builder.buildSchema()).isNotNull();

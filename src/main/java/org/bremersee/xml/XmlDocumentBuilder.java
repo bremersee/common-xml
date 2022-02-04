@@ -37,6 +37,15 @@ import org.xml.sax.InputSource;
 public interface XmlDocumentBuilder {
 
   /**
+   * Creates default builder instance.
+   *
+   * @return the default builder instance
+   */
+  static XmlDocumentBuilder newInstance() {
+    return new XmlDocumentBuilderImpl();
+  }
+
+  /**
    * Configures the {@link DocumentBuilderFactory}. The default xml document builder has the same
    * default values as the underlying factory except that
    * {@link DocumentBuilderFactory#setNamespaceAware(boolean)} is set to {@code true}.
@@ -202,14 +211,5 @@ public interface XmlDocumentBuilder {
    * @return the document
    */
   Document buildDocument(Object jaxbElement, Marshaller marshaller);
-
-  /**
-   * Creates default builder instance.
-   *
-   * @return the default builder instance
-   */
-  static XmlDocumentBuilder builder() {
-    return new XmlDocumentBuilderImpl();
-  }
 
 }

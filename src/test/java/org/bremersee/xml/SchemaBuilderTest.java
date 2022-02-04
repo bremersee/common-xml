@@ -66,7 +66,7 @@ class SchemaBuilderTest {
           (PrivilegedAction) () -> Thread.currentThread().getContextClassLoader());
     }
 
-    SchemaBuilder builder = SchemaBuilder.builder()
+    SchemaBuilder builder = SchemaBuilder.newInstance()
         .withSchemaLanguage(XMLConstants.W3C_XML_SCHEMA_NS_URI)
         .withFactory(null)
         .withClassLoader(classLoader)
@@ -96,7 +96,7 @@ class SchemaBuilderTest {
   @Test
   void buildSchemaWithUrl() throws Exception {
 
-    Schema schema = SchemaBuilder.builder()
+    Schema schema = SchemaBuilder.newInstance()
         .withSchemaLanguage(XMLConstants.W3C_XML_SCHEMA_NS_URI)
         .withFactory("com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory")
         .withClassLoader(null)
@@ -130,7 +130,7 @@ class SchemaBuilderTest {
       return;
     }
 
-    Schema schema = SchemaBuilder.builder().buildSchema(file);
+    Schema schema = SchemaBuilder.newInstance().buildSchema(file);
     assertThat(schema)
         .isNotNull();
   }
@@ -144,7 +144,7 @@ class SchemaBuilderTest {
   void buildSchemaWithSource() throws Exception {
     Source source = new StreamSource(new DefaultResourceLoader()
         .getResource("classpath:common-xml-test-model-1.xsd").getInputStream());
-    Schema schema = SchemaBuilder.builder()
+    Schema schema = SchemaBuilder.newInstance()
         .buildSchema(source);
     assertThat(schema)
         .isNotNull();
@@ -155,7 +155,7 @@ class SchemaBuilderTest {
    */
   @Test
   void fetchSchemaSources() {
-    List<Source> sources = SchemaBuilder.builder()
+    List<Source> sources = SchemaBuilder.newInstance()
         .fetchSchemaSources(Arrays.asList(
             "classpath:common-xml-test-model-1.xsd",
             "http://bremersee.github.io/xmlschemas/common-xml-test-model-2.xsd"));
@@ -168,7 +168,7 @@ class SchemaBuilderTest {
    */
   @Test
   void createSchemaFactoryWthIllegalProperty() {
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
+    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.newInstance()
         .withProperty("foo", "bar")
         .buildSchema());
   }
@@ -178,7 +178,7 @@ class SchemaBuilderTest {
    */
   @Test
   void fetchSchemaSourcesThatDoesNotExist() {
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
+    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.newInstance()
         .fetchSchemaSources("classpath:/nothing.xsd"));
   }
 
@@ -187,7 +187,7 @@ class SchemaBuilderTest {
    */
   @Test
   void buildSchemaWithIllegalUrl() {
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
+    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.newInstance()
         .buildSchema(new URL("http://localhost/" + UUID.randomUUID() + ".xsd")));
   }
 
@@ -201,7 +201,7 @@ class SchemaBuilderTest {
     File file = File.createTempFile("junit", ".test",
         new File(System.getProperty("java.io.tmpdir")));
     file.deleteOnExit();
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
+    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.newInstance()
         .buildSchema(file));
   }
 
@@ -215,7 +215,7 @@ class SchemaBuilderTest {
     File file = File.createTempFile("junit", ".test",
         new File(System.getProperty("java.io.tmpdir")));
     file.deleteOnExit();
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
+    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.newInstance()
         .buildSchema(new StreamSource(file)));
   }
 
@@ -226,11 +226,11 @@ class SchemaBuilderTest {
    */
   @Test
   void buildSchemaWithNull(SoftAssertions softly) {
-    softly.assertThat(SchemaBuilder.builder().buildSchema((URL) null))
+    softly.assertThat(SchemaBuilder.newInstance().buildSchema((URL) null))
         .isNotNull();
-    softly.assertThat(SchemaBuilder.builder().buildSchema((File) null))
+    softly.assertThat(SchemaBuilder.newInstance().buildSchema((File) null))
         .isNotNull();
-    softly.assertThat(SchemaBuilder.builder().buildSchema((Source) null))
+    softly.assertThat(SchemaBuilder.newInstance().buildSchema((Source) null))
         .isNotNull();
   }
 

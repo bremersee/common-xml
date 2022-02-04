@@ -50,7 +50,7 @@ public interface JaxbContextBuilder {
    *
    * @return the jaxb context builder
    */
-  static JaxbContextBuilder builder() {
+  static JaxbContextBuilder newInstance() {
     return new JaxbContextBuilderImpl();
   }
 
@@ -78,7 +78,7 @@ public interface JaxbContextBuilder {
 
   /**
    * Specifies the schema builder to generate the schema. The default is the default schema builder
-   * implementation (see {@link SchemaBuilder#builder()}).
+   * implementation (see {@link SchemaBuilder#newInstance()}).
    *
    * @param schemaBuilder the schema builder
    * @return the jaxb context builder

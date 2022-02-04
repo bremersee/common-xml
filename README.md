@@ -4,9 +4,11 @@
 
 This library contains
 
-- some xml adapters (for java.util.Date, java.time.Duration, java.time.Instant, java.time.OffsetDateTime etc.),
-- a pojo to describe a xml model (`JaxbContextData`) with package name, namespace and schema location,
-- a provider (`JaxbContextDataProvider`) of these descriptions that may be loaded with java.util.ServiceLoader into
+- some xml adapters (for java.util.Date, java.time.Duration, java.time.Instant, 
+  java.time.OffsetDateTime etc.),
+- a pojo to describe a xml model (`JaxbContextData`) with package or class and schema location,
+- a provider (`JaxbContextDataProvider`) of these descriptions that may be loaded with 
+  java.util.ServiceLoader into
 - a JAXB context builder (`JaxbContextBuilder`) which is able to generate a JAXB context on runtime,
 - a schema builder (`SchemaBuilder`)
 - and a xml document builder (`XmlDocumentBuilder`).
@@ -42,7 +44,7 @@ public class Example {
 
   public static void main(String[] args) {
     JAXBContext jaxbContext = JaxbContextBuilder
-        .builder()
+        .newInstance()
         .processAll(ServiceLoader.load(JaxbContextDataProvider.class))
         .buildJaxbContext();
   }
@@ -64,7 +66,7 @@ public class Example {
 
   public static void main(String[] args) {
     JAXBContext jaxbContext = JaxbContextBuilder
-        .builder()
+        .newInstance()
         .add("org.example.model.foo:org.example.model.bar")
         .add(new JaxbContextData("org.example.model.foobar"))
         .buildJaxbContext();
@@ -103,7 +105,7 @@ public class Example {
 
   public static void main(String[] args) {
     JAXBContext jaxbContext = JaxbContextBuilder
-        .builder()
+        .newInstance()
         .buildJaxbContext(Model.class);
   }
 }
@@ -132,7 +134,7 @@ public class Example {
     model.setDisplayColor(DisplayColorT.CYAN);
 
     StringWriter sw = new StringWriter();
-    JaxbContextBuilder.builder()
+    JaxbContextBuilder.newInstance()
         .withFormattedOutput(true)
         .processAll(ServiceLoader.load(JaxbContextDataProvider.class))
         .buildMarshaller() // builds a marshaller with the whole jaxb context
@@ -170,7 +172,7 @@ public class Example {
     model.setDisplayColor(DisplayColorT.CYAN);
 
     StringWriter sw = new StringWriter();
-    JaxbContextBuilder.builder()
+    JaxbContextBuilder.newInstance()
         .withFormattedOutput(true)
         .processAll(ServiceLoader.load(JaxbContextDataProvider.class))
         .buildMarshaller(model) // builds a marshaller with a subset jaxb context
@@ -213,7 +215,7 @@ public class Example {
     model.setDisplayColor(DisplayColorT.CYAN);
 
     StringWriter sw = new StringWriter();
-    JaxbContextBuilder.builder()
+    JaxbContextBuilder.newInstance()
         .withFormattedOutput(true)
         .withDependenciesResolver(null) // turns off dependency resolving
         .processAll(ServiceLoader.load(JaxbContextDataProvider.class))
@@ -235,7 +237,7 @@ import javax.xml.validation.Schema;
 public class Example {
 
   public static void main(String[] args) {
-    Schema schema = SchemaBuilder.builder()
+    Schema schema = SchemaBuilder.newInstance()
         .buildSchema("classpath:common-xml-test-model-1.xsd",
             "http://bremersee.github.io/xmlschemas/common-xml-test-model-7b.xsd");
   }
@@ -301,14 +303,14 @@ public class Example {
     Model model = new Model();
     model.setValue("Hello world!");
 
-    Document document = XmlDocumentBuilder.builder()
-        .buildDocument(model, JaxbContextBuilder.builder().buildMarshaller(model));
+    Document document = XmlDocumentBuilder.newInstance()
+        .buildDocument(model, JaxbContextBuilder.newInstance().buildMarshaller(model));
 
     ModelContainer container = new ModelContainer();
     container.getModels().add(document.getDocumentElement());
 
     StringWriter sw = new StringWriter();
-    JaxbContextBuilder.builder().buildMarshaller(container).marshal(container, sw);
+    JaxbContextBuilder.newInstance().buildMarshaller(container).marshal(container, sw);
     System.out.println(sw);
   }
 }

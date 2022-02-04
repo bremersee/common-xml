@@ -60,7 +60,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   private JaxbDependenciesResolver dependenciesResolver = DEFAULT_DEPENDENCIES_RESOLVER;
 
-  private SchemaBuilder schemaBuilder = SchemaBuilder.builder();
+  private SchemaBuilder schemaBuilder = SchemaBuilder.newInstance();
 
   private ClassLoader classLoader;
 

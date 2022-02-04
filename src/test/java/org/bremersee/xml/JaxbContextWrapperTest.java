@@ -211,7 +211,7 @@ class JaxbContextWrapperTest {
     wrapper.setFormattedOutput(false);
     wrapper.setSchemaMode(SchemaMode.EXTERNAL_XSD);
 
-    Schema schema = SchemaBuilder.builder().buildSchema(
+    Schema schema = SchemaBuilder.newInstance().buildSchema(
         "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd");
     wrapper.setSchema(schema);
     softly.assertThat(schema)
@@ -257,7 +257,7 @@ class JaxbContextWrapperTest {
     wrapper.setFormattedOutput(false);
     wrapper.setSchemaMode(SchemaMode.MARSHAL);
 
-    Schema schema = SchemaBuilder.builder().buildSchema(
+    Schema schema = SchemaBuilder.newInstance().buildSchema(
         "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd");
     wrapper.setSchema(schema);
     softly.assertThat(schema)
