@@ -39,6 +39,7 @@ import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.validation.Schema;
+import lombok.ToString;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -46,6 +47,7 @@ import org.springframework.util.ClassUtils;
  *
  * @author Christian Bremer
  */
+@ToString
 class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   /**
