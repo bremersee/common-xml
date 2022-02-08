@@ -59,9 +59,10 @@ public class Example {
   public static void main(String[] args) {
     JAXBContext jaxbContext = JaxbContextBuilder
         .newInstance()
-        .add("org.example.model.foo:org.example.model.bar")
-        .add(new JaxbContextData("org.example.model.foobar"))
-        .buildJaxbContext();
+            .add(new JaxbContextData(org.example.model.foo.Model.class.getPackage()))
+            .add(new JaxbContextData(org.example.model.bar.Model.class.getPackage()))
+            .add(new JaxbContextData(org.example.model.foobar.ModelWithXmlRootAnnotation.class))
+            .buildJaxbContext();
   }
 }
 ```
