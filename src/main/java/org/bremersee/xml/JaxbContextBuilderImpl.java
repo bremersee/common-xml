@@ -255,10 +255,10 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
   public JaxbContextWrapper buildJaxbContext(Object value) {
     JaxbContextWrapper wrapper = computeJaxbContext(value);
     SchemaMode mode = wrapper.getSchemaMode();
-    if (mode == SchemaMode.ALWAYS
+    if ((mode == SchemaMode.ALWAYS
         || mode == SchemaMode.MARSHAL
         || mode == SchemaMode.UNMARSHAL
-        || mode == SchemaMode.EXTERNAL_XSD
+        || mode == SchemaMode.EXTERNAL_XSD)
         && !isEmpty(wrapper.getDetails().getSchemaLocation())) {
       wrapper.setSchema(computeSchema(wrapper));
     }

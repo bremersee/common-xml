@@ -208,17 +208,16 @@ class SchemaBuilderImpl implements SchemaBuilder {
 
   @Override
   public List<Source> fetchSchemaSources(Collection<String> locations) {
-    if (isEmpty(locations)) {
-      return Collections.emptyList();
-    }
-    Set<String> locationSet = new LinkedHashSet<>(locations);
-    List<Source> sources = new ArrayList<>(locationSet.size());
-    for (String location : locationSet) {
-      try (InputStream is = resourceLoader.getResource(location).getInputStream()) {
-        byte[] bytes = FileCopyUtils.copyToByteArray(is);
-        sources.add(new StreamSource(new ByteArrayInputStream(bytes)));
-      } catch (IOException e) {
-        throw new XmlRuntimeException(e);
+    List<Source> sources = new ArrayList<>();
+    if (!isEmpty(locations)) {
+      Set<String> locationSet = new LinkedHashSet<>(locations);
+      for (String location : locationSet) {
+        try (InputStream is = resourceLoader.getResource(location).getInputStream()) {
+          byte[] bytes = FileCopyUtils.copyToByteArray(is);
+          sources.add(new StreamSource(new ByteArrayInputStream(bytes)));
+        } catch (IOException e) {
+          throw new XmlRuntimeException(e);
+        }
       }
     }
     return Collections.unmodifiableList(sources);
