@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">common-xml</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml</a> &gt; <span class="el_source">SchemaBuilder.java</span></div><h1>SchemaBuilder.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,15 @@ import org.xml.sax.ErrorHandler;
  * @author Christian Bremer
  */
 public interface SchemaBuilder {
+
+  /**
+   * Creates a new schema builder.
+   *
+   * @return the schema builder
+   */
+  static SchemaBuilder newInstance() {
+<span class="fc" id="L47">    return new SchemaBuilderImpl();</span>
+  }
 
   /**
    * Copy schema builder.
@@ -135,9 +144,9 @@ public interface SchemaBuilder {
    * @see #withResourceLoader(ResourceLoader)
    */
   default List&lt;Source&gt; fetchSchemaSources(String... locations) {
-<span class="fc" id="L138">    return Optional.ofNullable(locations)</span>
-<span class="fc" id="L139">        .map(a -&gt; fetchSchemaSources(Arrays.asList(a)))</span>
-<span class="fc" id="L140">        .orElseGet(Collections::emptyList);</span>
+<span class="fc" id="L147">    return Optional.ofNullable(locations)</span>
+<span class="fc" id="L148">        .map(a -&gt; fetchSchemaSources(Arrays.asList(a)))</span>
+<span class="fc" id="L149">        .orElseGet(Collections::emptyList);</span>
   }
 
   /**
@@ -160,9 +169,9 @@ public interface SchemaBuilder {
    * @return the schema
    */
   default Schema buildSchema(String... locations) {
-<span class="fc" id="L163">    return Optional.ofNullable(locations)</span>
-<span class="fc" id="L164">        .map(c -&gt; buildSchema(fetchSchemaSources(c)))</span>
-<span class="pc" id="L165">        .orElseGet(() -&gt; buildSchema((Source[]) null));</span>
+<span class="fc" id="L172">    return Optional.ofNullable(locations)</span>
+<span class="fc" id="L173">        .map(c -&gt; buildSchema(fetchSchemaSources(c)))</span>
+<span class="pc" id="L174">        .orElseGet(() -&gt; buildSchema((Source[]) null));</span>
   }
 
   /**
@@ -191,9 +200,9 @@ public interface SchemaBuilder {
    * @see SchemaFactory#newSchema(Source)
    */
   default Schema buildSchema(Source source) {
-<span class="fc" id="L194">    return Optional.ofNullable(source)</span>
-<span class="fc" id="L195">        .map(s -&gt; buildSchema(new Source[]{s}))</span>
-<span class="fc" id="L196">        .orElseGet(() -&gt; buildSchema((Source[]) null));</span>
+<span class="fc" id="L203">    return Optional.ofNullable(source)</span>
+<span class="fc" id="L204">        .map(s -&gt; buildSchema(new Source[]{s}))</span>
+<span class="fc" id="L205">        .orElseGet(() -&gt; buildSchema((Source[]) null));</span>
   }
 
   /**
@@ -213,19 +222,10 @@ public interface SchemaBuilder {
    * @see SchemaFactory#newSchema(Source[])
    */
   default Schema buildSchema(Collection&lt;? extends Source&gt; sources) {
-<span class="fc" id="L216">    return Optional.ofNullable(sources)</span>
-<span class="fc" id="L217">        .map(c -&gt; buildSchema(c.toArray(new Source[0])))</span>
-<span class="pc" id="L218">        .orElseGet(() -&gt; buildSchema((Source[]) null));</span>
-  }
-
-  /**
-   * Creates a new schema builder.
-   *
-   * @return the schema builder
-   */
-  static SchemaBuilder builder() {
-<span class="fc" id="L227">    return new SchemaBuilderImpl();</span>
+<span class="fc" id="L225">    return Optional.ofNullable(sources)</span>
+<span class="fc" id="L226">        .map(c -&gt; buildSchema(c.toArray(new Source[0])))</span>
+<span class="pc" id="L227">        .orElseGet(() -&gt; buildSchema((Source[]) null));</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -7,7 +7,7 @@
 <body>
 <div id="overview"><a href="../../../../testapidocs/org/bremersee/xml/BufferSchemaOutputResolver.html">View Javadoc</a></div><pre>
 <a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_comment">/*</em>
-<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_comment"> * Copyright 2018-2020 the original author or authors.</em>
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_comment"> * Copyright 2020-2022  the original author or authors.</em>
 <a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_comment"> *</em>
 <a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_comment"> * Licensed under the Apache License, Version 2.0 (the "License");</em>
 <a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_comment"> * you may not use this file except in compliance with the License.</em>
@@ -42,8 +42,8 @@
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>    @Override
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>    <strong class="jxr_keyword">public</strong> Result createOutput(String namespaceUri, String suggestedFileName) {
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <strong class="jxr_keyword">final</strong> StringWriter out = <strong class="jxr_keyword">new</strong> StringWriter();
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>      <strong class="jxr_keyword">final</strong> StreamResult res = <strong class="jxr_keyword">new</strong> StreamResult(out);
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      StringWriter out = <strong class="jxr_keyword">new</strong> StringWriter();
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      StreamResult res = <strong class="jxr_keyword">new</strong> StreamResult(out);
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>      res.setSystemId(suggestedFileName);
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>      buffers.put(namespaceUri, res);
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">return</strong> res;
@@ -59,7 +59,7 @@
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>  
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>    @Override
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>    <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">final</strong> StringBuilder sb = <strong class="jxr_keyword">new</strong> StringBuilder();
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      StringBuilder sb = <strong class="jxr_keyword">new</strong> StringBuilder();
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">for</strong> (String s : buffers.keySet()) {
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>        sb.append(<span class="jxr_string">"***** Begin schema "</span>).append(s).append(<span class="jxr_string">", system-id="</span>).append(getSystemId(s))
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>            .append(<span class="jxr_string">" *****"</span>);
@@ -75,6 +75,6 @@
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2022 <a href="http://bremersee.org">bremersee.org</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2020&#x2013;2022 <a href="https://bremersee.org">bremersee.org</a>. All rights reserved.</div>
 </body>
 </html>

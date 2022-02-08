@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>XmlDocumentBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">common-xml</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml</a> &gt; <span class="el_source">XmlDocumentBuilder.java</span></div><h1>XmlDocumentBuilder.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,18 @@ import org.xml.sax.InputSource;
 public interface XmlDocumentBuilder {
 
   /**
+   * Creates default builder instance.
+   *
+   * @return the default builder instance
+   */
+  static XmlDocumentBuilder newInstance() {
+<span class="fc" id="L45">    return new XmlDocumentBuilderImpl();</span>
+  }
+
+  /**
    * Configures the {@link DocumentBuilderFactory}. The default xml document builder has the same
-   * default values as the underlying factory except that {@link DocumentBuilderFactory#setNamespaceAware(boolean)}
-   * is set to {@code true}.
+   * default values as the underlying factory except that
+   * {@link DocumentBuilderFactory#setNamespaceAware(boolean)} is set to {@code true}.
    *
    * @param configurator the configurator
    * @return the xml document builder
@@ -49,8 +58,8 @@ public interface XmlDocumentBuilder {
 
   /**
    * Configures the {@link DocumentBuilderFactory}. The default xml document builder has the same
-   * default values as the underlying factory except that {@link DocumentBuilderFactory#setNamespaceAware(boolean)}
-   * is set to {@code true}.
+   * default values as the underlying factory except that
+   * {@link DocumentBuilderFactory#setNamespaceAware(boolean)} is set to {@code true}.
    *
    * &lt;p&gt;A value with {@code null} will be ignored and the default will be used.
    *
@@ -66,7 +75,7 @@ public interface XmlDocumentBuilder {
    * &lt;/pre&gt;
    *
    * @param coalescing the coalescing
-   * @param expandEntityReferences the expand entity references
+   * @param expandEntityReferences the expanded entity references
    * @param ignoringComments the ignoring comments
    * @param ignoringElementContentWhitespace the ignoring element content whitespace
    * @param namespaceAware the namespace aware
@@ -186,7 +195,7 @@ public interface XmlDocumentBuilder {
   Document buildDocument(InputStream is, String systemId);
 
   /**
-   * Builds document from an object (POJO that can be processed with {@link JAXBContext}.
+   * Builds document from an object (POJO) that can be processed with {@link JAXBContext}.
    *
    * @param jaxbElement the jaxb element
    * @param jaxbContext the jaxb context
@@ -203,14 +212,5 @@ public interface XmlDocumentBuilder {
    */
   Document buildDocument(Object jaxbElement, Marshaller marshaller);
 
-  /**
-   * Creates default builder instance.
-   *
-   * @return the default builder instance
-   */
-  static XmlDocumentBuilder builder() {
-<span class="fc" id="L212">    return new XmlDocumentBuilderImpl();</span>
-  }
-
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

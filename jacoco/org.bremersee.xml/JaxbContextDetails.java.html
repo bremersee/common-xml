@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JaxbContextDetails.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">common-xml</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml</a> &gt; <span class="el_source">JaxbContextDetails.java</span></div><h1>JaxbContextDetails.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2022  the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.bremersee.xml;
+
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
+
+/**
+ * The jaxb context builder details.
+ *
+ * @author Christian Bremer
+ */
+public interface JaxbContextDetails {
+
+  /**
+   * Context data collector collector.
+   *
+   * @return the collector
+   */
+  static Collector&lt;JaxbContextData, ?, JaxbContextDetailsImpl&gt; contextDataCollector() {
+<span class="fc" id="L43">    return Collector.of(JaxbContextDetailsImpl::new, JaxbContextDetailsImpl::add, (left, right) -&gt; {</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">      if (left.size() &lt; right.size()) {</span>
+<span class="nc" id="L45">        right.addAll(left);</span>
+<span class="nc" id="L46">        return right;</span>
+      } else {
+<span class="nc" id="L48">        left.addAll(right);</span>
+<span class="nc" id="L49">        return left;</span>
+      }
+    });
+  }
+
+  /**
+   * Returns empty jaxb context details.
+   *
+   * @return the empty jaxb context details
+   */
+  static JaxbContextDetails empty() {
+<span class="fc" id="L60">    return new JaxbContextDetailsImpl();</span>
+  }
+
+  /**
+   * Is empty boolean.
+   *
+   * @return the boolean
+   */
+  boolean isEmpty();
+
+  /**
+   * Get classes.
+   *
+   * @param classLoaders the class loaders
+   * @return the classes
+   */
+  Class&lt;?&gt;[] getClasses(ClassLoader... classLoaders);
+
+  /**
+   * Gets schema location.
+   *
+   * @return the schema location
+   */
+  String getSchemaLocation();
+
+  /**
+   * Gets name spaces with schema locations.
+   *
+   * @return the name spaces with schema locations
+   */
+  default Set&lt;String&gt; getNameSpacesWithSchemaLocations() {
+<span class="fc" id="L91">    return Optional.of(schemaLocationToArray(getSchemaLocation()))</span>
+<span class="fc" id="L92">        .map(parts -&gt; {</span>
+<span class="fc" id="L93">          Set&lt;String&gt; locations = new LinkedHashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">          for (int i = 1; i &lt; parts.length; i = i + 2) {</span>
+<span class="fc" id="L95">            locations.add(parts[i - 1] + &quot; &quot; + parts[i]);</span>
+          }
+<span class="fc" id="L97">          return locations;</span>
+        })
+<span class="fc" id="L99">        .orElseGet(Collections::emptySet);</span>
+  }
+
+  /**
+   * Gets the set of name spaces where the schema location is present.
+   *
+   * @return the name spaces
+   */
+  default Set&lt;String&gt; getNameSpaces() {
+<span class="fc" id="L108">    return Optional.of(schemaLocationToArray(getSchemaLocation()))</span>
+<span class="fc" id="L109">        .map(parts -&gt; {</span>
+<span class="fc" id="L110">          Set&lt;String&gt; nameSpaces = new LinkedHashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">          for (int i = 0; i &lt; parts.length; i = i + 2) {</span>
+<span class="fc" id="L112">            nameSpaces.add(parts[i]);</span>
+          }
+<span class="fc" id="L114">          return nameSpaces;</span>
+        })
+<span class="fc" id="L116">        .orElseGet(Collections::emptySet);</span>
+  }
+
+  /**
+   * Gets the set of schema locations, normally as URL.
+   * &lt;pre&gt;
+   * http://example.org/model.xsd, http://example.org/another-model.xsd
+   * &lt;/pre&gt;
+   *
+   * @return the schema locations
+   */
+  default Set&lt;String&gt; getSchemaLocations() {
+<span class="fc" id="L128">    return Optional.of(schemaLocationToArray(getSchemaLocation()))</span>
+<span class="fc" id="L129">        .map(parts -&gt; {</span>
+<span class="fc" id="L130">          Set&lt;String&gt; locations = new LinkedHashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">          for (int i = 1; i &lt; parts.length; i = i + 2) {</span>
+<span class="fc" id="L132">            locations.add(parts[i]);</span>
+          }
+<span class="fc" id="L134">          return locations;</span>
+        })
+<span class="fc" id="L136">        .orElse(Collections.emptySet());</span>
+  }
+
+  private static String[] schemaLocationToArray(String schemaLocation) {
+<span class="fc" id="L140">    return Optional.ofNullable(schemaLocation)</span>
+<span class="fc" id="L141">        .map(sl -&gt; sl.replaceAll(&quot;^\\s*|\\s*$&quot;, &quot;&quot;))</span>
+<span class="fc" id="L142">        .map(sl -&gt; sl.replaceAll(&quot;[\\s]{2,}&quot;, &quot; &quot;))</span>
+<span class="fc" id="L143">        .map(sl -&gt; StringUtils.delimitedListToStringArray(sl, &quot; &quot;))</span>
+<span class="pc" id="L144">        .orElseGet(() -&gt; new String[0]);</span>
+  }
+
+  /**
+   * The jaxb context details implementation.
+   */
+  @SuppressWarnings(&quot;SameNameButDifferent&quot;)
+  @NoArgsConstructor(access = AccessLevel.PRIVATE)
+  class JaxbContextDetailsImpl
+      extends LinkedHashSet&lt;JaxbContextData&gt;
+      implements JaxbContextDetails {
+
+    @Override
+    public String getSchemaLocation() {
+<span class="fc" id="L158">      return this.stream()</span>
+<span class="fc" id="L159">          .flatMap(JaxbContextData::getNameSpacesWithSchemaLocations)</span>
+<span class="fc" id="L160">          .distinct()</span>
+<span class="fc" id="L161">          .sorted()</span>
+<span class="fc" id="L162">          .map(SchemaLocation::toString)</span>
+<span class="fc" id="L163">          .collect(Collectors.joining(&quot; &quot;));</span>
+    }
+
+    @Override
+    public Class&lt;?&gt;[] getClasses(ClassLoader... classLoaders) {
+<span class="fc" id="L168">      return ClassUtils</span>
+<span class="fc" id="L169">          .toClassArray(this</span>
+<span class="fc" id="L170">              .stream()</span>
+<span class="fc" id="L171">              .flatMap(data -&gt; data.getJaxbClasses(classLoaders))</span>
+<span class="fc" id="L172">              .collect(Collectors.toSet()));</span>
+    }
+
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConverterUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">common-xml</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml</a> &gt; <span class="el_source">ConverterUtils.java</span></div><h1>ConverterUtils.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,19 @@
 
 package org.bremersee.xml;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
@@ -40,49 +48,34 @@ public abstract class ConverterUtils {
   }
 
   /**
-   * Xml duration to millis.
-   *
-   * @param xmlDuration the xml duration
-   * @return the long
-   */
-  public static Long xmlDurationToMillis(javax.xml.datatype.Duration xmlDuration) {
-<span class="fc bfc" id="L49" title="All 2 branches covered.">    if (xmlDuration == null) {</span>
-<span class="fc" id="L50">      return null;</span>
-    }
-<span class="fc" id="L52">    final Date tmp = new Date(0L);</span>
-<span class="fc" id="L53">    xmlDuration.addTo(tmp);</span>
-<span class="fc" id="L54">    return tmp.getTime();</span>
-  }
-
-  /**
    * Xml duration to duration.
    *
    * @param xmlDuration the xml duration
    * @return the duration
    */
   public static Duration xmlDurationToDuration(javax.xml.datatype.Duration xmlDuration) {
-<span class="fc bfc" id="L64" title="All 2 branches covered.">    if (xmlDuration == null) {</span>
-<span class="fc" id="L65">      return null;</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">    if (xmlDuration == null) {</span>
+<span class="nc" id="L58">      return null;</span>
     }
-<span class="fc" id="L67">    return Duration.ofMillis(xmlDurationToMillis(xmlDuration));</span>
-  }
 
-  /**
-   * Millis to xml duration.
-   *
-   * @param millis the millis
-   * @return the javax . xml . datatype . duration
-   */
-  public static javax.xml.datatype.Duration millisToXmlDuration(Long millis) {
-<span class="pc bpc" id="L77" title="1 of 4 branches missed.">    if (millis == null || millis &lt; 0L) {</span>
-<span class="fc" id="L78">      return null;</span>
-    }
-    try {
-<span class="fc" id="L81">      return DatatypeFactory.newInstance().newDuration(millis);</span>
-
-<span class="nc" id="L83">    } catch (DatatypeConfigurationException e) {</span>
-<span class="nc" id="L84">      throw new UnsupportedOperationException(&quot;Creating xml duration failed.&quot;, e);</span>
-    }
+<span class="fc" id="L61">    GregorianCalendar cal = new GregorianCalendar();</span>
+<span class="fc" id="L62">    cal.set(Calendar.MILLISECOND, 0);</span>
+<span class="fc" id="L63">    long millis = BigDecimal.valueOf(xmlDuration.getTimeInMillis(cal))</span>
+<span class="fc" id="L64">        .abs(MathContext.DECIMAL128)</span>
+<span class="fc" id="L65">        .remainder(BigDecimal.valueOf(1000L), MathContext.DECIMAL128)</span>
+<span class="fc" id="L66">        .setScale(0, RoundingMode.HALF_UP)</span>
+<span class="fc" id="L67">        .longValue();</span>
+<span class="fc" id="L68">    LocalDateTime start = LocalDateTime.of(1970, Month.JANUARY, 1, 0, 0, 0, 0);</span>
+<span class="fc" id="L69">    LocalDateTime end = start.plusYears(xmlDuration.getYears())</span>
+<span class="fc" id="L70">        .plusMonths(xmlDuration.getMonths())</span>
+<span class="fc" id="L71">        .plusDays(xmlDuration.getDays())</span>
+<span class="fc" id="L72">        .plusHours(xmlDuration.getHours())</span>
+<span class="fc" id="L73">        .plusMinutes(xmlDuration.getMinutes())</span>
+<span class="fc" id="L74">        .plusSeconds(xmlDuration.getSeconds())</span>
+<span class="fc" id="L75">        .plus(millis, ChronoUnit.MILLIS);</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">    return xmlDuration.getSign() &lt; 0</span>
+<span class="fc" id="L77">        ? Duration.between(end, start)</span>
+<span class="fc" id="L78">        : Duration.between(start, end);</span>
   }
 
   /**
@@ -92,10 +85,42 @@ public abstract class ConverterUtils {
    * @return the javax . xml . datatype . duration
    */
   public static javax.xml.datatype.Duration durationToXmlDuration(Duration duration) {
-<span class="fc bfc" id="L95" title="All 2 branches covered.">    if (duration == null) {</span>
-<span class="fc" id="L96">      return null;</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">    if (duration == null) {</span>
+<span class="fc" id="L89">      return null;</span>
     }
-<span class="fc" id="L98">    return millisToXmlDuration(duration.toMillis());</span>
+<span class="fc" id="L91">    LocalDateTime start = LocalDateTime.of(1970, Month.JANUARY, 1, 0, 0, 0, 0);</span>
+<span class="fc" id="L92">    LocalDateTime end = start.plus(duration.abs());</span>
+<span class="fc" id="L93">    long years = Math.abs(start.until(end, ChronoUnit.YEARS));</span>
+<span class="fc" id="L94">    end = end.minusYears(years);</span>
+<span class="fc" id="L95">    long months = Math.abs(start.until(end, ChronoUnit.MONTHS));</span>
+<span class="fc" id="L96">    end = end.minusMonths(months);</span>
+<span class="fc" id="L97">    long days = Math.abs(start.until(end, ChronoUnit.DAYS));</span>
+<span class="fc" id="L98">    end = end.minusDays(days);</span>
+<span class="fc" id="L99">    long hours = Math.abs(start.until(end, ChronoUnit.HOURS));</span>
+<span class="fc" id="L100">    end = end.minusHours(hours);</span>
+<span class="fc" id="L101">    long minutes = Math.abs(start.until(end, ChronoUnit.MINUTES));</span>
+<span class="fc" id="L102">    end = end.minusMinutes(minutes);</span>
+<span class="fc" id="L103">    long seconds = Math.abs(start.until(end, ChronoUnit.SECONDS));</span>
+<span class="fc" id="L104">    end = end.minusSeconds(seconds);</span>
+<span class="fc" id="L105">    long millis = Math.abs(start.until(end, ChronoUnit.MILLIS));</span>
+    try {
+<span class="fc" id="L107">      return DatatypeFactory.newInstance().newDuration(</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">          !duration.isNegative(),</span>
+<span class="fc" id="L109">          BigInteger.valueOf(years),</span>
+<span class="fc" id="L110">          BigInteger.valueOf(months),</span>
+<span class="fc" id="L111">          BigInteger.valueOf(days),</span>
+<span class="fc" id="L112">          BigInteger.valueOf(hours),</span>
+<span class="fc" id="L113">          BigInteger.valueOf(minutes),</span>
+<span class="fc" id="L114">          BigDecimal.valueOf(seconds)</span>
+<span class="fc" id="L115">              .add(</span>
+<span class="fc" id="L116">                  BigDecimal.valueOf(millis)</span>
+<span class="fc" id="L117">                      .divide(BigDecimal.valueOf(1000L), MathContext.DECIMAL128),</span>
+                  MathContext.DECIMAL128)
+<span class="fc" id="L119">              .setScale(3, RoundingMode.HALF_UP));</span>
+
+<span class="nc" id="L121">    } catch (DatatypeConfigurationException e) {</span>
+<span class="nc" id="L122">      throw new UnsupportedOperationException(&quot;Creating xml duration failed.&quot;, e);</span>
+    }
   }
 
   /**
@@ -105,10 +130,10 @@ public abstract class ConverterUtils {
    * @return the gregorian calendar
    */
   public static GregorianCalendar xmlCalendarToCalendar(XMLGregorianCalendar xmlGregorianCalendar) {
-<span class="fc bfc" id="L108" title="All 2 branches covered.">    if (xmlGregorianCalendar == null) {</span>
-<span class="fc" id="L109">      return null;</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">    if (xmlGregorianCalendar == null) {</span>
+<span class="fc" id="L134">      return null;</span>
     }
-<span class="fc" id="L111">    return xmlGregorianCalendar.toGregorianCalendar();</span>
+<span class="fc" id="L136">    return xmlGregorianCalendar.toGregorianCalendar();</span>
   }
 
   /**
@@ -118,10 +143,10 @@ public abstract class ConverterUtils {
    * @return the date
    */
   public static Date xmlCalendarToDate(XMLGregorianCalendar xmlGregorianCalendar) {
-<span class="fc bfc" id="L121" title="All 2 branches covered.">    if (xmlGregorianCalendar == null) {</span>
-<span class="fc" id="L122">      return null;</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">    if (xmlGregorianCalendar == null) {</span>
+<span class="fc" id="L147">      return null;</span>
     }
-<span class="fc" id="L124">    return xmlGregorianCalendar.toGregorianCalendar().getTime();</span>
+<span class="fc" id="L149">    return xmlGregorianCalendar.toGregorianCalendar().getTime();</span>
   }
 
   /**
@@ -131,10 +156,10 @@ public abstract class ConverterUtils {
    * @return the long
    */
   public static Long xmlCalendarToMillis(XMLGregorianCalendar xmlGregorianCalendar) {
-<span class="fc bfc" id="L134" title="All 2 branches covered.">    if (xmlGregorianCalendar == null) {</span>
-<span class="fc" id="L135">      return null;</span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">    if (xmlGregorianCalendar == null) {</span>
+<span class="fc" id="L160">      return null;</span>
     }
-<span class="fc" id="L137">    return xmlCalendarToDate(xmlGregorianCalendar).getTime();</span>
+<span class="fc" id="L162">    return xmlCalendarToDate(xmlGregorianCalendar).getTime();</span>
   }
 
   /**
@@ -144,10 +169,10 @@ public abstract class ConverterUtils {
    * @return the instant
    */
   public static Instant xmlCalendarToInstant(XMLGregorianCalendar xmlGregorianCalendar) {
-<span class="fc bfc" id="L147" title="All 2 branches covered.">    if (xmlGregorianCalendar == null) {</span>
-<span class="fc" id="L148">      return null;</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">    if (xmlGregorianCalendar == null) {</span>
+<span class="fc" id="L173">      return null;</span>
     }
-<span class="fc" id="L150">    return xmlCalendarToDate(xmlGregorianCalendar).toInstant();</span>
+<span class="fc" id="L175">    return xmlCalendarToDate(xmlGregorianCalendar).toInstant();</span>
   }
 
   /**
@@ -158,11 +183,11 @@ public abstract class ConverterUtils {
    */
   public static OffsetDateTime xmlCalendarToOffsetDateTime(
       XMLGregorianCalendar xmlGregorianCalendar) {
-<span class="fc bfc" id="L161" title="All 2 branches covered.">    if (xmlGregorianCalendar == null) {</span>
-<span class="fc" id="L162">      return null;</span>
+<span class="fc bfc" id="L186" title="All 2 branches covered.">    if (xmlGregorianCalendar == null) {</span>
+<span class="fc" id="L187">      return null;</span>
     }
-<span class="fc" id="L164">    final TimeZone tz = xmlGregorianCalendar.getTimeZone(0);</span>
-<span class="fc" id="L165">    return OffsetDateTime.ofInstant(xmlCalendarToInstant(xmlGregorianCalendar), tz.toZoneId());</span>
+<span class="fc" id="L189">    TimeZone tz = xmlGregorianCalendar.getTimeZone(0);</span>
+<span class="fc" id="L190">    return OffsetDateTime.ofInstant(xmlCalendarToInstant(xmlGregorianCalendar), tz.toZoneId());</span>
   }
 
   /**
@@ -173,10 +198,10 @@ public abstract class ConverterUtils {
    */
   public static OffsetDateTime xmlCalendarToOffsetDateTimeUtc(
       XMLGregorianCalendar xmlGregorianCalendar) {
-<span class="fc bfc" id="L176" title="All 2 branches covered.">    if (xmlGregorianCalendar == null) {</span>
-<span class="fc" id="L177">      return null;</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">    if (xmlGregorianCalendar == null) {</span>
+<span class="fc" id="L202">      return null;</span>
     }
-<span class="fc" id="L179">    return OffsetDateTime.ofInstant(xmlCalendarToInstant(xmlGregorianCalendar), ZoneOffset.UTC);</span>
+<span class="fc" id="L204">    return OffsetDateTime.ofInstant(xmlCalendarToInstant(xmlGregorianCalendar), ZoneOffset.UTC);</span>
   }
 
 
@@ -187,14 +212,14 @@ public abstract class ConverterUtils {
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar calendarToXmlCalendar(GregorianCalendar calendar) {
-<span class="fc bfc" id="L190" title="All 2 branches covered.">    if (calendar == null) {</span>
-<span class="fc" id="L191">      return null;</span>
+<span class="fc bfc" id="L215" title="All 2 branches covered.">    if (calendar == null) {</span>
+<span class="fc" id="L216">      return null;</span>
     }
     try {
-<span class="fc" id="L194">      return DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar);</span>
+<span class="fc" id="L219">      return DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar);</span>
 
-<span class="nc" id="L196">    } catch (DatatypeConfigurationException e) {</span>
-<span class="nc" id="L197">      throw new UnsupportedOperationException(&quot;Creating XMLGregorianCalendar failed.&quot;, e);</span>
+<span class="nc" id="L221">    } catch (DatatypeConfigurationException e) {</span>
+<span class="nc" id="L222">      throw new UnsupportedOperationException(&quot;Creating XMLGregorianCalendar failed.&quot;, e);</span>
     }
   }
 
@@ -205,7 +230,7 @@ public abstract class ConverterUtils {
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar dateToXmlCalendar(Date date) {
-<span class="fc" id="L208">    return dateToXmlCalendar(date, null);</span>
+<span class="fc" id="L233">    return dateToXmlCalendar(date, null);</span>
   }
 
   /**
@@ -216,7 +241,7 @@ public abstract class ConverterUtils {
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar dateToXmlCalendar(Date date, TimeZone zone) {
-<span class="fc" id="L219">    return dateToXmlCalendar(date, zone, null);</span>
+<span class="fc" id="L244">    return dateToXmlCalendar(date, zone, null);</span>
   }
 
   /**
@@ -228,18 +253,18 @@ public abstract class ConverterUtils {
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar dateToXmlCalendar(Date date, TimeZone zone, Locale locale) {
-<span class="fc bfc" id="L231" title="All 2 branches covered.">    if (date == null) {</span>
-<span class="fc" id="L232">      return null;</span>
+<span class="fc bfc" id="L256" title="All 2 branches covered.">    if (date == null) {</span>
+<span class="fc" id="L257">      return null;</span>
     }
-<span class="pc bpc" id="L234" title="1 of 2 branches missed.">    final TimeZone tz = zone != null ? zone : TimeZone.getTimeZone(&quot;GMT&quot;);</span>
-    final GregorianCalendar calendar;
-<span class="fc bfc" id="L236" title="All 2 branches covered.">    if (locale != null) {</span>
-<span class="fc" id="L237">      calendar = new GregorianCalendar(tz, locale);</span>
+<span class="pc bpc" id="L259" title="1 of 2 branches missed.">    TimeZone tz = zone != null ? zone : TimeZone.getTimeZone(&quot;GMT&quot;);</span>
+    GregorianCalendar calendar;
+<span class="fc bfc" id="L261" title="All 2 branches covered.">    if (locale != null) {</span>
+<span class="fc" id="L262">      calendar = new GregorianCalendar(tz, locale);</span>
     } else {
-<span class="fc" id="L239">      calendar = new GregorianCalendar(tz);</span>
+<span class="fc" id="L264">      calendar = new GregorianCalendar(tz);</span>
     }
-<span class="fc" id="L241">    calendar.setTime(date);</span>
-<span class="fc" id="L242">    return calendarToXmlCalendar(calendar);</span>
+<span class="fc" id="L266">    calendar.setTime(date);</span>
+<span class="fc" id="L267">    return calendarToXmlCalendar(calendar);</span>
   }
 
   /**
@@ -249,7 +274,7 @@ public abstract class ConverterUtils {
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar millisToXmlCalendar(Long millis) {
-<span class="fc" id="L252">    return millisToXmlCalendar(millis, null);</span>
+<span class="fc" id="L277">    return millisToXmlCalendar(millis, null);</span>
   }
 
   /**
@@ -260,7 +285,7 @@ public abstract class ConverterUtils {
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar millisToXmlCalendar(Long millis, TimeZone zone) {
-<span class="fc" id="L263">    return millisToXmlCalendar(millis, zone, null);</span>
+<span class="fc" id="L288">    return millisToXmlCalendar(millis, zone, null);</span>
   }
 
   /**
@@ -276,10 +301,10 @@ public abstract class ConverterUtils {
       TimeZone zone,
       Locale locale) {
 
-<span class="fc bfc" id="L279" title="All 2 branches covered.">    if (millis == null) {</span>
-<span class="fc" id="L280">      return null;</span>
+<span class="fc bfc" id="L304" title="All 2 branches covered.">    if (millis == null) {</span>
+<span class="fc" id="L305">      return null;</span>
     }
-<span class="fc" id="L282">    return dateToXmlCalendar(new Date(millis), zone, locale);</span>
+<span class="fc" id="L307">    return dateToXmlCalendar(new Date(millis), zone, locale);</span>
   }
 
 
@@ -290,7 +315,7 @@ public abstract class ConverterUtils {
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar instantToXmlCalendar(Instant instant) {
-<span class="fc" id="L293">    return instantToXmlCalendar(instant, null);</span>
+<span class="fc" id="L318">    return instantToXmlCalendar(instant, null);</span>
   }
 
   /**
@@ -301,7 +326,7 @@ public abstract class ConverterUtils {
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar instantToXmlCalendar(Instant instant, ZoneId zoneId) {
-<span class="fc" id="L304">    return instantToXmlCalendar(instant, zoneId, null);</span>
+<span class="fc" id="L329">    return instantToXmlCalendar(instant, zoneId, null);</span>
   }
 
   /**
@@ -317,11 +342,11 @@ public abstract class ConverterUtils {
       ZoneId zoneId,
       Locale locale) {
 
-<span class="fc bfc" id="L320" title="All 2 branches covered.">    if (instant == null) {</span>
-<span class="fc" id="L321">      return null;</span>
+<span class="fc bfc" id="L345" title="All 2 branches covered.">    if (instant == null) {</span>
+<span class="fc" id="L346">      return null;</span>
     }
-<span class="pc bpc" id="L323" title="1 of 2 branches missed.">    final TimeZone tz = zoneId != null ? TimeZone.getTimeZone(zoneId) : TimeZone.getTimeZone(&quot;GMT&quot;);</span>
-<span class="fc" id="L324">    return dateToXmlCalendar(Date.from(instant), tz, locale);</span>
+<span class="pc bpc" id="L348" title="1 of 2 branches missed.">    TimeZone tz = zoneId != null ? TimeZone.getTimeZone(zoneId) : TimeZone.getTimeZone(&quot;GMT&quot;);</span>
+<span class="fc" id="L349">    return dateToXmlCalendar(Date.from(instant), tz, locale);</span>
   }
 
   /**
@@ -331,10 +356,10 @@ public abstract class ConverterUtils {
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar offsetDateTimeToXmlCalendar(OffsetDateTime dateTime) {
-<span class="fc bfc" id="L334" title="All 2 branches covered.">    if (dateTime == null) {</span>
-<span class="fc" id="L335">      return null;</span>
+<span class="fc bfc" id="L359" title="All 2 branches covered.">    if (dateTime == null) {</span>
+<span class="fc" id="L360">      return null;</span>
     }
-<span class="fc" id="L337">    return instantToXmlCalendar(dateTime.toInstant(), dateTime.getOffset());</span>
+<span class="fc" id="L362">    return instantToXmlCalendar(dateTime.toInstant(), dateTime.getOffset());</span>
   }
 
   /**
@@ -344,10 +369,10 @@ public abstract class ConverterUtils {
    * @return the xml gregorian calendar
    */
   public static XMLGregorianCalendar offsetDateTimeToXmlCalendarUtc(OffsetDateTime dateTime) {
-<span class="fc bfc" id="L347" title="All 2 branches covered.">    if (dateTime == null) {</span>
-<span class="fc" id="L348">      return null;</span>
+<span class="fc bfc" id="L372" title="All 2 branches covered.">    if (dateTime == null) {</span>
+<span class="fc" id="L373">      return null;</span>
     }
-<span class="fc" id="L350">    return instantToXmlCalendar(dateTime.toInstant(), ZoneOffset.UTC);</span>
+<span class="fc" id="L375">    return instantToXmlCalendar(dateTime.toInstant(), ZoneOffset.UTC);</span>
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

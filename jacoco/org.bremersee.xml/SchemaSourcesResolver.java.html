@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaSourcesResolver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">common-xml</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml</a> &gt; <span class="el_source">SchemaSourcesResolver.java</span></div><h1>SchemaSourcesResolver.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
@@ -31,23 +31,26 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * The schema sources resolver.
  *
  * @author Christian Bremer
  */
-<span class="fc" id="L40">class SchemaSourcesResolver extends SchemaOutputResolver {</span>
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+class SchemaSourcesResolver extends SchemaOutputResolver {
 
-<span class="fc" id="L42">  private final Map&lt;String, StreamResult&gt; buffers = new LinkedHashMap&lt;&gt;();</span>
+  private final Map&lt;String, StreamResult&gt; buffers = new LinkedHashMap&lt;&gt;();
 
   @Override
-  public Result createOutput(final String namespaceUri, final String suggestedFileName) {
-<span class="fc" id="L46">    final StringWriter out = new StringWriter();</span>
-<span class="fc" id="L47">    final StreamResult res = new StreamResult(out);</span>
-<span class="fc" id="L48">    res.setSystemId(suggestedFileName);</span>
-<span class="fc" id="L49">    buffers.put(namespaceUri, res);</span>
-<span class="fc" id="L50">    return res;</span>
+  public Result createOutput(String namespaceUri, String suggestedFileName) {
+<span class="fc" id="L49">    StringWriter out = new StringWriter();</span>
+<span class="fc" id="L50">    StreamResult res = new StreamResult(out);</span>
+<span class="fc" id="L51">    res.setSystemId(suggestedFileName);</span>
+<span class="fc" id="L52">    buffers.put(namespaceUri, res);</span>
+<span class="fc" id="L53">    return res;</span>
   }
 
   /**
@@ -56,21 +59,21 @@ import javax.xml.transform.stream.StreamSource;
    * @param excludedNameSpaces the excluded name spaces
    * @return the list with the schema sources
    */
-  List&lt;Source&gt; toSources(final Collection&lt;String&gt; excludedNameSpaces) {
-<span class="fc" id="L60">    final Set&lt;String&gt; excluded = Optional.ofNullable(excludedNameSpaces)</span>
-<span class="fc" id="L61">        .map(HashSet::new)</span>
-<span class="fc" id="L62">        .orElseGet(HashSet::new);</span>
-<span class="fc" id="L63">    final List&lt;Source&gt; sources = new ArrayList&lt;&gt;(buffers.size());</span>
-<span class="fc bfc" id="L64" title="All 2 branches covered.">    for (final Map.Entry&lt;String, StreamResult&gt; result : buffers.entrySet()) {</span>
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">      if (!excluded.contains(result.getKey())) {</span>
-<span class="fc" id="L66">        final String systemId = result.getValue().getSystemId();</span>
-<span class="fc" id="L67">        final String schema = result.getValue().getWriter().toString();</span>
-<span class="fc" id="L68">        final StreamSource source = new StreamSource(new StringReader(schema), systemId);</span>
-<span class="fc" id="L69">        sources.add(source);</span>
+  List&lt;Source&gt; toSources(Collection&lt;String&gt; excludedNameSpaces) {
+<span class="fc" id="L63">    Set&lt;String&gt; excluded = Optional.ofNullable(excludedNameSpaces)</span>
+<span class="fc" id="L64">        .map(HashSet::new)</span>
+<span class="fc" id="L65">        .orElseGet(HashSet::new);</span>
+<span class="fc" id="L66">    List&lt;Source&gt; sources = new ArrayList&lt;&gt;(buffers.size());</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">    for (Map.Entry&lt;String, StreamResult&gt; result : buffers.entrySet()) {</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">      if (!excluded.contains(result.getKey())) {</span>
+<span class="fc" id="L69">        String systemId = result.getValue().getSystemId();</span>
+<span class="fc" id="L70">        String schema = result.getValue().getWriter().toString();</span>
+<span class="fc" id="L71">        StreamSource source = new StreamSource(new StringReader(schema), systemId);</span>
+<span class="fc" id="L72">        sources.add(source);</span>
       }
-<span class="fc" id="L71">    }</span>
-<span class="fc" id="L72">    return sources;</span>
+<span class="fc" id="L74">    }</span>
+<span class="fc" id="L75">    return sources;</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

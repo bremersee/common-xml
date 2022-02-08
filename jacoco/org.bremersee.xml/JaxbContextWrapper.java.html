@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JaxbContextWrapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">common-xml</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml</a> &gt; <span class="el_source">JaxbContextWrapper.java</span></div><h1>JaxbContextWrapper.java</h1><pre class="source lang-java linenums">/*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 
 package org.bremersee.xml;
 
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 import javax.xml.bind.Binder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -33,34 +36,56 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.validation.Schema;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * This {@link JAXBContext} will be returned by the {@link JaxbContextBuilder}.
  *
  * @author Christian Bremer
  */
-@SuppressWarnings({&quot;unused&quot;, &quot;deprecation&quot;})
+@SuppressWarnings(&quot;SameNameButDifferent&quot;)
+@EqualsAndHashCode(callSuper = false)
+@ToString(exclude = {&quot;jaxbContext&quot;})
 public class JaxbContextWrapper extends JAXBContext {
 
   private final JAXBContext jaxbContext;
 
-  private final JaxbContextBuilderDetails details;
+  @Getter
+  private final JaxbContextDetails details;
 
+  @Getter
+  @Setter
   private boolean formattedOutput;
 
+  @Getter
+  @Setter
   private List&lt;XmlAdapter&lt;?, ?&gt;&gt; xmlAdapters;
 
+  @Getter
+  @Setter
   private AttachmentMarshaller attachmentMarshaller;
 
+  @Getter
+  @Setter
   private AttachmentUnmarshaller attachmentUnmarshaller;
 
+  @Getter
+  @Setter
   private ValidationEventHandler validationEventHandler;
 
+  @Getter
+  @Setter
   private Schema schema;
 
-<span class="fc" id="L63">  private SchemaMode schemaMode = SchemaMode.NEVER;</span>
+<span class="fc" id="L85">  @Getter</span>
+  @Setter
+  @NonNull
+  private SchemaMode schemaMode = SchemaMode.NEVER;
 
   /**
    * Instantiates a new jaxb context wrapper.
@@ -68,9 +93,24 @@ public class JaxbContextWrapper extends JAXBContext {
    * @param jaxbContext the jaxb context
    */
   public JaxbContextWrapper(
-      final JAXBContext jaxbContext) {
-<span class="fc" id="L72">    this(jaxbContext, null);</span>
-<span class="fc" id="L73">  }</span>
+      JAXBContext jaxbContext) {
+<span class="fc" id="L97">    this(jaxbContext, null);</span>
+<span class="fc" id="L98">  }</span>
+
+  /**
+   * Instantiates a new jaxb context wrapper.
+   *
+   * @param data the data
+   * @param classLoaders the class loaders
+   * @throws JAXBException the jaxb exception
+   */
+  public JaxbContextWrapper(Stream&lt;JaxbContextData&gt; data, ClassLoader... classLoaders)
+<span class="fc" id="L108">      throws JAXBException {</span>
+<span class="fc" id="L109">    Assert.notNull(data, &quot;Stream of jaxb context data must be present.&quot;);</span>
+<span class="fc" id="L110">    this.details = data.collect(JaxbContextDetails.contextDataCollector());</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">    Assert.isTrue(!details.isEmpty(), &quot;There is no jaxb model.&quot;);</span>
+<span class="fc" id="L112">    this.jaxbContext = JAXBContext.newInstance(this.details.getClasses(classLoaders));</span>
+<span class="fc" id="L113">  }</span>
 
   /**
    * Instantiates a new jaxb context wrapper.
@@ -78,258 +118,81 @@ public class JaxbContextWrapper extends JAXBContext {
    * @param jaxbContext the jaxb context
    * @param details the details
    */
-  public JaxbContextWrapper(
-      final JAXBContext jaxbContext,
-<span class="fc" id="L83">      final JaxbContextBuilderDetails details) {</span>
-<span class="fc" id="L84">    Assert.notNull(jaxbContext, &quot;Jaxb context must be present.&quot;);</span>
-<span class="fc" id="L85">    this.jaxbContext = jaxbContext;</span>
-<span class="fc bfc" id="L86" title="All 2 branches covered.">    this.details = details != null ? details : new JaxbContextBuilderDetailsImpl();</span>
-<span class="fc" id="L87">  }</span>
-
-  /**
-   * Gets details.
-   *
-   * @return the details
-   */
-  public JaxbContextBuilderDetails getDetails() {
-<span class="fc" id="L95">    return details;</span>
-  }
-
-  /**
-   * Return {@code true} if the output is formatted, otherwise {@code false}.
-   *
-   * @return {@code true} if the output is formatted, otherwise {@code false}
-   */
-  public boolean isFormattedOutput() {
-<span class="fc" id="L104">    return formattedOutput;</span>
-  }
-
-  /**
-   * Sets formatted output.
-   *
-   * @param formattedOutput the formatted output
-   */
-  public void setFormattedOutput(boolean formattedOutput) {
-<span class="fc" id="L113">    this.formattedOutput = formattedOutput;</span>
-<span class="fc" id="L114">  }</span>
-
-  /**
-   * Gets xml adapters.
-   *
-   * @return the xml adapters
-   */
-  public List&lt;XmlAdapter&lt;?, ?&gt;&gt; getXmlAdapters() {
-<span class="fc" id="L122">    return xmlAdapters;</span>
-  }
-
-  /**
-   * Sets xml adapters.
-   *
-   * @param xmlAdapters the xml adapters
-   */
-  public void setXmlAdapters(List&lt;XmlAdapter&lt;?, ?&gt;&gt; xmlAdapters) {
-<span class="fc" id="L131">    this.xmlAdapters = xmlAdapters;</span>
-<span class="fc" id="L132">  }</span>
-
-  /**
-   * Gets attachment marshaller.
-   *
-   * @return the attachment marshaller
-   */
-  public AttachmentMarshaller getAttachmentMarshaller() {
-<span class="fc" id="L140">    return attachmentMarshaller;</span>
-  }
-
-  /**
-   * Sets attachment marshaller.
-   *
-   * @param attachmentMarshaller the attachment marshaller
-   */
-  public void setAttachmentMarshaller(AttachmentMarshaller attachmentMarshaller) {
-<span class="fc" id="L149">    this.attachmentMarshaller = attachmentMarshaller;</span>
-<span class="fc" id="L150">  }</span>
-
-  /**
-   * Gets attachment unmarshaller.
-   *
-   * @return the attachment unmarshaller
-   */
-  public AttachmentUnmarshaller getAttachmentUnmarshaller() {
-<span class="fc" id="L158">    return attachmentUnmarshaller;</span>
-  }
-
-  /**
-   * Sets attachment unmarshaller.
-   *
-   * @param attachmentUnmarshaller the attachment unmarshaller
-   */
-  public void setAttachmentUnmarshaller(
-      AttachmentUnmarshaller attachmentUnmarshaller) {
-<span class="fc" id="L168">    this.attachmentUnmarshaller = attachmentUnmarshaller;</span>
-<span class="fc" id="L169">  }</span>
-
-  /**
-   * Gets schema.
-   *
-   * @return the schema
-   */
-  public Schema getSchema() {
-<span class="fc" id="L177">    return schema;</span>
-  }
-
-  /**
-   * Sets schema.
-   *
-   * @param schema the schema
-   */
-  public void setSchema(Schema schema) {
-<span class="fc" id="L186">    this.schema = schema;</span>
-<span class="fc" id="L187">  }</span>
-
-  /**
-   * Gets validation event handler.
-   *
-   * @return the validation event handler
-   */
-  public ValidationEventHandler getValidationEventHandler() {
-<span class="fc" id="L195">    return validationEventHandler;</span>
-  }
-
-  /**
-   * Sets validation event handler.
-   *
-   * @param validationEventHandler the validation event handler
-   */
-  public void setValidationEventHandler(
-      ValidationEventHandler validationEventHandler) {
-<span class="fc" id="L205">    this.validationEventHandler = validationEventHandler;</span>
-<span class="fc" id="L206">  }</span>
-
-  /**
-   * Gets schema mode.
-   *
-   * @return the schema mode
-   */
-  public SchemaMode getSchemaMode() {
-<span class="fc" id="L214">    return schemaMode;</span>
-  }
-
-  /**
-   * Sets schema mode.
-   *
-   * @param schemaMode the schema mode
-   */
-  public void setSchemaMode(SchemaMode schemaMode) {
-<span class="pc bpc" id="L223" title="1 of 2 branches missed.">    if (schemaMode != null) {</span>
-<span class="fc" id="L224">      this.schemaMode = schemaMode;</span>
-    }
-<span class="fc" id="L226">  }</span>
+  JaxbContextWrapper(
+      JAXBContext jaxbContext,
+<span class="fc" id="L123">      JaxbContextDetails details) {</span>
+<span class="fc" id="L124">    Assert.notNull(jaxbContext, &quot;Jaxb context must be present.&quot;);</span>
+<span class="fc" id="L125">    this.jaxbContext = jaxbContext;</span>
+<span class="fc" id="L126">    this.details = Optional.ofNullable(details)</span>
+<span class="fc" id="L127">        .orElseGet(JaxbContextDetails::empty);</span>
+<span class="fc" id="L128">  }</span>
 
   @Override
   public Unmarshaller createUnmarshaller() throws JAXBException {
-<span class="fc" id="L230">    Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();</span>
-<span class="fc bfc" id="L231" title="All 2 branches covered.">    if (xmlAdapters != null) {</span>
-<span class="fc" id="L232">      xmlAdapters.forEach(unmarshaller::setAdapter);</span>
+<span class="fc" id="L132">    Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">    if (!isEmpty(xmlAdapters)) {</span>
+<span class="fc" id="L134">      xmlAdapters.forEach(unmarshaller::setAdapter);</span>
     }
-<span class="fc bfc" id="L234" title="All 2 branches covered.">    if (attachmentUnmarshaller != null) {</span>
-<span class="fc" id="L235">      unmarshaller.setAttachmentUnmarshaller(attachmentUnmarshaller);</span>
+<span class="fc bfc" id="L136" title="All 2 branches covered.">    if (!isEmpty(attachmentUnmarshaller)) {</span>
+<span class="fc" id="L137">      unmarshaller.setAttachmentUnmarshaller(attachmentUnmarshaller);</span>
     }
-<span class="pc bpc" id="L237" title="3 of 8 branches missed.">    if (schema != null &amp;&amp; (schemaMode == SchemaMode.ALWAYS</span>
+<span class="pc bpc" id="L139" title="1 of 8 branches missed.">    if (!isEmpty(schema) &amp;&amp; (schemaMode == SchemaMode.ALWAYS</span>
         || schemaMode == SchemaMode.UNMARSHAL
-        || (schemaMode == SchemaMode.EXTERNAL_XSD
-<span class="nc bnc" id="L240" title="All 2 branches missed.">        &amp;&amp; StringUtils.hasText(details.getSchemaLocation())))) {</span>
-<span class="fc" id="L241">      unmarshaller.setSchema(schema);</span>
+        || schemaMode == SchemaMode.EXTERNAL_XSD)
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">        &amp;&amp; !isEmpty(details.getSchemaLocation())) {</span>
+<span class="fc" id="L143">      unmarshaller.setSchema(schema);</span>
     }
-<span class="fc bfc" id="L243" title="All 2 branches covered.">    if (validationEventHandler != null) {</span>
-<span class="fc" id="L244">      unmarshaller.setEventHandler(validationEventHandler);</span>
+<span class="fc bfc" id="L145" title="All 2 branches covered.">    if (!isEmpty(validationEventHandler)) {</span>
+<span class="fc" id="L146">      unmarshaller.setEventHandler(validationEventHandler);</span>
     }
-<span class="fc" id="L246">    return unmarshaller;</span>
+<span class="fc" id="L148">    return unmarshaller;</span>
   }
 
   @Override
   public Marshaller createMarshaller() throws JAXBException {
-<span class="fc" id="L251">    final Marshaller marshaller = jaxbContext.createMarshaller();</span>
-<span class="fc" id="L252">    marshaller.setProperty(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.name());</span>
-<span class="fc" id="L253">    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formattedOutput);</span>
-<span class="fc bfc" id="L254" title="All 2 branches covered.">    if (StringUtils.hasText(details.getSchemaLocation())) {</span>
-<span class="fc" id="L255">      marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, details.getSchemaLocation());</span>
+<span class="fc" id="L153">    Marshaller marshaller = jaxbContext.createMarshaller();</span>
+<span class="fc" id="L154">    marshaller.setProperty(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.name());</span>
+<span class="fc" id="L155">    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formattedOutput);</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">    if (!isEmpty(details.getSchemaLocation())) {</span>
+<span class="fc" id="L157">      marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, details.getSchemaLocation());</span>
     }
-<span class="fc bfc" id="L257" title="All 2 branches covered.">    if (xmlAdapters != null) {</span>
-<span class="fc" id="L258">      xmlAdapters.forEach(marshaller::setAdapter);</span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">    if (!isEmpty(xmlAdapters)) {</span>
+<span class="fc" id="L160">      xmlAdapters.forEach(marshaller::setAdapter);</span>
     }
-<span class="fc bfc" id="L260" title="All 2 branches covered.">    if (attachmentMarshaller != null) {</span>
-<span class="fc" id="L261">      marshaller.setAttachmentMarshaller(attachmentMarshaller);</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">    if (!isEmpty(attachmentMarshaller)) {</span>
+<span class="fc" id="L163">      marshaller.setAttachmentMarshaller(attachmentMarshaller);</span>
     }
-<span class="pc bpc" id="L263" title="1 of 8 branches missed.">    if (schema != null &amp;&amp; (schemaMode == SchemaMode.ALWAYS</span>
+<span class="pc bpc" id="L165" title="2 of 8 branches missed.">    if (!isEmpty(schema) &amp;&amp; (schemaMode == SchemaMode.ALWAYS</span>
         || schemaMode == SchemaMode.MARSHAL
-        || (schemaMode == SchemaMode.EXTERNAL_XSD
-<span class="pc bpc" id="L266" title="1 of 2 branches missed.">        &amp;&amp; StringUtils.hasText(details.getSchemaLocation())))) {</span>
-<span class="fc" id="L267">      marshaller.setSchema(schema);</span>
+        || schemaMode == SchemaMode.EXTERNAL_XSD)
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">        &amp;&amp; !isEmpty(details.getSchemaLocation())) {</span>
+<span class="fc" id="L169">      marshaller.setSchema(schema);</span>
     }
-<span class="fc bfc" id="L269" title="All 2 branches covered.">    if (validationEventHandler != null) {</span>
-<span class="fc" id="L270">      marshaller.setEventHandler(validationEventHandler);</span>
+<span class="fc bfc" id="L171" title="All 2 branches covered.">    if (!isEmpty(validationEventHandler)) {</span>
+<span class="fc" id="L172">      marshaller.setEventHandler(validationEventHandler);</span>
     }
-<span class="fc" id="L272">    return marshaller;</span>
+<span class="fc" id="L174">    return marshaller;</span>
   }
 
   @Override
   public Validator createValidator() throws JAXBException {
-<span class="nc" id="L277">    return jaxbContext.createValidator();</span>
+<span class="nc" id="L179">    return jaxbContext.createValidator();</span>
   }
 
   @Override
   public &lt;T&gt; Binder&lt;T&gt; createBinder(Class&lt;T&gt; domType) {
-<span class="fc" id="L282">    return jaxbContext.createBinder(domType);</span>
+<span class="fc" id="L184">    return jaxbContext.createBinder(domType);</span>
   }
 
   @Override
   public JAXBIntrospector createJAXBIntrospector() {
-<span class="fc" id="L287">    return jaxbContext.createJAXBIntrospector();</span>
+<span class="fc" id="L189">    return jaxbContext.createJAXBIntrospector();</span>
   }
 
   @Override
   public void generateSchema(SchemaOutputResolver outputResolver) throws IOException {
-<span class="fc" id="L292">    jaxbContext.generateSchema(outputResolver);</span>
-<span class="fc" id="L293">  }</span>
+<span class="fc" id="L194">    jaxbContext.generateSchema(outputResolver);</span>
+<span class="fc" id="L195">  }</span>
 
-  @Override
-  public boolean equals(Object o) {
-<span class="fc bfc" id="L297" title="All 2 branches covered.">    if (this == o) {</span>
-<span class="fc" id="L298">      return true;</span>
-    }
-<span class="fc bfc" id="L300" title="All 4 branches covered.">    if (o == null || getClass() != o.getClass()) {</span>
-<span class="fc" id="L301">      return false;</span>
-    }
-<span class="fc" id="L303">    JaxbContextWrapper wrapper = (JaxbContextWrapper) o;</span>
-<span class="pc bpc" id="L304" title="1 of 2 branches missed.">    return formattedOutput == wrapper.formattedOutput</span>
-<span class="pc bpc" id="L305" title="1 of 2 branches missed.">        &amp;&amp; jaxbContext.equals(wrapper.jaxbContext)</span>
-<span class="pc bpc" id="L306" title="1 of 2 branches missed.">        &amp;&amp; Objects.equals(details, wrapper.details)</span>
-<span class="pc bpc" id="L307" title="1 of 2 branches missed.">        &amp;&amp; Objects.equals(xmlAdapters, wrapper.xmlAdapters)</span>
-<span class="pc bpc" id="L308" title="1 of 2 branches missed.">        &amp;&amp; Objects.equals(attachmentMarshaller, wrapper.attachmentMarshaller)</span>
-<span class="pc bpc" id="L309" title="1 of 2 branches missed.">        &amp;&amp; Objects.equals(attachmentUnmarshaller, wrapper.attachmentUnmarshaller)</span>
-<span class="pc bpc" id="L310" title="1 of 2 branches missed.">        &amp;&amp; Objects.equals(validationEventHandler, wrapper.validationEventHandler)</span>
-<span class="pc bpc" id="L311" title="2 of 4 branches missed.">        &amp;&amp; Objects.equals(schema, wrapper.schema)</span>
-        &amp;&amp; schemaMode == wrapper.schemaMode;
-  }
-
-  @Override
-  public int hashCode() {
-<span class="fc" id="L317">    return Objects.hash(jaxbContext, details, formattedOutput, xmlAdapters, attachmentMarshaller,</span>
-        attachmentUnmarshaller, validationEventHandler, schema, schemaMode);
-  }
-
-  @Override
-  public String toString() {
-<span class="fc" id="L323">    return &quot;JaxbContextWrapper {&quot;</span>
-        + &quot;details=&quot; + details
-        + &quot;, formattedOutput=&quot; + formattedOutput
-        + &quot;, xmlAdapters=&quot; + xmlAdapters
-        + &quot;, attachmentMarshaller=&quot; + attachmentMarshaller
-        + &quot;, attachmentUnmarshaller=&quot; + attachmentUnmarshaller
-        + &quot;, validationEventHandler=&quot; + validationEventHandler
-        + &quot;, schema=&quot; + schema
-        + &quot;, schemaMode=&quot; + schemaMode
-        + '}';
-  }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
