@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
  *
  * @author Christian Bremer
  */
+@SuppressWarnings("SameNameButDifferent")
 @EqualsAndHashCode(of = {"nameSpace"})
 @RequiredArgsConstructor
 public final class SchemaLocation implements Comparable<SchemaLocation> {

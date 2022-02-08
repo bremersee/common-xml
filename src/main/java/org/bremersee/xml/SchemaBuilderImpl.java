@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,6 +39,7 @@ import javax.xml.validation.SchemaFactory;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.reflections.util.ClasspathHelper;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.FileCopyUtils;
@@ -54,6 +54,7 @@ import org.xml.sax.SAXNotSupportedException;
  *
  * @author Christian Bremer
  */
+@SuppressWarnings("SameNameButDifferent")
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 @ToString
 class SchemaBuilderImpl implements SchemaBuilder {
@@ -106,17 +107,12 @@ class SchemaBuilderImpl implements SchemaBuilder {
   SchemaFactory createSchemaFactory() {
     SchemaFactory schemaFactory;
     if (!isEmpty(factoryClassName)) {
-      ClassLoader cl = classLoader;
-      if (isEmpty(cl)) {
-        if (isEmpty(System.getSecurityManager())) {
-          cl = Thread.currentThread().getContextClassLoader();
-        } else {
-          //noinspection unchecked,rawtypes
-          cl = (ClassLoader) java.security.AccessController.doPrivileged(
-              (PrivilegedAction) () -> Thread.currentThread().getContextClassLoader());
-        }
+      if (isEmpty(classLoader)) {
+        schemaFactory = SchemaFactory
+            .newInstance(schemaLanguage, factoryClassName, ClasspathHelper.contextClassLoader());
+      } else {
+        schemaFactory = SchemaFactory.newInstance(schemaLanguage, factoryClassName, classLoader);
       }
-      schemaFactory = SchemaFactory.newInstance(schemaLanguage, factoryClassName, cl);
     } else {
       schemaFactory = SchemaFactory.newInstance(schemaLanguage);
     }
@@ -225,7 +221,7 @@ class SchemaBuilderImpl implements SchemaBuilder {
         throw new XmlRuntimeException(e);
       }
     }
-    return sources;
+    return Collections.unmodifiableList(sources);
   }
 
   @Override

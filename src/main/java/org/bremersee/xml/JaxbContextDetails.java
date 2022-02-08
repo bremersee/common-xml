@@ -147,6 +147,7 @@ public interface JaxbContextDetails {
   /**
    * The jaxb context details implementation.
    */
+  @SuppressWarnings("SameNameButDifferent")
   @NoArgsConstructor(access = AccessLevel.PRIVATE)
   class JaxbContextDetailsImpl
       extends LinkedHashSet<JaxbContextData>

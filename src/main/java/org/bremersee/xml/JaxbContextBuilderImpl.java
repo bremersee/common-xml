@@ -18,7 +18,6 @@ package org.bremersee.xml;
 
 import static org.springframework.util.ObjectUtils.isEmpty;
 
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,6 +46,7 @@ import org.springframework.util.ClassUtils;
  *
  * @author Christian Bremer
  */
+@SuppressWarnings("SameNameButDifferent")
 @ToString
 class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
@@ -89,19 +89,6 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     jaxbContextCache.clear();
   }
 
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  private ClassLoader getContextClassLoader() {
-    if (isEmpty(classLoader)) {
-      if (isEmpty(System.getSecurityManager())) {
-        return Thread.currentThread().getContextClassLoader();
-      } else {
-        return (ClassLoader) java.security.AccessController.doPrivileged(
-            (PrivilegedAction) () -> Thread.currentThread().getContextClassLoader());
-      }
-    }
-    return classLoader;
-  }
-
   @Override
   public JaxbContextBuilder copy() {
     JaxbContextBuilderImpl copy = new JaxbContextBuilderImpl();
@@ -110,6 +97,7 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     copy.schemaCache.putAll(schemaCache);
     copy.attachmentMarshaller = attachmentMarshaller;
     copy.attachmentUnmarshaller = attachmentUnmarshaller;
+    copy.classLoader = classLoader;
     copy.formattedOutput = formattedOutput;
     copy.jaxbContextCache.putAll(jaxbContextCache);
     copy.jaxbContextDataMap.putAll(jaxbContextDataMap);
@@ -139,10 +127,10 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
 
   @Override
   public JaxbContextBuilder withDependenciesResolver(JaxbDependenciesResolver resolver) {
-    if (isEmpty(dependenciesResolver) && !isEmpty(resolver)
-        || !isEmpty(dependenciesResolver) && isEmpty(resolver)
-        || !isEmpty(dependenciesResolver) && !ClassUtils.getUserClass(dependenciesResolver)
-        .equals(ClassUtils.getUserClass(resolver))) {
+    if ((isEmpty(dependenciesResolver) && !isEmpty(resolver))
+        || (!isEmpty(dependenciesResolver) && isEmpty(resolver))
+        || (!isEmpty(dependenciesResolver) && !ClassUtils.getUserClass(dependenciesResolver)
+        .equals(ClassUtils.getUserClass(resolver)))) {
       clearCache();
     }
     this.dependenciesResolver = resolver;
@@ -242,9 +230,9 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
   public Marshaller buildMarshaller(Object value) {
     JaxbContextWrapper jaxbContext = computeJaxbContext(value);
     SchemaMode mode = jaxbContext.getSchemaMode();
-    if (mode == SchemaMode.ALWAYS
+    if ((mode == SchemaMode.ALWAYS
         || mode == SchemaMode.MARSHAL
-        || mode == SchemaMode.EXTERNAL_XSD
+        || mode == SchemaMode.EXTERNAL_XSD)
         && !isEmpty(jaxbContext.getDetails().getSchemaLocation())) {
       jaxbContext.setSchema(computeSchema(jaxbContext));
     }
@@ -317,7 +305,9 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
     JaxbContextDetails details = buildDetails(value);
     JAXBContext jaxbContext = jaxbContextCache.computeIfAbsent(details, key -> {
       try {
-        return JAXBContext.newInstance(key.getClasses(getContextClassLoader()));
+        return isEmpty(classLoader)
+            ? JAXBContext.newInstance(key.getClasses())
+            : JAXBContext.newInstance(key.getClasses(classLoader));
 
       } catch (Exception e) {
         throw new JaxbRuntimeException(

@@ -18,7 +18,6 @@ package org.bremersee.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 
 import java.io.StringReader;
@@ -186,7 +185,6 @@ class JaxbContextWrapperTest {
   @Test
   void getAttachmentUnmarshaller(SoftAssertions softly) {
     JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
-    assertNull(wrapper.getAttachmentUnmarshaller());
     softly.assertThat(wrapper.getAttachmentUnmarshaller())
         .isNull();
 

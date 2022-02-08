@@ -16,9 +16,6 @@
 
 package org.bremersee.xml;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -71,34 +68,74 @@ class ConverterUtilsTest {
     dateTimeZ = OffsetDateTime.parse(xmlCalStrZ, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     dateTimeNewYork = OffsetDateTime
         .parse(xmlCalStrNewYork, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+  }
 
-    assertEquals(xmlCalZ.toXMLFormat(), dateTimeZ.toString());
-    assertEquals(xmlCalNewYork.toXMLFormat(), dateTimeNewYork.toString());
+  /**
+   * Xml format.
+   *
+   * @param softly the soft assertions
+   */
+  @Test
+  void xmlFormat(SoftAssertions softly) {
+    softly.assertThat(dateTimeZ.toString()).isEqualTo(xmlCalZ.toXMLFormat());
+    softly.assertThat(dateTimeNewYork.toString()).isEqualTo(xmlCalNewYork.toXMLFormat());
   }
 
   /**
    * Duration test.
    *
    * @param softly the soft assertions
+   * @throws Exception the exception
    */
   @Test
-  void duration(SoftAssertions softly) {
-    Duration xmlDuration = ConverterUtils.millisToXmlDuration(1234L);
-    assertNotNull(xmlDuration);
-    Long millis = ConverterUtils.xmlDurationToMillis(xmlDuration);
-    softly.assertThat(millis)
-        .isEqualTo(Long.valueOf(1234L));
-
-    xmlDuration = ConverterUtils.durationToXmlDuration(java.time.Duration.ofMillis(987655432L));
-    assertNotNull(xmlDuration);
+  void duration(SoftAssertions softly) throws Exception {
+    // 2 years, 6 months, 5 days, 12 hours, 35 minutes, 30 seconds and 200 millis
+    String expected = "P2Y6M5DT12H35M30.200S";
+    Duration xmlDuration = DatatypeFactory.newInstance().newDuration(expected);
     java.time.Duration duration = ConverterUtils.xmlDurationToDuration(xmlDuration);
-    softly.assertThat(duration.toMillis())
-        .isEqualTo(987655432L);
+    xmlDuration = ConverterUtils.durationToXmlDuration(duration);
+    softly.assertThat(xmlDuration.toString())
+        .isEqualTo(expected);
 
-    softly.assertThat(ConverterUtils.millisToXmlDuration(null)).isNull();
-    softly.assertThat(ConverterUtils.durationToXmlDuration(null)).isNull();
-    softly.assertThat(ConverterUtils.xmlDurationToDuration(null)).isNull();
-    softly.assertThat(ConverterUtils.xmlDurationToMillis(null)).isNull();
+    // negative
+    expected = "-P2Y6M5DT12H35M30.800S";
+    xmlDuration = DatatypeFactory.newInstance().newDuration(expected);
+    duration = ConverterUtils.xmlDurationToDuration(xmlDuration);
+    xmlDuration = ConverterUtils.durationToXmlDuration(duration);
+    softly.assertThat(xmlDuration.toString())
+        .isEqualTo(expected);
+
+    // 1 day, 2 hours
+    expected = "P0Y0M1DT2H0M0.000S";
+    xmlDuration = DatatypeFactory.newInstance().newDuration("P1DT2H");
+    duration = ConverterUtils.xmlDurationToDuration(xmlDuration);
+    xmlDuration = ConverterUtils.durationToXmlDuration(duration);
+    softly.assertThat(xmlDuration.toString())
+        .isEqualTo(expected);
+
+    // 20 months (the number of months can be more than 12)
+    expected = "P1Y8M0DT0H0M0.000S";
+    xmlDuration = DatatypeFactory.newInstance().newDuration("P20M");
+    duration = ConverterUtils.xmlDurationToDuration(xmlDuration);
+    xmlDuration = ConverterUtils.durationToXmlDuration(duration);
+    softly.assertThat(xmlDuration.toString())
+        .isEqualTo(expected);
+
+    // 20 minutes
+    expected = "P0Y0M0DT0H20M0.000S";
+    xmlDuration = DatatypeFactory.newInstance().newDuration("PT20M");
+    duration = ConverterUtils.xmlDurationToDuration(xmlDuration);
+    xmlDuration = ConverterUtils.durationToXmlDuration(duration);
+    softly.assertThat(xmlDuration.toString())
+        .isEqualTo(expected);
+
+    // 0 years
+    expected = "P0Y0M0DT0H0M0.000S";
+    xmlDuration = DatatypeFactory.newInstance().newDuration("P0Y");
+    duration = ConverterUtils.xmlDurationToDuration(xmlDuration);
+    xmlDuration = ConverterUtils.durationToXmlDuration(duration);
+    softly.assertThat(xmlDuration.toString())
+        .isEqualTo(expected);
   }
 
   /**
@@ -254,18 +291,31 @@ class ConverterUtilsTest {
 
     XMLGregorianCalendar cal = ConverterUtils.millisToXmlCalendar(
         millis, TimeZone.getTimeZone("GMT"));
-    assertNotNull(cal);
-    assertEquals((long) millis, cal.toGregorianCalendar().getTime().getTime());
-    assertEquals(xmlCalStrZ, cal.toXMLFormat());
+    softly.assertThat(cal)
+        .isNotNull()
+        .extracting(XMLGregorianCalendar::toXMLFormat)
+        .isEqualTo(xmlCalStrZ);
+    softly.assertThat(cal)
+        .isNotNull()
+        .extracting(XMLGregorianCalendar::toGregorianCalendar)
+        .extracting(GregorianCalendar::getTimeInMillis)
+        .isEqualTo(millis);
 
     millis = ConverterUtils.xmlCalendarToMillis(xmlCalNewYork);
-    assertNotNull(millis);
-    assertEquals(Date.from(dateTimeNewYork.toInstant()), new Date(millis));
+    softly.assertThat(millis)
+        .isNotNull()
+        .isEqualTo(dateTimeNewYork.toInstant().toEpochMilli());
 
     cal = ConverterUtils.millisToXmlCalendar(millis, TimeZone.getTimeZone("America/New_York"));
-    assertNotNull(cal);
-    assertEquals((long) millis, cal.toGregorianCalendar().getTime().getTime());
-    assertEquals(xmlCalStrNewYork, cal.toXMLFormat());
+    softly.assertThat(cal)
+        .isNotNull()
+        .extracting(XMLGregorianCalendar::toXMLFormat)
+        .isEqualTo(xmlCalStrNewYork);
+    softly.assertThat(cal)
+        .isNotNull()
+        .extracting(XMLGregorianCalendar::toGregorianCalendar)
+        .extracting(GregorianCalendar::getTimeInMillis)
+        .isEqualTo(millis);
 
     softly.assertThat(ConverterUtils.xmlCalendarToMillis(null)).isNull();
     softly.assertThat(ConverterUtils.millisToXmlCalendar(null)).isNull();

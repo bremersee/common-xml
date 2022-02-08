@@ -69,6 +69,7 @@ import org.springframework.util.ReflectionUtils.MethodFilter;
  *
  * @author Christian Bremer
  */
+@SuppressWarnings("SameNameButDifferent")
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
 
@@ -173,7 +174,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
   private boolean stopResolving(Class<?> clazz, Object source,
       Set<ScanResult> scanResults) {
     return isEmpty(clazz)
-        || !isAnnotatedWithXml(clazz) && !Collection.class.isAssignableFrom(clazz)
+        || (!isAnnotatedWithXml(clazz) && !Collection.class.isAssignableFrom(clazz))
         || scanResults.contains(new ScanResult(clazz, source));
   }
 
@@ -395,6 +396,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     }
   }
 
+  @SuppressWarnings("SameNameButDifferent")
   @EqualsAndHashCode
   private static class ScanResult {
 

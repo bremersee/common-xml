@@ -17,7 +17,7 @@
 package org.bremersee.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -168,9 +168,10 @@ class SchemaBuilderTest {
    */
   @Test
   void createSchemaFactoryWthIllegalProperty() {
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.newInstance()
-        .withProperty("foo", "bar")
-        .buildSchema());
+    assertThatExceptionOfType(XmlRuntimeException.class)
+        .isThrownBy(() -> SchemaBuilder.newInstance()
+            .withProperty("foo", "bar")
+            .buildSchema());
   }
 
   /**
@@ -178,8 +179,9 @@ class SchemaBuilderTest {
    */
   @Test
   void fetchSchemaSourcesThatDoesNotExist() {
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.newInstance()
-        .fetchSchemaSources("classpath:/nothing.xsd"));
+    assertThatExceptionOfType(XmlRuntimeException.class)
+        .isThrownBy(() -> SchemaBuilder.newInstance()
+            .fetchSchemaSources("classpath:/nothing.xsd"));
   }
 
   /**
@@ -187,8 +189,9 @@ class SchemaBuilderTest {
    */
   @Test
   void buildSchemaWithIllegalUrl() {
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.newInstance()
-        .buildSchema(new URL("http://localhost/" + UUID.randomUUID() + ".xsd")));
+    assertThatExceptionOfType(XmlRuntimeException.class)
+        .isThrownBy(() -> SchemaBuilder.newInstance()
+            .buildSchema(new URL("http://localhost/" + UUID.randomUUID() + ".xsd")));
   }
 
   /**
@@ -201,8 +204,9 @@ class SchemaBuilderTest {
     File file = File.createTempFile("junit", ".test",
         new File(System.getProperty("java.io.tmpdir")));
     file.deleteOnExit();
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.newInstance()
-        .buildSchema(file));
+    assertThatExceptionOfType(XmlRuntimeException.class)
+        .isThrownBy(() -> SchemaBuilder.newInstance()
+            .buildSchema(file));
   }
 
   /**
@@ -215,8 +219,9 @@ class SchemaBuilderTest {
     File file = File.createTempFile("junit", ".test",
         new File(System.getProperty("java.io.tmpdir")));
     file.deleteOnExit();
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.newInstance()
-        .buildSchema(new StreamSource(file)));
+    assertThatExceptionOfType(XmlRuntimeException.class)
+        .isThrownBy(() -> SchemaBuilder.newInstance()
+            .buildSchema(new StreamSource(file)));
   }
 
   /**
