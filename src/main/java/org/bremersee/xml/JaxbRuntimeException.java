@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.bremersee.xml;
 
+import org.springframework.util.ObjectUtils;
+
 /**
  * The {@link JaxbContextBuilder} throws this exception instead of {@link
  * javax.xml.bind.JAXBException}.
@@ -31,6 +33,15 @@ public class JaxbRuntimeException extends RuntimeException {
    */
   public JaxbRuntimeException(Throwable cause) {
     this("Creating JAXB context failed.", cause);
+  }
+
+  /**
+   * Instantiates a new jaxb runtime exception.
+   *
+   * @param message the message
+   */
+  public JaxbRuntimeException(String message) {
+    super(ObjectUtils.isEmpty(message) ? "Creating JAXB context failed." : message);
   }
 
   /**

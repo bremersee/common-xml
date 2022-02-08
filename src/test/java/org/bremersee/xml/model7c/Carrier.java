@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,14 @@
 
 package org.bremersee.xml.model7c;
 
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.bremersee.xml.model7a.ExtraPart;
 
 /**
@@ -31,46 +34,12 @@ import org.bremersee.xml.model7a.ExtraPart;
 @XmlRootElement(name = "Carrier")
 @XmlType(name = "carrierType")
 @XmlAccessorType(XmlAccessType.FIELD)
-@SuppressWarnings("unused")
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class Carrier extends ExtraPart {
 
   private String capacity;
 
-  /**
-   * Gets capacity.
-   *
-   * @return the capacity
-   */
-  public String getCapacity() {
-    return capacity;
-  }
-
-  /**
-   * Sets capacity.
-   *
-   * @param capacity the capacity
-   */
-  public void setCapacity(String capacity) {
-    this.capacity = capacity;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    if (!super.equals(o)) {
-      return false;
-    }
-    Carrier carrier = (Carrier) o;
-    return Objects.equals(capacity, carrier.capacity);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), capacity);
-  }
 }

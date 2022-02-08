@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022  the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,33 @@
 
 package org.bremersee.xml;
 
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
- * The xml runtime exception.
+ * The schema location.
  *
  * @author Christian Bremer
  */
-public class XmlRuntimeException extends RuntimeException {
+@SuppressWarnings("SameNameButDifferent")
+@EqualsAndHashCode(of = {"nameSpace"})
+@RequiredArgsConstructor
+public final class SchemaLocation implements Comparable<SchemaLocation> {
 
-  /**
-   * Instantiates a new xml runtime exception.
-   *
-   * @param cause the cause
-   */
-  public XmlRuntimeException(Throwable cause) {
-    this("XML processing failed.", cause);
+  @NonNull
+  private final String nameSpace;
+
+  @NonNull
+  private final String location;
+
+  @Override
+  public String toString() {
+    return nameSpace + " " + location;
   }
 
-  /**
-   * Instantiates a new xml runtime exception.
-   *
-   * @param message the message
-   * @param cause the cause
-   */
-  public XmlRuntimeException(String message, Throwable cause) {
-    super(message, cause);
+  @Override
+  public int compareTo(SchemaLocation o) {
+    return nameSpace.compareToIgnoreCase(o.nameSpace);
   }
-
 }

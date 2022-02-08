@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,57 @@
 
 package org.bremersee.xml.adapter;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.time.Duration;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * The duration xml adapter test.
  *
  * @author Christian Bremer
  */
+@ExtendWith({SoftAssertionsExtension.class})
 class DurationXmlAdapterTest {
 
   /**
-   * Convert.
+   * Marshal.
    *
+   * @param softly the soft assertions
+   */
+  @Test
+  void marshal(SoftAssertions softly) {
+    DurationXmlAdapter adapter = new DurationXmlAdapter();
+
+    softly.assertThat(adapter.marshal(null))
+        .as("DurationXmlAdapter marshal null is null")
+        .isNull();
+
+    String expected = "P5Y2M10DT15H0M0.000S";
+    Duration duration = Duration.ofSeconds(163782000L);
+    String actual = adapter.marshal(duration);
+    softly.assertThat(actual)
+        .isEqualTo(expected);
+  }
+
+  /**
+   * Unmarshal.
+   *
+   * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void convert() throws Exception {
+  void unmarshal(SoftAssertions softly) throws Exception {
     DurationXmlAdapter adapter = new DurationXmlAdapter();
-    String expected = "P5Y2M10DT15H0M0.000S";
-    Duration duration = adapter.unmarshal(expected);
-    assertNotNull(duration);
-    String actual = adapter.marshal(duration);
-    assertEquals(expected, actual);
+
+    softly.assertThat(adapter.unmarshal(null))
+        .as("DurationXmlAdapter unmarshal null is null")
+        .isNull();
+
+    String xmlValue = "P5Y2M10DT15H0M0.000S";
+    Duration actual = adapter.unmarshal(xmlValue);
+    softly.assertThat(actual)
+        .isEqualTo(Duration.ofSeconds(163782000L));
   }
 }

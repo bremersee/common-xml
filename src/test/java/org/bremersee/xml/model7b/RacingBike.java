@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,14 @@
 
 package org.bremersee.xml.model7b;
 
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.bremersee.xml.model7a.Bicycle;
 
 /**
@@ -31,46 +34,12 @@ import org.bremersee.xml.model7a.Bicycle;
 @XmlRootElement(name = "RacingBike")
 @XmlType(name = "racingBikeType")
 @XmlAccessorType(XmlAccessType.FIELD)
-@SuppressWarnings("unused")
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class RacingBike extends Bicycle {
 
   private Integer frameSize;
 
-  /**
-   * Gets frame size.
-   *
-   * @return the frame size
-   */
-  public Integer getFrameSize() {
-    return frameSize;
-  }
-
-  /**
-   * Sets frame size.
-   *
-   * @param frameSize the frame size
-   */
-  public void setFrameSize(Integer frameSize) {
-    this.frameSize = frameSize;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    if (!super.equals(o)) {
-      return false;
-    }
-    RacingBike that = (RacingBike) o;
-    return Objects.equals(frameSize, that.frameSize);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), frameSize);
-  }
 }

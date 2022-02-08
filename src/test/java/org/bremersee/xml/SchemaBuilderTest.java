@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 package org.bremersee.xml;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -33,7 +32,10 @@ import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.util.FileCopyUtils;
 import org.w3c.dom.ls.LSResourceResolver;
@@ -44,13 +46,16 @@ import org.xml.sax.ErrorHandler;
  *
  * @author Christian Bremer
  */
+@ExtendWith({SoftAssertionsExtension.class})
 class SchemaBuilderTest {
 
   /**
    * Build schema with location.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void buildSchemaWithLocation() {
+  void buildSchemaWithLocation(SoftAssertions softly) {
 
     ClassLoader classLoader;
     if (System.getSecurityManager() == null) {
@@ -61,7 +66,7 @@ class SchemaBuilderTest {
           (PrivilegedAction) () -> Thread.currentThread().getContextClassLoader());
     }
 
-    SchemaBuilder builder = SchemaBuilder.builder()
+    SchemaBuilder builder = SchemaBuilder.newInstance()
         .withSchemaLanguage(XMLConstants.W3C_XML_SCHEMA_NS_URI)
         .withFactory(null)
         .withClassLoader(classLoader)
@@ -70,14 +75,17 @@ class SchemaBuilderTest {
         .withErrorHandler(mock(ErrorHandler.class))
         .withFeature(XMLConstants.FEATURE_SECURE_PROCESSING, false)
         .withProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "false");
-    assertNotNull(builder);
+    softly.assertThat(builder)
+        .isNotNull();
 
     SchemaBuilder copy = builder.copy();
-    assertNotNull(copy);
+    softly.assertThat(copy)
+        .isNotNull();
 
     Schema schema = copy
         .buildSchema("classpath:common-xml-test-model-1.xsd");
-    assertNotNull(schema);
+    softly.assertThat(schema)
+        .isNotNull();
   }
 
   /**
@@ -88,8 +96,9 @@ class SchemaBuilderTest {
   @Test
   void buildSchemaWithUrl() throws Exception {
 
-    Schema schema = SchemaBuilder.builder()
+    Schema schema = SchemaBuilder.newInstance()
         .withSchemaLanguage(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+        .withFactory("com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory")
         .withClassLoader(null)
         .withResourceLoader(null)
         .withResourceResolver(null)
@@ -98,7 +107,8 @@ class SchemaBuilderTest {
         .withProperty(null, "false")
         .buildSchema(
             new URL("http://bremersee.github.io/xmlschemas/common-xml-test-model-1.xsd"));
-    assertNotNull(schema);
+    assertThat(schema)
+        .isNotNull();
   }
 
   /**
@@ -120,8 +130,9 @@ class SchemaBuilderTest {
       return;
     }
 
-    Schema schema = SchemaBuilder.builder().buildSchema(file);
-    assertNotNull(schema);
+    Schema schema = SchemaBuilder.newInstance().buildSchema(file);
+    assertThat(schema)
+        .isNotNull();
   }
 
   /**
@@ -133,9 +144,10 @@ class SchemaBuilderTest {
   void buildSchemaWithSource() throws Exception {
     Source source = new StreamSource(new DefaultResourceLoader()
         .getResource("classpath:common-xml-test-model-1.xsd").getInputStream());
-    Schema schema = SchemaBuilder.builder()
+    Schema schema = SchemaBuilder.newInstance()
         .buildSchema(source);
-    assertNotNull(schema);
+    assertThat(schema)
+        .isNotNull();
   }
 
   /**
@@ -143,12 +155,12 @@ class SchemaBuilderTest {
    */
   @Test
   void fetchSchemaSources() {
-    List<Source> sources = SchemaBuilder.builder()
+    List<Source> sources = SchemaBuilder.newInstance()
         .fetchSchemaSources(Arrays.asList(
             "classpath:common-xml-test-model-1.xsd",
             "http://bremersee.github.io/xmlschemas/common-xml-test-model-2.xsd"));
-    assertNotNull(sources);
-    assertEquals(2, sources.size());
+    assertThat(sources)
+        .hasSize(2);
   }
 
   /**
@@ -156,9 +168,10 @@ class SchemaBuilderTest {
    */
   @Test
   void createSchemaFactoryWthIllegalProperty() {
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
-        .withProperty("foo", "bar")
-        .buildSchema());
+    assertThatExceptionOfType(XmlRuntimeException.class)
+        .isThrownBy(() -> SchemaBuilder.newInstance()
+            .withProperty("foo", "bar")
+            .buildSchema());
   }
 
   /**
@@ -166,8 +179,9 @@ class SchemaBuilderTest {
    */
   @Test
   void fetchSchemaSourcesThatDoesNotExist() {
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
-        .fetchSchemaSources("classpath:/nothing.xsd"));
+    assertThatExceptionOfType(XmlRuntimeException.class)
+        .isThrownBy(() -> SchemaBuilder.newInstance()
+            .fetchSchemaSources("classpath:/nothing.xsd"));
   }
 
   /**
@@ -175,8 +189,9 @@ class SchemaBuilderTest {
    */
   @Test
   void buildSchemaWithIllegalUrl() {
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
-        .buildSchema(new URL("http://localhost/" + UUID.randomUUID() + ".xsd")));
+    assertThatExceptionOfType(XmlRuntimeException.class)
+        .isThrownBy(() -> SchemaBuilder.newInstance()
+            .buildSchema(new URL("http://localhost/" + UUID.randomUUID() + ".xsd")));
   }
 
   /**
@@ -186,25 +201,42 @@ class SchemaBuilderTest {
    */
   @Test
   void buildSchemaWithIllegalFile() throws IOException {
-    final File file = File.createTempFile("junit", ".test",
+    File file = File.createTempFile("junit", ".test",
         new File(System.getProperty("java.io.tmpdir")));
     file.deleteOnExit();
+    assertThatExceptionOfType(XmlRuntimeException.class)
+        .isThrownBy(() -> SchemaBuilder.newInstance()
+            .buildSchema(file));
+  }
 
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
-        .buildSchema(file));
-
-    assertThrows(XmlRuntimeException.class, () -> SchemaBuilder.builder()
-        .buildSchema(new StreamSource(file)));
+  /**
+   * Build schema with illegal stream source.
+   *
+   * @throws IOException the io exception
+   */
+  @Test
+  void buildSchemaWithIllegalStreamSource() throws IOException {
+    File file = File.createTempFile("junit", ".test",
+        new File(System.getProperty("java.io.tmpdir")));
+    file.deleteOnExit();
+    assertThatExceptionOfType(XmlRuntimeException.class)
+        .isThrownBy(() -> SchemaBuilder.newInstance()
+            .buildSchema(new StreamSource(file)));
   }
 
   /**
    * Build schema with null.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void buildSchemaWithNull() {
-    assertNotNull(SchemaBuilder.builder().buildSchema((URL) null));
-    assertNotNull(SchemaBuilder.builder().buildSchema((File) null));
-    assertNotNull(SchemaBuilder.builder().buildSchema((Source) null));
+  void buildSchemaWithNull(SoftAssertions softly) {
+    softly.assertThat(SchemaBuilder.newInstance().buildSchema((URL) null))
+        .isNotNull();
+    softly.assertThat(SchemaBuilder.newInstance().buildSchema((File) null))
+        .isNotNull();
+    softly.assertThat(SchemaBuilder.newInstance().buildSchema((Source) null))
+        .isNotNull();
   }
 
 }

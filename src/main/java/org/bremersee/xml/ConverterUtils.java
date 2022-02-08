@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,19 @@
 
 package org.bremersee.xml;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
@@ -40,21 +48,6 @@ public abstract class ConverterUtils {
   }
 
   /**
-   * Xml duration to millis.
-   *
-   * @param xmlDuration the xml duration
-   * @return the long
-   */
-  public static Long xmlDurationToMillis(javax.xml.datatype.Duration xmlDuration) {
-    if (xmlDuration == null) {
-      return null;
-    }
-    final Date tmp = new Date(0L);
-    xmlDuration.addTo(tmp);
-    return tmp.getTime();
-  }
-
-  /**
    * Xml duration to duration.
    *
    * @param xmlDuration the xml duration
@@ -64,25 +57,25 @@ public abstract class ConverterUtils {
     if (xmlDuration == null) {
       return null;
     }
-    return Duration.ofMillis(xmlDurationToMillis(xmlDuration));
-  }
 
-  /**
-   * Millis to xml duration.
-   *
-   * @param millis the millis
-   * @return the javax . xml . datatype . duration
-   */
-  public static javax.xml.datatype.Duration millisToXmlDuration(Long millis) {
-    if (millis == null || millis < 0L) {
-      return null;
-    }
-    try {
-      return DatatypeFactory.newInstance().newDuration(millis);
-
-    } catch (DatatypeConfigurationException e) {
-      throw new UnsupportedOperationException("Creating xml duration failed.", e);
-    }
+    GregorianCalendar cal = new GregorianCalendar();
+    cal.set(Calendar.MILLISECOND, 0);
+    long millis = BigDecimal.valueOf(xmlDuration.getTimeInMillis(cal))
+        .abs(MathContext.DECIMAL128)
+        .remainder(BigDecimal.valueOf(1000L), MathContext.DECIMAL128)
+        .setScale(0, RoundingMode.HALF_UP)
+        .longValue();
+    LocalDateTime start = LocalDateTime.of(1970, Month.JANUARY, 1, 0, 0, 0, 0);
+    LocalDateTime end = start.plusYears(xmlDuration.getYears())
+        .plusMonths(xmlDuration.getMonths())
+        .plusDays(xmlDuration.getDays())
+        .plusHours(xmlDuration.getHours())
+        .plusMinutes(xmlDuration.getMinutes())
+        .plusSeconds(xmlDuration.getSeconds())
+        .plus(millis, ChronoUnit.MILLIS);
+    return xmlDuration.getSign() < 0
+        ? Duration.between(end, start)
+        : Duration.between(start, end);
   }
 
   /**
@@ -95,7 +88,39 @@ public abstract class ConverterUtils {
     if (duration == null) {
       return null;
     }
-    return millisToXmlDuration(duration.toMillis());
+    LocalDateTime start = LocalDateTime.of(1970, Month.JANUARY, 1, 0, 0, 0, 0);
+    LocalDateTime end = start.plus(duration.abs());
+    long years = Math.abs(start.until(end, ChronoUnit.YEARS));
+    end = end.minusYears(years);
+    long months = Math.abs(start.until(end, ChronoUnit.MONTHS));
+    end = end.minusMonths(months);
+    long days = Math.abs(start.until(end, ChronoUnit.DAYS));
+    end = end.minusDays(days);
+    long hours = Math.abs(start.until(end, ChronoUnit.HOURS));
+    end = end.minusHours(hours);
+    long minutes = Math.abs(start.until(end, ChronoUnit.MINUTES));
+    end = end.minusMinutes(minutes);
+    long seconds = Math.abs(start.until(end, ChronoUnit.SECONDS));
+    end = end.minusSeconds(seconds);
+    long millis = Math.abs(start.until(end, ChronoUnit.MILLIS));
+    try {
+      return DatatypeFactory.newInstance().newDuration(
+          !duration.isNegative(),
+          BigInteger.valueOf(years),
+          BigInteger.valueOf(months),
+          BigInteger.valueOf(days),
+          BigInteger.valueOf(hours),
+          BigInteger.valueOf(minutes),
+          BigDecimal.valueOf(seconds)
+              .add(
+                  BigDecimal.valueOf(millis)
+                      .divide(BigDecimal.valueOf(1000L), MathContext.DECIMAL128),
+                  MathContext.DECIMAL128)
+              .setScale(3, RoundingMode.HALF_UP));
+
+    } catch (DatatypeConfigurationException e) {
+      throw new UnsupportedOperationException("Creating xml duration failed.", e);
+    }
   }
 
   /**
@@ -161,7 +186,7 @@ public abstract class ConverterUtils {
     if (xmlGregorianCalendar == null) {
       return null;
     }
-    final TimeZone tz = xmlGregorianCalendar.getTimeZone(0);
+    TimeZone tz = xmlGregorianCalendar.getTimeZone(0);
     return OffsetDateTime.ofInstant(xmlCalendarToInstant(xmlGregorianCalendar), tz.toZoneId());
   }
 
@@ -231,8 +256,8 @@ public abstract class ConverterUtils {
     if (date == null) {
       return null;
     }
-    final TimeZone tz = zone != null ? zone : TimeZone.getTimeZone("GMT");
-    final GregorianCalendar calendar;
+    TimeZone tz = zone != null ? zone : TimeZone.getTimeZone("GMT");
+    GregorianCalendar calendar;
     if (locale != null) {
       calendar = new GregorianCalendar(tz, locale);
     } else {
@@ -320,7 +345,7 @@ public abstract class ConverterUtils {
     if (instant == null) {
       return null;
     }
-    final TimeZone tz = zoneId != null ? TimeZone.getTimeZone(zoneId) : TimeZone.getTimeZone("GMT");
+    TimeZone tz = zoneId != null ? TimeZone.getTimeZone(zoneId) : TimeZone.getTimeZone("GMT");
     return dateToXmlCalendar(Date.from(instant), tz, locale);
   }
 

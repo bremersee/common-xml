@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
+ * The instant xml adapter.
+ *
  * @author Christian Bremer
  */
 public class InstantXmlAdapter extends XmlAdapter<String, Instant> {
@@ -37,9 +39,18 @@ public class InstantXmlAdapter extends XmlAdapter<String, Instant> {
 
   private Locale locale;
 
+  /**
+   * Instantiates a new instant xml adapter.
+   */
   public InstantXmlAdapter() {
   }
 
+  /**
+   * Instantiates a new instant xml adapter.
+   *
+   * @param zoneId the zone id
+   * @param locale the locale
+   */
   public InstantXmlAdapter(ZoneId zoneId, Locale locale) {
     if (zoneId != null) {
       this.zoneId = zoneId;
@@ -55,7 +66,7 @@ public class InstantXmlAdapter extends XmlAdapter<String, Instant> {
   }
 
   @Override
-  public String marshal(Instant v) throws Exception {
+  public String marshal(Instant v) {
     return Optional
         .ofNullable(instantToXmlCalendar(v, zoneId, locale))
         .map(XMLGregorianCalendar::toXMLFormat)

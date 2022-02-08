@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.bremersee.xml.model1;
 
-import java.util.Objects;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * The type Person.
@@ -27,72 +28,12 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement(name = "person")
 @XmlType(name = "personType")
-@SuppressWarnings("unused")
+@Data
+@NoArgsConstructor
 public class Person {
 
   private String firstName;
 
   private String lastName;
 
-  /**
-   * Gets first name.
-   *
-   * @return the first name
-   */
-  public String getFirstName() {
-    return firstName;
-  }
-
-  /**
-   * Sets first name.
-   *
-   * @param firstName the first name
-   */
-  public void setFirstName(String firstName) {
-    this.firstName = firstName;
-  }
-
-  /**
-   * Gets last name.
-   *
-   * @return the last name
-   */
-  public String getLastName() {
-    return lastName;
-  }
-
-  /**
-   * Sets last name.
-   *
-   * @param lastName the last name
-   */
-  public void setLastName(String lastName) {
-    this.lastName = lastName;
-  }
-
-  @Override
-  public String toString() {
-    return "Person{"
-        + "firstName='" + firstName + '\''
-        + ", lastName='" + lastName + '\''
-        + '}';
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof Person)) {
-      return false;
-    }
-    Person person = (Person) o;
-    return Objects.equals(firstName, person.firstName)
-        && Objects.equals(lastName, person.lastName);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(firstName, lastName);
-  }
 }

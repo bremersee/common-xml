@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ package org.bremersee.xml.model7b;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.bremersee.xml.model7a.Producer;
 
 /**
@@ -33,10 +33,11 @@ import org.bremersee.xml.model7a.Producer;
  */
 @XmlRootElement(name = "SportBikes")
 @XmlType(name = "sportBikesType")
-@XmlAccessorType(XmlAccessType.FIELD)
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class SportBikes extends Producer {
 
-  @XmlElement(name = "Reseller")
+  @XmlTransient
   private List<Producer> chain;
 
   /**
@@ -44,6 +45,7 @@ public class SportBikes extends Producer {
    *
    * @return the chain
    */
+  @XmlElement(name = "Reseller")
   public List<Producer> getChain() {
     if (chain == null) {
       chain = new ArrayList<>();
@@ -51,23 +53,4 @@ public class SportBikes extends Producer {
     return chain;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    if (!super.equals(o)) {
-      return false;
-    }
-    SportBikes that = (SportBikes) o;
-    return Objects.equals(chain, that.chain);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), chain);
-  }
 }

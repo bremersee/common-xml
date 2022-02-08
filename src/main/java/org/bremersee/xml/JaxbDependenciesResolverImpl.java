@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.bremersee.xml;
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.lang.reflect.Modifier.isTransient;
+import static org.springframework.util.ObjectUtils.isEmpty;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -27,7 +28,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -50,6 +50,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
@@ -65,6 +69,8 @@ import org.springframework.util.ReflectionUtils.MethodFilter;
  *
  * @author Christian Bremer
  */
+@SuppressWarnings("SameNameButDifferent")
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
 
   @SuppressWarnings("unchecked")
@@ -85,24 +91,24 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
   };
 
   @Override
-  public Class<?>[] resolveClasses(final Object value) {
-    final Set<ScanResult> scanResults = new HashSet<>();
+  public Class<?>[] resolveClasses(Object value) {
+    Set<ScanResult> scanResults = new HashSet<>();
     if (value instanceof Class<?>[]) {
-      for (Class<?> clazz : ((Class<?>[]) value)) {
+      for (Class<?> clazz : (Class<?>[]) value) {
         resolveClasses(clazz, scanResults);
       }
     } else {
       resolveClasses(value, scanResults);
     }
-    //noinspection FuseStreamOperations
-    return scanResults.stream()
+    return ClassUtils.toClassArray(scanResults
+        .stream()
         .map(ScanResult::getClazz)
-        .collect(Collectors.toSet())
-        .toArray(new Class[0]);
+        .collect(Collectors.toSet()));
   }
 
-  private boolean resolveClasses(final Object value, final Set<ScanResult> scanResults) {
-    if (value == null || stopResolving(ClassUtils.getUserClass(value), value, scanResults)) {
+  private boolean resolveClasses(Object value, Set<ScanResult> scanResults) {
+    if (isEmpty(value)
+        || stopResolving(ClassUtils.getUserClass(value), value, scanResults)) {
       return false;
     }
     if (value instanceof Class) {
@@ -136,7 +142,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     return true;
   }
 
-  private void resolveClasses(final Class<?> clazz, final Set<ScanResult> scanResults) {
+  private void resolveClasses(Class<?> clazz, Set<ScanResult> scanResults) {
     if (stopResolving(clazz, null, scanResults)) {
       return;
     }
@@ -155,9 +161,9 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
   }
 
   private void resolveSuperClasses(
-      final Class<?> clazz,
-      final Object source,
-      final Set<ScanResult> scanResults) {
+      Class<?> clazz,
+      Object source,
+      Set<ScanResult> scanResults) {
 
     if (!stopResolving(clazz, source, scanResults)) {
       scanResults.add(new ScanResult(clazz, source));
@@ -165,20 +171,20 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     }
   }
 
-  private boolean stopResolving(final Class<?> clazz, final Object source,
-      final Set<ScanResult> scanResults) {
-    return clazz == null
+  private boolean stopResolving(Class<?> clazz, Object source,
+      Set<ScanResult> scanResults) {
+    return isEmpty(clazz)
         || (!isAnnotatedWithXml(clazz) && !Collection.class.isAssignableFrom(clazz))
         || scanResults.contains(new ScanResult(clazz, source));
   }
 
-  private boolean isAnnotatedWithXml(final Class<?> clazz) {
+  private boolean isAnnotatedWithXml(Class<?> clazz) {
     return clazz.isAnnotationPresent(XmlRootElement.class)
         || clazz.isAnnotationPresent(XmlType.class);
   }
 
-  private void processXmlAnnotations(final AnnotatedElement element,
-      final Set<ScanResult> scanResults) {
+  private void processXmlAnnotations(AnnotatedElement element,
+      Set<ScanResult> scanResults) {
     processXmlElement(AnnotationUtils.findAnnotation(element, XmlElement.class), scanResults);
     Optional
         .ofNullable(AnnotationUtils.findAnnotation(element, XmlElements.class))
@@ -192,15 +198,15 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
         .ifPresent(a -> Arrays.stream(a).forEach(e -> processXmlElementRef(e, scanResults)));
   }
 
-  private void processXmlElement(final XmlElement annotation, final Set<ScanResult> scanResults) {
+  private void processXmlElement(XmlElement annotation, Set<ScanResult> scanResults) {
     Optional.ofNullable(annotation)
         .map(XmlElement::type)
         .filter(type -> !type.equals(XmlElement.DEFAULT.class))
         .ifPresent(type -> resolveClasses(type, scanResults));
   }
 
-  private void processXmlElementRef(final XmlElementRef annotation,
-      final Set<ScanResult> scanResults) {
+  private void processXmlElementRef(XmlElementRef annotation,
+      Set<ScanResult> scanResults) {
     Optional.ofNullable(annotation)
         .map(XmlElementRef::type)
         .filter(type -> !type.equals(XmlElementRef.DEFAULT.class))
@@ -219,18 +225,16 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
      * @param value the value
      * @param scanResults the scan results
      */
-    XmlFieldCallback(final Object value, final Set<ScanResult> scanResults) {
+    XmlFieldCallback(Object value, Set<ScanResult> scanResults) {
       this.value = value;
       this.scanResults = scanResults;
     }
 
     @Override
-    public void doWith(final Field field) throws IllegalArgumentException {
-      if (!field.isAccessible()) {
-        ReflectionUtils.makeAccessible(field);
-      }
+    public void doWith(@NonNull Field field) throws IllegalArgumentException {
+      ReflectionUtils.makeAccessible(field);
       processXmlAnnotations(field, scanResults);
-      if (value == null) {
+      if (isEmpty(value)) {
         if (Collection.class.isAssignableFrom(field.getType())) {
           for (ResolvableType rt : ResolvableType.forField(field).getGenerics()) {
             resolveClasses(rt.resolve(), scanResults);
@@ -239,8 +243,8 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
           resolveClasses(field.getType(), scanResults);
         }
       } else {
-        final Object fieldValue = ReflectionUtils.getField(field, value);
-        if (fieldValue != null) {
+        Object fieldValue = ReflectionUtils.getField(field, value);
+        if (!isEmpty(fieldValue)) {
           if (fieldValue instanceof Collection && ((Collection<?>) fieldValue).isEmpty()) {
             for (ResolvableType rt : ResolvableType.forField(field).getGenerics()) {
               resolveClasses(rt.resolve(), scanResults);
@@ -273,18 +277,16 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
      * @param value the value
      * @param scanResults the scan results
      */
-    XmlMethodCallback(final Object value, final Set<ScanResult> scanResults) {
+    XmlMethodCallback(Object value, Set<ScanResult> scanResults) {
       this.value = value;
       this.scanResults = scanResults;
     }
 
     @Override
-    public void doWith(final Method method) throws IllegalArgumentException {
-      if (!method.isAccessible()) {
-        ReflectionUtils.makeAccessible(method);
-      }
+    public void doWith(@NonNull Method method) throws IllegalArgumentException {
+      ReflectionUtils.makeAccessible(method);
       processXmlAnnotations(method, scanResults);
-      if (value == null) {
+      if (isEmpty(value)) {
         if (Collection.class.isAssignableFrom(method.getReturnType())) {
           for (ResolvableType rt : ResolvableType.forMethodReturnType(method).getGenerics()) {
             resolveClasses(rt.resolve(), scanResults);
@@ -293,8 +295,8 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
           resolveClasses(method.getReturnType(), scanResults);
         }
       } else {
-        final Object methodValue = ReflectionUtils.invokeMethod(method, value);
-        if (methodValue != null) {
+        Object methodValue = ReflectionUtils.invokeMethod(method, value);
+        if (!isEmpty(methodValue)) {
           if (methodValue instanceof Collection && ((Collection<?>) methodValue).isEmpty()) {
             for (ResolvableType rt : ResolvableType
                 .forMethodReturnType(method, ClassUtils.getUserClass(value))
@@ -311,20 +313,20 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     }
   }
 
-  private static boolean anyXmlAnnotationPresent(final AnnotatedElement element) {
+  private static boolean anyXmlAnnotationPresent(AnnotatedElement element) {
     return Arrays.stream(EXPLICIT_XML_ANNOTATIONS).anyMatch(element::isAnnotationPresent);
   }
 
   private static class XmlFieldFilter implements FieldFilter {
 
-    private XmlAccessType accessType;
+    private final XmlAccessType accessType;
 
     /**
      * Instantiates a new xml field filter.
      *
-     * @param clazz the clazz
+     * @param clazz the class
      */
-    XmlFieldFilter(final Class<?> clazz) {
+    XmlFieldFilter(Class<?> clazz) {
       this.accessType = Optional
           .ofNullable(AnnotationUtils.findAnnotation(clazz, XmlAccessorType.class))
           .map(XmlAccessorType::value)
@@ -335,7 +337,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     }
 
     @Override
-    public boolean matches(final Field field) {
+    public boolean matches(Field field) {
       int modifiers = field.getModifiers();
       if (isStatic(modifiers)
           || isTransient(modifiers)
@@ -356,14 +358,14 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
 
   private static class XmlMethodFilter implements MethodFilter {
 
-    private XmlAccessType accessType;
+    private final XmlAccessType accessType;
 
     /**
      * Instantiates a new xml method filter.
      *
-     * @param clazz the clazz
+     * @param clazz the class
      */
-    XmlMethodFilter(final Class<?> clazz) {
+    XmlMethodFilter(Class<?> clazz) {
       this.accessType = Optional
           .ofNullable(AnnotationUtils.findAnnotation(clazz, XmlAccessorType.class))
           .map(XmlAccessorType::value)
@@ -374,7 +376,7 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     }
 
     @Override
-    public boolean matches(final Method method) {
+    public boolean matches(Method method) {
       int modifiers = method.getModifiers();
       if (isStatic(modifiers)
           || !(method.getName().startsWith("get") || method.getName().startsWith("is"))
@@ -394,6 +396,8 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     }
   }
 
+  @SuppressWarnings("SameNameButDifferent")
+  @EqualsAndHashCode
   private static class ScanResult {
 
     private final Class<?> clazz;
@@ -403,10 +407,10 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     /**
      * Instantiates a new scan result.
      *
-     * @param clazz the clazz
+     * @param clazz the class
      * @param source the source
      */
-    ScanResult(final Class<?> clazz, final Object source) {
+    ScanResult(Class<?> clazz, Object source) {
       Assert.notNull(clazz, "Class must be present.");
       this.clazz = clazz;
       this.source = source;
@@ -415,28 +419,10 @@ class JaxbDependenciesResolverImpl implements JaxbDependenciesResolver {
     /**
      * Gets clazz.
      *
-     * @return the clazz
+     * @return the class
      */
     Class<?> getClazz() {
       return clazz;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      ScanResult that = (ScanResult) o;
-      return clazz.equals(that.clazz) &&
-          Objects.equals(source, that.source);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(clazz, source);
     }
   }
 

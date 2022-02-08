@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,29 @@
 
 package org.bremersee.xml;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
 
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.stream.Stream;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.MarshalException;
 import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.validation.Schema;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.bremersee.xml.adapter.OffsetDateTimeXmlAdapter;
 import org.bremersee.xml.model2.Vehicle;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.w3c.dom.Node;
 
 /**
@@ -48,11 +46,12 @@ import org.w3c.dom.Node;
  *
  * @author Christian Bremer
  */
+@ExtendWith({SoftAssertionsExtension.class})
 class JaxbContextWrapperTest {
 
   private static JAXBContext jaxbContext;
 
-  private static Map<String, JaxbContextData> map;
+  private static JaxbContextDetails detailsOfJaxbContext;
 
   /**
    * Sets up.
@@ -65,113 +64,156 @@ class JaxbContextWrapperTest {
         org.bremersee.xml.model2.ObjectFactory.class.getPackage().getName()
             + ":"
             + org.bremersee.xml.model5.ObjectFactory.class.getPackage().getName());
-
-    map = new HashMap<>();
-    map.put(org.bremersee.xml.model2.ObjectFactory.class.getPackage().getName(),
-        new JaxbContextData(org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
-            "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd"));
-    map.put(org.bremersee.xml.model5.ObjectFactory.class.getPackage().getName(),
-        new JaxbContextData(org.bremersee.xml.model5.ObjectFactory.class.getPackage()));
+    JaxbContextData data0 = new JaxbContextData(
+        org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
+        "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd");
+    JaxbContextData data1 = new JaxbContextData(
+        org.bremersee.xml.model5.ObjectFactory.class.getPackage());
+    detailsOfJaxbContext = Stream.of(data0, data1)
+        .collect(JaxbContextDetails.contextDataCollector());
   }
 
   /**
    * Gets details.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void getDetails() {
+  void getDetails(SoftAssertions softly) {
     JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
-    assertNotNull(wrapper.getDetails());
+    softly.assertThat(wrapper)
+        .isEqualTo(wrapper);
+    softly.assertThat(wrapper)
+        .extracting(JaxbContextWrapper::getDetails)
+        .isNotNull();
 
-    assertEquals(wrapper, wrapper);
-    assertEquals(wrapper, new JaxbContextWrapper(jaxbContext));
-    assertEquals(wrapper.hashCode(), new JaxbContextWrapper(jaxbContext).hashCode());
-    assertEquals(wrapper.toString(), new JaxbContextWrapper(jaxbContext).toString());
-    assertNotEquals(wrapper, null);
-    assertNotEquals(wrapper, new Object());
+    JaxbContextWrapper actual = new JaxbContextWrapper(jaxbContext);
+    softly.assertThat(actual)
+        .isEqualTo(wrapper);
+    softly.assertThat(actual.hashCode())
+        .isEqualTo(wrapper.hashCode());
+    softly.assertThat(actual.toString())
+        .isEqualTo(wrapper.toString());
+    softly.assertThat(actual)
+        .isNotEqualTo(null);
+    softly.assertThat(actual)
+        .isNotEqualTo(new Object());
 
-    JaxbContextBuilderDetails details = new JaxbContextBuilderDetailsImpl(null, map);
-    wrapper = new JaxbContextWrapper(jaxbContext, details);
-    assertNotNull(wrapper.getDetails());
-    assertEquals(details, wrapper.getDetails());
+    wrapper = new JaxbContextWrapper(jaxbContext, detailsOfJaxbContext);
+    softly.assertThat(wrapper)
+        .extracting(JaxbContextWrapper::getDetails)
+        .isEqualTo(detailsOfJaxbContext);
+  }
 
-    assertEquals(wrapper, wrapper);
-    assertEquals(wrapper, new JaxbContextWrapper(jaxbContext, details));
-    assertEquals(wrapper.hashCode(), new JaxbContextWrapper(jaxbContext, details).hashCode());
-    assertEquals(wrapper.toString(), new JaxbContextWrapper(jaxbContext, details).toString());
+  /**
+   * Gets details with jaxb context data stream.
+   *
+   * @throws JAXBException the jaxb exception
+   */
+  @Test
+  void getDetailsWithJaxbContextDataStream() throws JAXBException {
+    JaxbContextData data0 = new JaxbContextData(
+        org.bremersee.xml.model2.ObjectFactory.class.getPackage(),
+        "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd");
+    JaxbContextData data1 = new JaxbContextData(
+        org.bremersee.xml.model5.ObjectFactory.class.getPackage());
+    assertThat(new JaxbContextWrapper(Stream.of(data0, data1)))
+        .extracting(JaxbContextWrapper::getDetails)
+        .isEqualTo(detailsOfJaxbContext);
   }
 
   /**
    * Is formatted output.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void isFormattedOutput() {
+  void isFormattedOutput(SoftAssertions softly) {
     JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
     wrapper.setFormattedOutput(false);
-    assertFalse(wrapper.isFormattedOutput());
-    assertTrue(wrapper.toString().contains("false"));
+    softly.assertThat(wrapper.isFormattedOutput())
+        .isFalse();
+    softly.assertThat(wrapper.toString())
+        .contains("false");
 
     wrapper.setFormattedOutput(true);
-    assertTrue(wrapper.isFormattedOutput());
-    assertTrue(wrapper.toString().contains("true"));
+    softly.assertThat(wrapper.isFormattedOutput())
+        .isTrue();
+    softly.assertThat(wrapper.toString())
+        .contains("true");
   }
 
   /**
    * Gets xml adapters.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void getXmlAdapters() {
+  void getXmlAdapters(SoftAssertions softly) {
     JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
-    assertNull(wrapper.getXmlAdapters());
+    softly.assertThat(wrapper.getXmlAdapters())
+        .isNull();
 
     OffsetDateTimeXmlAdapter adapter = new OffsetDateTimeXmlAdapter();
     wrapper.setXmlAdapters(Collections.singletonList(adapter));
-    assertEquals(Collections.singletonList(adapter), wrapper.getXmlAdapters());
+    softly.assertThat(wrapper.getXmlAdapters())
+        .containsExactly(adapter);
   }
 
   /**
    * Gets attachment marshaller.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void getAttachmentMarshaller() {
+  void getAttachmentMarshaller(SoftAssertions softly) {
     JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
-    assertNull(wrapper.getAttachmentMarshaller());
+    softly.assertThat(wrapper.getAttachmentMarshaller())
+        .isNull();
 
-    AttachmentMarshaller marshaller = Mockito.mock(AttachmentMarshaller.class);
+    AttachmentMarshaller marshaller = mock(AttachmentMarshaller.class);
     wrapper.setAttachmentMarshaller(marshaller);
-    assertNotNull(wrapper.getAttachmentMarshaller());
+    softly.assertThat(wrapper.getAttachmentMarshaller())
+        .isNotNull();
   }
 
   /**
    * Gets attachment unmarshaller.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void getAttachmentUnmarshaller() {
+  void getAttachmentUnmarshaller(SoftAssertions softly) {
     JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
-    assertNull(wrapper.getAttachmentUnmarshaller());
+    softly.assertThat(wrapper.getAttachmentUnmarshaller())
+        .isNull();
 
-    AttachmentUnmarshaller unmarshaller = Mockito.mock(AttachmentUnmarshaller.class);
+    AttachmentUnmarshaller unmarshaller = mock(AttachmentUnmarshaller.class);
     wrapper.setAttachmentUnmarshaller(unmarshaller);
-    assertNotNull(wrapper.getAttachmentUnmarshaller());
+    softly.assertThat(wrapper.getAttachmentUnmarshaller())
+        .isNotNull();
   }
 
   /**
    * Use schema.
    *
+   * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void useSchema() throws Exception {
-    JaxbContextBuilderDetails details = new JaxbContextBuilderDetailsImpl(null, map);
-    JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext, details);
-    assertNull(wrapper.getSchema());
+  void useSchema(SoftAssertions softly) throws Exception {
+    JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext, detailsOfJaxbContext);
+    softly.assertThat(wrapper.getSchema())
+        .isNull();
 
     wrapper.setFormattedOutput(false);
     wrapper.setSchemaMode(SchemaMode.EXTERNAL_XSD);
 
-    Schema schema = SchemaBuilder.builder().buildSchema(
+    Schema schema = SchemaBuilder.newInstance().buildSchema(
         "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd");
     wrapper.setSchema(schema);
-    assertEquals(schema, wrapper.getSchema());
+    softly.assertThat(schema)
+        .isEqualTo(wrapper.getSchema());
 
     Vehicle model = new Vehicle();
     model.setModel("Diabolo");
@@ -189,37 +231,44 @@ class JaxbContextWrapperTest {
     StringWriter sw = new StringWriter();
     wrapper.createMarshaller().marshal(model, sw);
     String actual = sw.toString();
-    assertEquals(expected, actual);
+    softly.assertThat(actual)
+        .isEqualTo(expected);
 
     wrapper.setSchemaMode(SchemaMode.UNMARSHAL);
     Vehicle actualModel = (Vehicle) wrapper.createUnmarshaller()
         .unmarshal(new StringReader(actual));
-    assertEquals(model, actualModel);
+    softly.assertThat(actualModel)
+        .isEqualTo(model);
   }
 
   /**
    * Use schema and expect validation fails.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void useSchemaAndExpectValidationFails() {
-    JaxbContextBuilderDetails details = new JaxbContextBuilderDetailsImpl(null, map);
-    JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext, details);
-    assertNull(wrapper.getSchema());
+  void useSchemaAndExpectValidationFails(SoftAssertions softly) {
+    JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext, detailsOfJaxbContext);
+    softly.assertThat(wrapper.getSchema())
+        .isNull();
 
     wrapper.setFormattedOutput(false);
     wrapper.setSchemaMode(SchemaMode.MARSHAL);
 
-    Schema schema = SchemaBuilder.builder().buildSchema(
+    Schema schema = SchemaBuilder.newInstance().buildSchema(
         "http://bremersee.github.io/xmlschemas/common-xml-test-model-2-with-pattern.xsd");
     wrapper.setSchema(schema);
-    assertEquals(schema, wrapper.getSchema());
+    softly.assertThat(schema)
+        .isEqualTo(wrapper.getSchema());
 
     Vehicle model = new Vehicle();
     model.setModel("Diabolo3");
 
-    assertThrows(
-        MarshalException.class,
-        () -> wrapper.createMarshaller().marshal(model, new StringWriter()));
+    softly
+        .assertThatThrownBy(() -> wrapper.createMarshaller()
+            .marshal(model, new StringWriter()))
+        .extracting(Object::getClass)
+        .isEqualTo(MarshalException.class);
 
     String invalid = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
         + "<vehicle xsi:schemaLocation=\"http://bremersee.org/xmlschemas/common-xml-test-model-2 "
@@ -232,34 +281,44 @@ class JaxbContextWrapperTest {
         + "<model>Diabolo3</model></vehicle>";
 
     wrapper.setSchemaMode(SchemaMode.ALWAYS);
-    assertThrows(
-        UnmarshalException.class,
-        () -> wrapper.createUnmarshaller().unmarshal(new StringReader(invalid)));
+    softly
+        .assertThatThrownBy(() -> wrapper.createUnmarshaller()
+            .unmarshal(new StringReader(invalid)))
+        .extracting(Object::getClass)
+        .isEqualTo(UnmarshalException.class);
   }
 
   /**
    * Gets validation event handler.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void getValidationEventHandler() {
+  void getValidationEventHandler(SoftAssertions softly) {
     JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
-    assertNull(wrapper.getValidationEventHandler());
+    softly.assertThat(wrapper.getValidationEventHandler())
+        .isNull();
 
-    ValidationEventHandler handler = Mockito.mock(ValidationEventHandler.class);
+    ValidationEventHandler handler = mock(ValidationEventHandler.class);
     wrapper.setValidationEventHandler(handler);
-    assertNotNull(wrapper.getValidationEventHandler());
+    softly.assertThat(wrapper.getValidationEventHandler())
+        .isNotNull();
   }
 
   /**
    * Gets schema mode.
+   *
+   * @param softly the soft assertions
    */
   @Test
-  void getSchemaMode() {
+  void getSchemaMode(SoftAssertions softly) {
     JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
-    assertEquals(SchemaMode.NEVER, wrapper.getSchemaMode());
+    softly.assertThat(wrapper.getSchemaMode())
+        .isEqualTo(SchemaMode.NEVER);
 
     wrapper.setSchemaMode(SchemaMode.EXTERNAL_XSD);
-    assertEquals(SchemaMode.EXTERNAL_XSD, wrapper.getSchemaMode());
+    softly.assertThat(wrapper.getSchemaMode())
+        .isEqualTo(SchemaMode.EXTERNAL_XSD);
   }
 
   /**
@@ -268,7 +327,8 @@ class JaxbContextWrapperTest {
   @Test
   void createValidator() {
     JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
-    assertThrows(UnsupportedOperationException.class, wrapper::createValidator);
+    assertThatExceptionOfType(UnsupportedOperationException.class)
+        .isThrownBy(wrapper::createValidator);
   }
 
   /**
@@ -277,7 +337,8 @@ class JaxbContextWrapperTest {
   @Test
   void createBinder() {
     JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
-    assertNotNull(wrapper.createBinder(Node.class));
+    assertThat(wrapper.createBinder(Node.class))
+        .isNotNull();
   }
 
   /**
@@ -286,7 +347,8 @@ class JaxbContextWrapperTest {
   @Test
   void createJaxbIntrospector() {
     JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
-    assertNotNull(wrapper.createJAXBIntrospector());
+    assertThat(wrapper.createJAXBIntrospector())
+        .isNotNull();
   }
 
   /**
@@ -299,6 +361,7 @@ class JaxbContextWrapperTest {
     JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
     BufferSchemaOutputResolver resolver = new BufferSchemaOutputResolver();
     wrapper.generateSchema(resolver);
-    assertNotNull(resolver.toString());
+    assertThat(resolver.toString())
+        .isNotNull();
   }
 }

@@ -7,16 +7,17 @@
   <parent>
     <groupId>org.bremersee</groupId>
     <artifactId>common-parent</artifactId>
-    <version>2.3.1</version>
+    <version>2.4.0</version>
     <relativePath/>
   </parent>
 
   <artifactId>common-xml</artifactId>
-  <version>2.3.1</version>
+  <version>2.4.0</version>
   <packaging>jar</packaging>
 
   <name>common-xml</name>
   <description>Common XML Processing</description>
+  <inceptionYear>2020</inceptionYear>
   <url>https://github.com/bremersee/common-xml</url>
 
   <properties>
@@ -24,6 +25,32 @@
     <gh-pages-staging-dir>${project.build.directory}/staging</gh-pages-staging-dir>
     <inceptionYear>2020</inceptionYear>
   </properties>
+
+  <developers>
+    <developer>
+      <id>bremersee</id>
+      <name>Christian Bremer</name>
+      <organization>bremersee.org</organization>
+      <organizationUrl>https://bremersee.org</organizationUrl>
+      <email>christian@bremersee.org</email>
+      <timezone>+1</timezone>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <organization>
+    <name>bremersee.org</name>
+    <url>https://bremersee.org</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
 
   <scm>
     <url>https://github.com/bremersee/common-xml</url>
@@ -51,6 +78,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
     </dependency>
@@ -67,6 +99,11 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

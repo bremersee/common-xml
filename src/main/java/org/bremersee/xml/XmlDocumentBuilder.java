@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,18 @@ import org.xml.sax.InputSource;
 public interface XmlDocumentBuilder {
 
   /**
+   * Creates default builder instance.
+   *
+   * @return the default builder instance
+   */
+  static XmlDocumentBuilder newInstance() {
+    return new XmlDocumentBuilderImpl();
+  }
+
+  /**
    * Configures the {@link DocumentBuilderFactory}. The default xml document builder has the same
-   * default values as the underlying factory except that {@link DocumentBuilderFactory#setNamespaceAware(boolean)}
-   * is set to {@code true}.
+   * default values as the underlying factory except that
+   * {@link DocumentBuilderFactory#setNamespaceAware(boolean)} is set to {@code true}.
    *
    * @param configurator the configurator
    * @return the xml document builder
@@ -49,8 +58,8 @@ public interface XmlDocumentBuilder {
 
   /**
    * Configures the {@link DocumentBuilderFactory}. The default xml document builder has the same
-   * default values as the underlying factory except that {@link DocumentBuilderFactory#setNamespaceAware(boolean)}
-   * is set to {@code true}.
+   * default values as the underlying factory except that
+   * {@link DocumentBuilderFactory#setNamespaceAware(boolean)} is set to {@code true}.
    *
    * <p>A value with {@code null} will be ignored and the default will be used.
    *
@@ -66,7 +75,7 @@ public interface XmlDocumentBuilder {
    * </pre>
    *
    * @param coalescing the coalescing
-   * @param expandEntityReferences the expand entity references
+   * @param expandEntityReferences the expanded entity references
    * @param ignoringComments the ignoring comments
    * @param ignoringElementContentWhitespace the ignoring element content whitespace
    * @param namespaceAware the namespace aware
@@ -186,7 +195,7 @@ public interface XmlDocumentBuilder {
   Document buildDocument(InputStream is, String systemId);
 
   /**
-   * Builds document from an object (POJO that can be processed with {@link JAXBContext}.
+   * Builds document from an object (POJO) that can be processed with {@link JAXBContext}.
    *
    * @param jaxbElement the jaxb element
    * @param jaxbContext the jaxb context
@@ -202,14 +211,5 @@ public interface XmlDocumentBuilder {
    * @return the document
    */
   Document buildDocument(Object jaxbElement, Marshaller marshaller);
-
-  /**
-   * Creates default builder instance.
-   *
-   * @return the default builder instance
-   */
-  static XmlDocumentBuilder builder() {
-    return new XmlDocumentBuilderImpl();
-  }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,45 +16,75 @@
 
 package org.bremersee.xml.adapter;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.time.Month;
 import java.time.OffsetDateTime;
-import java.time.format.TextStyle;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.time.format.DateTimeFormatter;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * The offset date time xml adapter test.
  *
  * @author Christian Bremer
  */
+@ExtendWith({SoftAssertionsExtension.class})
 class OffsetDateTimeXmlAdapterTest {
 
   /**
-   * Convert.
+   * Marshal.
    *
+   * @param softly the soft assertions
+   */
+  @Test
+  void marshal(SoftAssertions softly) {
+    OffsetDateTimeXmlAdapter adapter = new OffsetDateTimeXmlAdapter();
+
+    softly.assertThat(adapter.marshal(null))
+        .as("OffsetDateTimeXmlAdapter marshal null is null")
+        .isNull();
+
+    OffsetDateTime date = OffsetDateTime
+        .parse("2000-01-16T12:00:00.000Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    String actual = adapter.marshal(date);
+    softly.assertThat(actual)
+        .as("InstantXmlAdapter marshal date")
+        .isEqualTo("2000-01-16T12:00:00.000Z");
+
+    date = OffsetDateTime
+        .parse("2000-01-16T13:00:00.000+01:00", DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    actual = adapter.marshal(date);
+    softly.assertThat(actual)
+        .as("OffsetDateTimeXmlAdapter marshal date with time zone")
+        .isEqualTo("2000-01-16T13:00:00.000+01:00");
+  }
+
+  /**
+   * Unmarshal.
+   *
+   * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void convert() throws Exception {
+  void unmarshal(SoftAssertions softly) throws Exception {
     OffsetDateTimeXmlAdapter adapter = new OffsetDateTimeXmlAdapter();
 
-    assertNull(adapter.marshal(null));
-    assertNull(adapter.unmarshal(null));
+    softly.assertThat(adapter.unmarshal(null))
+        .as("OffsetDateTimeXmlAdapter unmarshal null is null")
+        .isNull();
 
-    String expected = "2000-01-16T13:00:00.000+01:00";
-    OffsetDateTime date = adapter.unmarshal(expected);
-    assertNotNull(date);
-    assertEquals(2000, date.getYear());
-    assertEquals(Month.JANUARY, date.getMonth());
-    assertEquals(16, date.getDayOfMonth());
-    assertEquals(13, date.getHour());
-    assertEquals(0, date.getMinute());
-    assertEquals("+01:00", date.getOffset().getId());
+    OffsetDateTime expected = OffsetDateTime
+        .parse("2000-01-16T12:00:00.000Z", DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    OffsetDateTime actual = adapter.unmarshal("2000-01-16T12:00:00Z");
+    softly.assertThat(actual)
+        .as("OffsetDateTimeXmlAdapter unmarshal xml value")
+        .isEqualTo(expected);
 
-    String actual = adapter.marshal(date);
-    assertEquals(expected, actual);
+    expected = OffsetDateTime
+        .parse("2000-01-16T13:00:00.000+01:00", DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    actual = adapter.unmarshal("2000-01-16T13:00:00.000+01:00");
+    softly.assertThat(actual)
+        .as("OffsetDateTimeXmlAdapter unmarshal xml value with time zone")
+        .isEqualTo(expected);
   }
 }

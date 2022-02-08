@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2022  the original author or authors.
+ * Copyright 2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,11 @@
  */
 
 /**
- * Test model 7b package.
+ * Test model 8 package.
  *
  * @author Christian Bremer
  */
 @javax.xml.bind.annotation.XmlSchema(
-    namespace = "http://bremersee.org/xmlschemas/common-xml-test-model-7b",
-    location = "http://bremersee.github.io/xmlschemas/common-xml-test-model-7b.xsd",
+    namespace = "http://bremersee.org/xmlschemas/common-xml-test-model-8",
     elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
-package org.bremersee.xml.model7b;
+package org.bremersee.xml.model8;

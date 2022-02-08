@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ public class BufferSchemaOutputResolver extends SchemaOutputResolver {
 
   @Override
   public Result createOutput(String namespaceUri, String suggestedFileName) {
-    final StringWriter out = new StringWriter();
-    final StreamResult res = new StreamResult(out);
+    StringWriter out = new StringWriter();
+    StreamResult res = new StreamResult(out);
     res.setSystemId(suggestedFileName);
     buffers.put(namespaceUri, res);
     return res;
@@ -51,7 +51,7 @@ public class BufferSchemaOutputResolver extends SchemaOutputResolver {
 
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder();
+    StringBuilder sb = new StringBuilder();
     for (String s : buffers.keySet()) {
       sb.append("***** Begin schema ").append(s).append(", system-id=").append(getSystemId(s))
           .append(" *****");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,20 +31,23 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * The schema sources resolver.
  *
  * @author Christian Bremer
  */
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 class SchemaSourcesResolver extends SchemaOutputResolver {
 
   private final Map<String, StreamResult> buffers = new LinkedHashMap<>();
 
   @Override
-  public Result createOutput(final String namespaceUri, final String suggestedFileName) {
-    final StringWriter out = new StringWriter();
-    final StreamResult res = new StreamResult(out);
+  public Result createOutput(String namespaceUri, String suggestedFileName) {
+    StringWriter out = new StringWriter();
+    StreamResult res = new StreamResult(out);
     res.setSystemId(suggestedFileName);
     buffers.put(namespaceUri, res);
     return res;
@@ -56,16 +59,16 @@ class SchemaSourcesResolver extends SchemaOutputResolver {
    * @param excludedNameSpaces the excluded name spaces
    * @return the list with the schema sources
    */
-  List<Source> toSources(final Collection<String> excludedNameSpaces) {
-    final Set<String> excluded = Optional.ofNullable(excludedNameSpaces)
+  List<Source> toSources(Collection<String> excludedNameSpaces) {
+    Set<String> excluded = Optional.ofNullable(excludedNameSpaces)
         .map(HashSet::new)
         .orElseGet(HashSet::new);
-    final List<Source> sources = new ArrayList<>(buffers.size());
-    for (final Map.Entry<String, StreamResult> result : buffers.entrySet()) {
+    List<Source> sources = new ArrayList<>(buffers.size());
+    for (Map.Entry<String, StreamResult> result : buffers.entrySet()) {
       if (!excluded.contains(result.getKey())) {
-        final String systemId = result.getValue().getSystemId();
-        final String schema = result.getValue().getWriter().toString();
-        final StreamSource source = new StreamSource(new StringReader(schema), systemId);
+        String systemId = result.getValue().getSystemId();
+        String schema = result.getValue().getWriter().toString();
+        StreamSource source = new StreamSource(new StringReader(schema), systemId);
         sources.add(source);
       }
     }

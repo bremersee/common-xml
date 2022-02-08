@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,13 @@
 
 package org.bremersee.xml;
 
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 import javax.xml.bind.Binder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -33,33 +36,55 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.attachment.AttachmentMarshaller;
 import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.validation.Schema;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * This {@link JAXBContext} will be returned by the {@link JaxbContextBuilder}.
  *
  * @author Christian Bremer
  */
-@SuppressWarnings({"unused", "deprecation"})
+@SuppressWarnings("SameNameButDifferent")
+@EqualsAndHashCode(callSuper = false)
+@ToString(exclude = {"jaxbContext"})
 public class JaxbContextWrapper extends JAXBContext {
 
   private final JAXBContext jaxbContext;
 
-  private final JaxbContextBuilderDetails details;
+  @Getter
+  private final JaxbContextDetails details;
 
+  @Getter
+  @Setter
   private boolean formattedOutput;
 
+  @Getter
+  @Setter
   private List<XmlAdapter<?, ?>> xmlAdapters;
 
+  @Getter
+  @Setter
   private AttachmentMarshaller attachmentMarshaller;
 
+  @Getter
+  @Setter
   private AttachmentUnmarshaller attachmentUnmarshaller;
 
+  @Getter
+  @Setter
   private ValidationEventHandler validationEventHandler;
 
+  @Getter
+  @Setter
   private Schema schema;
 
+  @Getter
+  @Setter
+  @NonNull
   private SchemaMode schemaMode = SchemaMode.NEVER;
 
   /**
@@ -68,8 +93,23 @@ public class JaxbContextWrapper extends JAXBContext {
    * @param jaxbContext the jaxb context
    */
   public JaxbContextWrapper(
-      final JAXBContext jaxbContext) {
+      JAXBContext jaxbContext) {
     this(jaxbContext, null);
+  }
+
+  /**
+   * Instantiates a new jaxb context wrapper.
+   *
+   * @param data the data
+   * @param classLoaders the class loaders
+   * @throws JAXBException the jaxb exception
+   */
+  public JaxbContextWrapper(Stream<JaxbContextData> data, ClassLoader... classLoaders)
+      throws JAXBException {
+    Assert.notNull(data, "Stream of jaxb context data must be present.");
+    this.details = data.collect(JaxbContextDetails.contextDataCollector());
+    Assert.isTrue(!details.isEmpty(), "There is no jaxb model.");
+    this.jaxbContext = JAXBContext.newInstance(this.details.getClasses(classLoaders));
   }
 
   /**
@@ -78,169 +118,31 @@ public class JaxbContextWrapper extends JAXBContext {
    * @param jaxbContext the jaxb context
    * @param details the details
    */
-  public JaxbContextWrapper(
-      final JAXBContext jaxbContext,
-      final JaxbContextBuilderDetails details) {
+  JaxbContextWrapper(
+      JAXBContext jaxbContext,
+      JaxbContextDetails details) {
     Assert.notNull(jaxbContext, "Jaxb context must be present.");
     this.jaxbContext = jaxbContext;
-    this.details = details != null ? details : new JaxbContextBuilderDetailsImpl();
-  }
-
-  /**
-   * Gets details.
-   *
-   * @return the details
-   */
-  public JaxbContextBuilderDetails getDetails() {
-    return details;
-  }
-
-  /**
-   * Return {@code true} if the output is formatted, otherwise {@code false}.
-   *
-   * @return {@code true} if the output is formatted, otherwise {@code false}
-   */
-  public boolean isFormattedOutput() {
-    return formattedOutput;
-  }
-
-  /**
-   * Sets formatted output.
-   *
-   * @param formattedOutput the formatted output
-   */
-  public void setFormattedOutput(boolean formattedOutput) {
-    this.formattedOutput = formattedOutput;
-  }
-
-  /**
-   * Gets xml adapters.
-   *
-   * @return the xml adapters
-   */
-  public List<XmlAdapter<?, ?>> getXmlAdapters() {
-    return xmlAdapters;
-  }
-
-  /**
-   * Sets xml adapters.
-   *
-   * @param xmlAdapters the xml adapters
-   */
-  public void setXmlAdapters(List<XmlAdapter<?, ?>> xmlAdapters) {
-    this.xmlAdapters = xmlAdapters;
-  }
-
-  /**
-   * Gets attachment marshaller.
-   *
-   * @return the attachment marshaller
-   */
-  public AttachmentMarshaller getAttachmentMarshaller() {
-    return attachmentMarshaller;
-  }
-
-  /**
-   * Sets attachment marshaller.
-   *
-   * @param attachmentMarshaller the attachment marshaller
-   */
-  public void setAttachmentMarshaller(AttachmentMarshaller attachmentMarshaller) {
-    this.attachmentMarshaller = attachmentMarshaller;
-  }
-
-  /**
-   * Gets attachment unmarshaller.
-   *
-   * @return the attachment unmarshaller
-   */
-  public AttachmentUnmarshaller getAttachmentUnmarshaller() {
-    return attachmentUnmarshaller;
-  }
-
-  /**
-   * Sets attachment unmarshaller.
-   *
-   * @param attachmentUnmarshaller the attachment unmarshaller
-   */
-  public void setAttachmentUnmarshaller(
-      AttachmentUnmarshaller attachmentUnmarshaller) {
-    this.attachmentUnmarshaller = attachmentUnmarshaller;
-  }
-
-  /**
-   * Gets schema.
-   *
-   * @return the schema
-   */
-  public Schema getSchema() {
-    return schema;
-  }
-
-  /**
-   * Sets schema.
-   *
-   * @param schema the schema
-   */
-  public void setSchema(Schema schema) {
-    this.schema = schema;
-  }
-
-  /**
-   * Gets validation event handler.
-   *
-   * @return the validation event handler
-   */
-  public ValidationEventHandler getValidationEventHandler() {
-    return validationEventHandler;
-  }
-
-  /**
-   * Sets validation event handler.
-   *
-   * @param validationEventHandler the validation event handler
-   */
-  public void setValidationEventHandler(
-      ValidationEventHandler validationEventHandler) {
-    this.validationEventHandler = validationEventHandler;
-  }
-
-  /**
-   * Gets schema mode.
-   *
-   * @return the schema mode
-   */
-  public SchemaMode getSchemaMode() {
-    return schemaMode;
-  }
-
-  /**
-   * Sets schema mode.
-   *
-   * @param schemaMode the schema mode
-   */
-  public void setSchemaMode(SchemaMode schemaMode) {
-    if (schemaMode != null) {
-      this.schemaMode = schemaMode;
-    }
+    this.details = Optional.ofNullable(details)
+        .orElseGet(JaxbContextDetails::empty);
   }
 
   @Override
   public Unmarshaller createUnmarshaller() throws JAXBException {
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-    if (xmlAdapters != null) {
+    if (!isEmpty(xmlAdapters)) {
       xmlAdapters.forEach(unmarshaller::setAdapter);
     }
-    if (attachmentUnmarshaller != null) {
+    if (!isEmpty(attachmentUnmarshaller)) {
       unmarshaller.setAttachmentUnmarshaller(attachmentUnmarshaller);
     }
-    if (schema != null && (schemaMode == SchemaMode.ALWAYS
+    if (!isEmpty(schema) && (schemaMode == SchemaMode.ALWAYS
         || schemaMode == SchemaMode.UNMARSHAL
-        || (schemaMode == SchemaMode.EXTERNAL_XSD
-        && StringUtils.hasText(details.getSchemaLocation())))) {
+        || schemaMode == SchemaMode.EXTERNAL_XSD)
+        && !isEmpty(details.getSchemaLocation())) {
       unmarshaller.setSchema(schema);
     }
-    if (validationEventHandler != null) {
+    if (!isEmpty(validationEventHandler)) {
       unmarshaller.setEventHandler(validationEventHandler);
     }
     return unmarshaller;
@@ -248,25 +150,25 @@ public class JaxbContextWrapper extends JAXBContext {
 
   @Override
   public Marshaller createMarshaller() throws JAXBException {
-    final Marshaller marshaller = jaxbContext.createMarshaller();
+    Marshaller marshaller = jaxbContext.createMarshaller();
     marshaller.setProperty(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.name());
     marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formattedOutput);
-    if (StringUtils.hasText(details.getSchemaLocation())) {
+    if (!isEmpty(details.getSchemaLocation())) {
       marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, details.getSchemaLocation());
     }
-    if (xmlAdapters != null) {
+    if (!isEmpty(xmlAdapters)) {
       xmlAdapters.forEach(marshaller::setAdapter);
     }
-    if (attachmentMarshaller != null) {
+    if (!isEmpty(attachmentMarshaller)) {
       marshaller.setAttachmentMarshaller(attachmentMarshaller);
     }
-    if (schema != null && (schemaMode == SchemaMode.ALWAYS
+    if (!isEmpty(schema) && (schemaMode == SchemaMode.ALWAYS
         || schemaMode == SchemaMode.MARSHAL
-        || (schemaMode == SchemaMode.EXTERNAL_XSD
-        && StringUtils.hasText(details.getSchemaLocation())))) {
+        || schemaMode == SchemaMode.EXTERNAL_XSD)
+        && !isEmpty(details.getSchemaLocation())) {
       marshaller.setSchema(schema);
     }
-    if (validationEventHandler != null) {
+    if (!isEmpty(validationEventHandler)) {
       marshaller.setEventHandler(validationEventHandler);
     }
     return marshaller;
@@ -292,43 +194,4 @@ public class JaxbContextWrapper extends JAXBContext {
     jaxbContext.generateSchema(outputResolver);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    JaxbContextWrapper wrapper = (JaxbContextWrapper) o;
-    return formattedOutput == wrapper.formattedOutput
-        && jaxbContext.equals(wrapper.jaxbContext)
-        && Objects.equals(details, wrapper.details)
-        && Objects.equals(xmlAdapters, wrapper.xmlAdapters)
-        && Objects.equals(attachmentMarshaller, wrapper.attachmentMarshaller)
-        && Objects.equals(attachmentUnmarshaller, wrapper.attachmentUnmarshaller)
-        && Objects.equals(validationEventHandler, wrapper.validationEventHandler)
-        && Objects.equals(schema, wrapper.schema)
-        && schemaMode == wrapper.schemaMode;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(jaxbContext, details, formattedOutput, xmlAdapters, attachmentMarshaller,
-        attachmentUnmarshaller, validationEventHandler, schema, schemaMode);
-  }
-
-  @Override
-  public String toString() {
-    return "JaxbContextWrapper {"
-        + "details=" + details
-        + ", formattedOutput=" + formattedOutput
-        + ", xmlAdapters=" + xmlAdapters
-        + ", attachmentMarshaller=" + attachmentMarshaller
-        + ", attachmentUnmarshaller=" + attachmentUnmarshaller
-        + ", validationEventHandler=" + validationEventHandler
-        + ", schema=" + schema
-        + ", schemaMode=" + schemaMode
-        + '}';
-  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.bremersee.xml;
 
+import static java.util.Objects.isNull;
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +29,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.validation.Schema;
+import lombok.ToString;
 import org.w3c.dom.Document;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.ErrorHandler;
@@ -37,6 +41,8 @@ import org.xml.sax.SAXException;
  *
  * @author Christian Bremer
  */
+@SuppressWarnings("SameNameButDifferent")
+@ToString
 class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
 
   private final DocumentBuilderFactory factory;
@@ -55,8 +61,8 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
 
   @Override
   public XmlDocumentBuilder configureFactory(
-      final XmlDocumentBuilderFactoryConfigurator configurator) {
-    if (configurator != null) {
+      XmlDocumentBuilderFactoryConfigurator configurator) {
+    if (!isEmpty(configurator)) {
       configurator.configure(factory);
     }
     return this;
@@ -64,46 +70,46 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
 
   @Override
   public XmlDocumentBuilder configureFactory(
-      final Boolean coalescing,
-      final Boolean expandEntityReferences,
-      final Boolean ignoringComments,
-      final Boolean ignoringElementContentWhitespace,
-      final Boolean namespaceAware,
-      final Boolean validating,
-      final Boolean xIncludeAware) {
+      Boolean coalescing,
+      Boolean expandEntityReferences,
+      Boolean ignoringComments,
+      Boolean ignoringElementContentWhitespace,
+      Boolean namespaceAware,
+      Boolean validating,
+      Boolean xIncludeAware) {
 
-    if (coalescing != null) {
+    if (!isEmpty(coalescing)) {
       factory.setCoalescing(coalescing);
     }
-    if (expandEntityReferences != null) {
+    if (!isEmpty(expandEntityReferences)) {
       factory.setExpandEntityReferences(expandEntityReferences);
     }
-    if (ignoringComments != null) {
+    if (!isEmpty(ignoringComments)) {
       factory.setIgnoringComments(ignoringComments);
     }
-    if (ignoringElementContentWhitespace != null) {
+    if (!isEmpty(ignoringElementContentWhitespace)) {
       factory.setIgnoringElementContentWhitespace(ignoringElementContentWhitespace);
     }
-    if (namespaceAware != null) {
+    if (!isEmpty(namespaceAware)) {
       factory.setNamespaceAware(namespaceAware);
     }
-    if (validating != null) {
+    if (!isEmpty(validating)) {
       factory.setValidating(validating);
     }
-    if (xIncludeAware != null) {
+    if (!isEmpty(xIncludeAware)) {
       factory.setXIncludeAware(xIncludeAware);
     }
     return this;
   }
 
   @Override
-  public XmlDocumentBuilder configureFactoryAttribute(final String name, final Object value) {
+  public XmlDocumentBuilder configureFactoryAttribute(String name, Object value) {
     factory.setAttribute(name, value);
     return this;
   }
 
   @Override
-  public XmlDocumentBuilder configureFactoryFeature(final String name, final boolean value) {
+  public XmlDocumentBuilder configureFactoryFeature(String name, boolean value) {
     try {
       factory.setFeature(name, value);
     } catch (ParserConfigurationException e) {
@@ -113,7 +119,7 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
   }
 
   @Override
-  public XmlDocumentBuilder configureFactorySchema(final Schema schema) {
+  public XmlDocumentBuilder configureFactorySchema(Schema schema) {
     factory.setSchema(schema);
     return this;
   }
@@ -132,16 +138,16 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
 
   @Override
   public DocumentBuilder buildDocumentBuilder() {
-    final DocumentBuilder documentBuilder;
+    DocumentBuilder documentBuilder;
     try {
       documentBuilder = factory.newDocumentBuilder();
     } catch (ParserConfigurationException e) {
       throw new XmlRuntimeException(e);
     }
-    if (entityResolver != null) {
+    if (!isEmpty(entityResolver)) {
       documentBuilder.setEntityResolver(entityResolver);
     }
-    if (errorHandler != null) {
+    if (!isEmpty(errorHandler)) {
       documentBuilder.setErrorHandler(errorHandler);
     }
     return documentBuilder;
@@ -204,7 +210,7 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
 
   @Override
   public Document buildDocument(Object jaxbElement, JAXBContext jaxbContext) {
-    if (jaxbElement == null) {
+    if (isNull(jaxbElement)) {
       return null;
     }
     try {
@@ -216,10 +222,10 @@ class XmlDocumentBuilderImpl implements XmlDocumentBuilder {
 
   @Override
   public Document buildDocument(Object jaxbElement, Marshaller marshaller) {
-    if (jaxbElement == null) {
+    if (isNull(jaxbElement)) {
       return null;
     }
-    final Document document = buildDocument();
+    Document document = buildDocument();
     try {
       marshaller.marshal(jaxbElement, document);
     } catch (JAXBException e) {

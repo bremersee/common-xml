@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,15 @@ import org.xml.sax.ErrorHandler;
  * @author Christian Bremer
  */
 public interface SchemaBuilder {
+
+  /**
+   * Creates a new schema builder.
+   *
+   * @return the schema builder
+   */
+  static SchemaBuilder newInstance() {
+    return new SchemaBuilderImpl();
+  }
 
   /**
    * Copy schema builder.
@@ -216,15 +225,6 @@ public interface SchemaBuilder {
     return Optional.ofNullable(sources)
         .map(c -> buildSchema(c.toArray(new Source[0])))
         .orElseGet(() -> buildSchema((Source[]) null));
-  }
-
-  /**
-   * Creates a new schema builder.
-   *
-   * @return the schema builder
-   */
-  static SchemaBuilder builder() {
-    return new SchemaBuilderImpl();
   }
 
 }

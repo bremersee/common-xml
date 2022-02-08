@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,70 @@
 
 package org.bremersee.xml.adapter;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
 import java.util.Locale;
 import java.util.TimeZone;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * The epoch milli xml adapter test.
  *
  * @author Christian Bremer
  */
+@ExtendWith({SoftAssertionsExtension.class})
 class EpochMilliXmlAdapterTest {
 
   /**
-   * Convert.
+   * Marshal.
    *
+   * @param softly the soft assertions
+   */
+  @Test
+  void marshal(SoftAssertions softly) {
+    EpochMilliXmlAdapter adapter = new EpochMilliXmlAdapter();
+
+    softly.assertThat(adapter.marshal(null))
+        .as("EpochMilliXmlAdapter marshal null is null")
+        .isNull();
+
+    long millis = 948024000000L;
+    String actual = adapter.marshal(millis);
+    softly.assertThat(actual)
+        .as("EpochMilliXmlAdapter marshal millis")
+        .isEqualTo("2000-01-16T12:00:00.000Z");
+
+    adapter = new EpochMilliXmlAdapter(TimeZone.getTimeZone("Europe/Berlin"), Locale.GERMANY);
+    actual = adapter.marshal(millis);
+    softly.assertThat(actual)
+        .as("EpochMilliXmlAdapter marshal millis with time zone")
+        .isEqualTo("2000-01-16T13:00:00.000+01:00");
+  }
+
+  /**
+   * Unmarshal.
+   *
+   * @param softly the soft assertions
    * @throws Exception the exception
    */
   @Test
-  void convert() throws Exception {
+  void unmarshal(SoftAssertions softly) throws Exception {
     EpochMilliXmlAdapter adapter = new EpochMilliXmlAdapter();
 
-    assertNull(adapter.marshal(null));
-    assertNull(adapter.unmarshal(null));
+    softly.assertThat(adapter.unmarshal(null))
+        .as("EpochMilliXmlAdapter unmarshal null is null")
+        .isNull();
 
-    String expected = "2000-01-16T12:00:00.000Z";
-    Long date = adapter.unmarshal("2000-01-16T12:00:00Z");
-    assertNotNull(date);
-    String actual = adapter.marshal(date);
-    assertEquals(expected, actual);
+    long expected = 948024000000L;
+    Long actual = adapter.unmarshal("2000-01-16T12:00:00Z");
+    softly.assertThat(actual)
+        .as("EpochMilliXmlAdapter unmarshal xml value")
+        .isEqualTo(expected);
 
-    adapter = new EpochMilliXmlAdapter(TimeZone.getTimeZone("Europe/Berlin"), Locale.GERMANY);
-    actual = adapter.marshal(date);
-    assertEquals("2000-01-16T13:00:00.000+01:00", actual);
+    actual = adapter.unmarshal("2000-01-16T13:00:00.000+01:00");
+    softly.assertThat(actual)
+        .as("EpochMilliXmlAdapter unmarshal xml value with time zone")
+        .isEqualTo(expected);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2020 the original author or authors.
+ * Copyright 2020-2022  the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 package org.bremersee.xml;
 
+import static org.springframework.util.ObjectUtils.isEmpty;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,10 +36,13 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.reflections.util.ClasspathHelper;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
@@ -50,6 +54,9 @@ import org.xml.sax.SAXNotSupportedException;
  *
  * @author Christian Bremer
  */
+@SuppressWarnings("SameNameButDifferent")
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@ToString
 class SchemaBuilderImpl implements SchemaBuilder {
 
   /**
@@ -98,25 +105,21 @@ class SchemaBuilderImpl implements SchemaBuilder {
    * @return the schema factory
    */
   SchemaFactory createSchemaFactory() {
-    final SchemaFactory schemaFactory;
-    if (factoryClassName != null) {
-      if (classLoader == null) {
-        if (System.getSecurityManager() == null) {
-          classLoader = Thread.currentThread().getContextClassLoader();
-        } else {
-          //noinspection unchecked,rawtypes
-          classLoader = (ClassLoader) java.security.AccessController.doPrivileged(
-              (PrivilegedAction) () -> Thread.currentThread().getContextClassLoader());
-        }
+    SchemaFactory schemaFactory;
+    if (!isEmpty(factoryClassName)) {
+      if (isEmpty(classLoader)) {
+        schemaFactory = SchemaFactory
+            .newInstance(schemaLanguage, factoryClassName, ClasspathHelper.contextClassLoader());
+      } else {
+        schemaFactory = SchemaFactory.newInstance(schemaLanguage, factoryClassName, classLoader);
       }
-      schemaFactory = SchemaFactory.newInstance(schemaLanguage, factoryClassName, classLoader);
     } else {
       schemaFactory = SchemaFactory.newInstance(schemaLanguage);
     }
-    if (resourceResolver != null) {
+    if (!isEmpty(resourceResolver)) {
       schemaFactory.setResourceResolver(resourceResolver);
     }
-    if (errorHandler != null) {
+    if (!isEmpty(errorHandler)) {
       schemaFactory.setErrorHandler(errorHandler);
     }
     try {
@@ -148,83 +151,82 @@ class SchemaBuilderImpl implements SchemaBuilder {
   }
 
   @Override
-  public SchemaBuilder withSchemaLanguage(final String schemaLanguage) {
-    if (StringUtils.hasText(schemaLanguage)) {
+  public SchemaBuilder withSchemaLanguage(String schemaLanguage) {
+    if (isEmpty(schemaLanguage)) {
       this.schemaLanguage = schemaLanguage;
     }
     return this;
   }
 
   @Override
-  public SchemaBuilder withFactory(final String factoryClassName) {
+  public SchemaBuilder withFactory(String factoryClassName) {
     this.factoryClassName = factoryClassName;
     return this;
   }
 
   @Override
-  public SchemaBuilder withClassLoader(final ClassLoader classLoader) {
+  public SchemaBuilder withClassLoader(ClassLoader classLoader) {
     this.classLoader = classLoader;
     return this;
   }
 
   @Override
-  public SchemaBuilder withResourceLoader(final ResourceLoader resourceLoader) {
-    if (resourceLoader != null) {
+  public SchemaBuilder withResourceLoader(ResourceLoader resourceLoader) {
+    if (!isEmpty(resourceLoader)) {
       this.resourceLoader = resourceLoader;
     }
     return this;
   }
 
   @Override
-  public SchemaBuilder withResourceResolver(final LSResourceResolver resourceResolver) {
+  public SchemaBuilder withResourceResolver(LSResourceResolver resourceResolver) {
     this.resourceResolver = resourceResolver;
     return this;
   }
 
   @Override
-  public SchemaBuilder withErrorHandler(final ErrorHandler errorHandler) {
+  public SchemaBuilder withErrorHandler(ErrorHandler errorHandler) {
     this.errorHandler = errorHandler;
     return this;
   }
 
   @Override
-  public SchemaBuilder withFeature(final String name, final Boolean value) {
-    if (StringUtils.hasText(name)) {
+  public SchemaBuilder withFeature(String name, Boolean value) {
+    if (!isEmpty(name)) {
       features.put(name, value);
     }
     return this;
   }
 
   @Override
-  public SchemaBuilder withProperty(final String name, final Object value) {
-    if (StringUtils.hasText(name)) {
+  public SchemaBuilder withProperty(String name, Object value) {
+    if (!isEmpty(name)) {
       properties.put(name, value);
     }
     return this;
   }
 
   @Override
-  public List<Source> fetchSchemaSources(final Collection<String> locations) {
-    if (locations == null || locations.size() == 0) {
-      return Collections.emptyList();
-    }
-    final Set<String> locationSet = new LinkedHashSet<>(locations);
-    final List<Source> sources = new ArrayList<>(locationSet.size());
-    for (final String location : locationSet) {
-      try (InputStream is = resourceLoader.getResource(location).getInputStream()) {
-        final byte[] bytes = FileCopyUtils.copyToByteArray(is);
-        sources.add(new StreamSource(new ByteArrayInputStream(bytes)));
-      } catch (IOException e) {
-        throw new XmlRuntimeException(e);
+  public List<Source> fetchSchemaSources(Collection<String> locations) {
+    List<Source> sources = new ArrayList<>();
+    if (!isEmpty(locations)) {
+      Set<String> locationSet = new LinkedHashSet<>(locations);
+      for (String location : locationSet) {
+        try (InputStream is = resourceLoader.getResource(location).getInputStream()) {
+          byte[] bytes = FileCopyUtils.copyToByteArray(is);
+          sources.add(new StreamSource(new ByteArrayInputStream(bytes)));
+        } catch (IOException e) {
+          throw new XmlRuntimeException(e);
+        }
       }
     }
-    return sources;
+    return Collections.unmodifiableList(sources);
   }
 
   @Override
-  public Schema buildSchema(final URL url) {
+  public Schema buildSchema(URL url) {
     try {
-      if (url == null) {
+      if (isEmpty(url)) {
         return createSchemaFactory().newSchema();
       }
       return createSchemaFactory().newSchema(url);
@@ -234,9 +236,9 @@ class SchemaBuilderImpl implements SchemaBuilder {
   }
 
   @Override
-  public Schema buildSchema(final File file) {
+  public Schema buildSchema(File file) {
     try {
-      if (file == null) {
+      if (isEmpty(file)) {
         return createSchemaFactory().newSchema();
       }
       return createSchemaFactory().newSchema(file);
@@ -246,9 +248,9 @@ class SchemaBuilderImpl implements SchemaBuilder {
   }
 
   @Override
-  public Schema buildSchema(final Source[] sources) {
+  public Schema buildSchema(Source[] sources) {
     try {
-      if (sources == null || sources.length == 0) {
+      if (isEmpty(sources)) {
         return createSchemaFactory().newSchema();
       }
       return createSchemaFactory().newSchema(sources);
