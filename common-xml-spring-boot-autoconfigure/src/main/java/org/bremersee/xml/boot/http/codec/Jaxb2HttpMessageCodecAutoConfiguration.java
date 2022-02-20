@@ -37,7 +37,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 
 /**
- * The http message jaxb codecs autoconfiguration.
+ * The Jaxb 2 http message codec autoconfiguration.
  *
  * @author Christian Bremer
  */

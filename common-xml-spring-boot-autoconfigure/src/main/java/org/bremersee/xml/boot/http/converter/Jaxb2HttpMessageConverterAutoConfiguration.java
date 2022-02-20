@@ -33,7 +33,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.util.ClassUtils;
 
 /**
- * The http message converter configuration.
+ * The Jaxb 2 http message converter autoconfiguration.
  *
  * @author Christian Bremer
  */
