@@ -42,7 +42,7 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
  * @author Christian Bremer
  */
 @ConditionalOnWebApplication(type = Type.REACTIVE)
-@ConditionalOnClass(JaxbContextBuilder.class)
+@ConditionalOnClass({WebFluxConfigurer.class, JaxbContextBuilder.class})
 @ConditionalOnBean(JaxbContextBuilder.class)
 @AutoConfigureAfter(JaxbContextBuilderAutoConfiguration.class)
 @Configuration
