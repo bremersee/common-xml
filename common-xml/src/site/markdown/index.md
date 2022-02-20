@@ -1,6 +1,4 @@
-# Common XML Processing
-
-[![codecov](https://codecov.io/gh/bremersee/common-xml/branch/develop/graph/badge.svg)](https://codecov.io/gh/bremersee/common-xml)
+# Common XML
 
 This library contains
 
@@ -12,12 +10,6 @@ This library contains
 - a JAXB context builder (`JaxbContextBuilder`) which is able to generate a JAXB context on runtime,
 - a schema builder (`SchemaBuilder`)
 - and a xml document builder (`XmlDocumentBuilder`).
-
-#### Maven Site
-
-- [Release](https://bremersee.github.io/common-xml/index.html)
-
-- [Snapshot](https://nexus.bremersee.org/repository/maven-sites/common-xml/2.5.0-SNAPSHOT/index.html)
 
 ## Usage of JaxbContextBuilder
 
@@ -67,10 +59,10 @@ public class Example {
   public static void main(String[] args) {
     JAXBContext jaxbContext = JaxbContextBuilder
         .newInstance()
-        .add(new JaxbContextData(org.example.model.foo.Model.class.getPackage()))
-        .add(new JaxbContextData(org.example.model.bar.Model.class.getPackage()))
-        .add(new JaxbContextData(org.example.model.foobar.ModelWithXmlRootAnnotation.class))    
-        .buildJaxbContext();
+            .add(new JaxbContextData(org.example.model.foo.Model.class.getPackage()))
+            .add(new JaxbContextData(org.example.model.bar.Model.class.getPackage()))
+            .add(new JaxbContextData(org.example.model.foobar.ModelWithXmlRootAnnotation.class))
+            .buildJaxbContext();
   }
 }
 ```
