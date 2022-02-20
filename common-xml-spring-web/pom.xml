@@ -42,4 +42,30 @@
     </license>
   </licenses>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.bremersee</groupId>
+      <artifactId>common-xml</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+    </dependency>
+
+    <!-- TODO use other model -->
+    <dependency>
+      <groupId>org.bremersee</groupId>
+      <artifactId>common-model</artifactId>
+      <version>2.3.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
 </project>
