@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>common-xml-parent</artifactId>
+    <groupId>org.bremersee</groupId>
+    <version>2.5.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>common-xml-spring-webflux</artifactId>
+
+  <name>Common Xml Spring WebFlux</name>
+  <description>
+    Xml for Spring WebFlux.
+  </description>
+
+  <developers>
+    <developer>
+      <id>bremersee</id>
+      <name>Christian Bremer</name>
+      <organization>bremersee.org</organization>
+      <organizationUrl>https://bremersee.org</organizationUrl>
+      <email>christian@bremersee.org</email>
+      <timezone>+1</timezone>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <organization>
+    <name>bremersee.org</name>
+    <url>https://bremersee.org</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+
+</project>

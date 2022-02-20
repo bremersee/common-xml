@@ -22,6 +22,9 @@
 
   <modules>
     <module>common-xml</module>
+    <module>common-xml-spring-web</module>
+    <module>common-xml-spring-webflux</module>
+    <module>common-xml-spring-boot-autoconfigure</module>
   </modules>
 
   <properties>
