@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bremersee.xml.JaxbContextBuilder;
 import org.bremersee.xml.JaxbContextDataProvider;
 import org.bremersee.xml.http.codec.ReactiveJaxbDecoder;
+import org.bremersee.xml.http.codec.ReactiveJaxbEncoder;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration;
@@ -57,6 +58,9 @@ public class WebConfiguration implements WebFluxConfigurer {
     configurer
         .customCodecs()
         .registerWithDefaultConfig(new ReactiveJaxbDecoder(jaxbContextBuilder));
+    configurer
+        .customCodecs()
+        .registerWithDefaultConfig(new ReactiveJaxbEncoder(jaxbContextBuilder));
   }
 
 }
