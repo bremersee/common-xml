@@ -21,6 +21,7 @@
   <url>https://github.com/bremersee/common-xml</url>
 
   <modules>
+    <module>common-xml-adapter</module>
     <module>common-xml</module>
     <module>common-xml-spring-web</module>
     <module>common-xml-spring-webflux</module>
