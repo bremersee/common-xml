@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.springframework.util.Assert;
 
 /**
@@ -33,16 +34,20 @@ import org.springframework.util.Assert;
  */
 @SuppressWarnings("SameNameButDifferent")
 @EqualsAndHashCode
-public final class JaxbContextData implements Comparable<JaxbContextData> {
+public final class JaxbContextData implements JaxbContextMember, Comparable<JaxbContextData> {
 
+  @Getter
   private final Class<?> clazz;
 
+  @Getter
   private final String clazzElementSchemaLocation;
 
+  @Getter
   private final String clazzTypeSchemaLocation;
 
   private final Package pakkage;
 
+  @Getter
   private final String pakkageSchemaLocation;
 
   /**
@@ -66,31 +71,10 @@ public final class JaxbContextData implements Comparable<JaxbContextData> {
       String clazzElementSchemaLocation,
       String clazzTypeSchemaLocation) {
 
-    Assert.notNull(clazz, "Class must be present.");
-    if (JaxbUtils.isInJaxbModelPackage(clazz)) {
-      this.pakkage = clazz.getPackage();
-      this.pakkageSchemaLocation = JaxbUtils
-          .getSchemaLocation(this.pakkage)
-          .orElse(null);
-      this.clazz = null;
-      this.clazzElementSchemaLocation = null;
-      this.clazzTypeSchemaLocation = null;
-    } else if (clazz.isAnnotationPresent(XmlRootElement.class)
-        || clazz.isAnnotationPresent(XmlType.class)) {
-      this.clazz = clazz;
-      this.clazzElementSchemaLocation = Optional.ofNullable(clazzElementSchemaLocation)
-          .filter(location -> !location.isBlank())
-          .orElse(null);
-      this.clazzTypeSchemaLocation = Optional.ofNullable(clazzTypeSchemaLocation)
-          .filter(location -> !location.isBlank())
-          .orElse(null);
-      this.pakkage = null;
-      this.pakkageSchemaLocation = null;
-    } else {
-      throw new IllegalArgumentException(String.format(
-          "Class '%s' is not annotated with XmlRootElement or XmlType nor it is a member a jaxb "
-              + "context package.", clazz.getName()));
-    }
+    this(validate(JaxbContextMember.byClass(clazz)
+        .clazzElementSchemaLocation(clazzElementSchemaLocation)
+        .clazzTypeSchemaLocation(clazzTypeSchemaLocation)
+        .build()));
   }
 
   /**
@@ -109,28 +93,12 @@ public final class JaxbContextData implements Comparable<JaxbContextData> {
    * @param pakkageSchemaLocation the package schema location
    */
   public JaxbContextData(Class<?> clazz, String pakkageSchemaLocation) {
-    Assert.notNull(clazz, "Class must be present.");
-    if (JaxbUtils.isInJaxbModelPackage(clazz)) {
-      this.pakkage = clazz.getPackage();
-      this.pakkageSchemaLocation = Optional.ofNullable(pakkageSchemaLocation)
-          .filter(location -> !location.isBlank())
-          .or(() -> JaxbUtils.getSchemaLocation(this.pakkage))
-          .orElse(null);
-      this.clazz = null;
-      this.clazzElementSchemaLocation = null;
-      this.clazzTypeSchemaLocation = null;
-    } else if (clazz.isAnnotationPresent(XmlRootElement.class)
-        || clazz.isAnnotationPresent(XmlType.class)) {
-      this.clazz = clazz;
-      this.clazzElementSchemaLocation = null;
-      this.clazzTypeSchemaLocation = null;
-      this.pakkage = null;
-      this.pakkageSchemaLocation = null;
-    } else {
-      throw new IllegalArgumentException(String.format(
-          "Class '%s' is not annotated with XmlRootElement or XmlType nor it is a member a jaxb "
-              + "context package.", clazz.getName()));
-    }
+    this(validate(new JaxbContextMemberImpl(
+        clazz,
+        null,
+        null,
+        null,
+        pakkageSchemaLocation)));
   }
 
   /**
@@ -140,21 +108,67 @@ public final class JaxbContextData implements Comparable<JaxbContextData> {
    * @param pakkageSchemaLocation the package schema location
    */
   public JaxbContextData(Package pakkage, String pakkageSchemaLocation) {
-    Assert.notNull(pakkage, "Package must be present.");
-    Assert.isTrue(JaxbUtils.isJaxbModelPackage(pakkage), String.format(
-        "Package '%s' does not contain 'ObjectFactory.class' or 'jaxb.index'.",
-        pakkage.getName()));
-    this.pakkage = pakkage;
-    this.pakkageSchemaLocation = Optional.ofNullable(pakkageSchemaLocation)
-        .filter(location -> !location.isBlank())
-        .or(() -> JaxbUtils.getSchemaLocation(this.pakkage))
-        .orElse(null);
-    this.clazz = null;
-    this.clazzElementSchemaLocation = null;
-    this.clazzTypeSchemaLocation = null;
+    this(validate(JaxbContextMember.byPackage(pakkage)
+        .schemaLocation(pakkageSchemaLocation)
+        .build()));
   }
 
-  private Package getPackage() {
+  JaxbContextData(JaxbContextMember jaxbContextMember) {
+    JaxbContextMember validated = validate(jaxbContextMember);
+    this.pakkage = validated.getPakkage();
+    this.pakkageSchemaLocation = validated.getPakkageSchemaLocation();
+    this.clazz = validated.getClazz();
+    this.clazzElementSchemaLocation = validated.getClazzElementSchemaLocation();
+    this.clazzTypeSchemaLocation = validated.getClazzTypeSchemaLocation();
+  }
+
+  private static JaxbContextMember validate(JaxbContextMember source) {
+    Assert.notNull(source, "Jaxb context member must be present.");
+    if (nonNull(source.getClazz()) && nonNull(source.getPakkage())) {
+      Assert.isTrue(source.getPakkage().equals(source.getClazz().getPackage()),
+          "If package and class are present, class must be a member of the package.");
+      if (JaxbUtils.isJaxbModelPackage(source.getPakkage())) {
+        return validate(JaxbContextMember.byPackage(source.getPakkage())
+            .schemaLocation(source.getPakkageSchemaLocation())
+            .build());
+      }
+      return validate(JaxbContextMember.byClass(source.getClazz())
+          .clazzElementSchemaLocation(source.getClazzElementSchemaLocation())
+          .clazzTypeSchemaLocation(source.getClazzTypeSchemaLocation())
+          .build());
+    }
+    if (nonNull(source.getClazz()) && JaxbUtils.isInJaxbModelPackage(source.getClazz())) {
+      return validate(JaxbContextMember.byPackage(source.getClazz().getPackage())
+          .schemaLocation(source.getPakkageSchemaLocation())
+          .build());
+    }
+    if (nonNull(source.getClazz())
+        && (source.getClazz().isAnnotationPresent(XmlRootElement.class)
+        || source.getClazz().isAnnotationPresent(XmlType.class))) {
+      return source;
+    } else if (nonNull(source.getClazz())) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Class '%s' must be annotated with 'XmlRootElement' or 'XmlType'.",
+              source.getClazz().getName()));
+    }
+    if (nonNull(source.getPakkage()) && JaxbUtils.isJaxbModelPackage(source.getPakkage())) {
+      return JaxbContextMember.byPackage(source.getPakkage())
+          .schemaLocation(Optional.ofNullable(source.getPakkageSchemaLocation())
+              .filter(location -> !location.isBlank())
+              .or(() -> JaxbUtils.getSchemaLocation(source.getPakkage()))
+              .orElse(null))
+          .build();
+    } else if (nonNull(source.getPakkage())) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Package '%s' does not contain 'ObjectFactory.class' or 'jaxb.index'.",
+              source.getPakkage().getName()));
+    }
+    throw new IllegalArgumentException("Class or package must be present.");
+  }
+
+  public Package getPakkage() {
     return nonNull(pakkage) ? pakkage : requireNonNull(clazz).getPackage();
   }
 
@@ -174,7 +188,7 @@ public final class JaxbContextData implements Comparable<JaxbContextData> {
    * @return the jaxb classes
    */
   public Stream<Class<?>> getJaxbClasses(ClassLoader... classLoaders) {
-    return JaxbUtils.findJaxbClasses(getPackage().getName(), classLoaders);
+    return JaxbUtils.findJaxbClasses(getPakkage().getName(), classLoaders);
   }
 
   /**

@@ -151,7 +151,7 @@ public interface JaxbContextBuilder {
    * @param data the data
    * @return the jaxb context builder
    */
-  JaxbContextBuilder add(JaxbContextData data);
+  JaxbContextBuilder add(JaxbContextMember data);
 
   /**
    * Add all jaxb context meta-data to the jaxb context builder.
@@ -159,7 +159,7 @@ public interface JaxbContextBuilder {
    * @param data the data
    * @return the jaxb context builder
    */
-  default JaxbContextBuilder addAll(Iterable<? extends JaxbContextData> data) {
+  default JaxbContextBuilder addAll(Iterable<? extends JaxbContextMember> data) {
     return Optional.ofNullable(data)
         .map(d -> addAll(d.iterator()))
         .orElse(this);
@@ -171,7 +171,7 @@ public interface JaxbContextBuilder {
    * @param data the data
    * @return the jaxb context builder
    */
-  default JaxbContextBuilder addAll(Iterator<? extends JaxbContextData> data) {
+  default JaxbContextBuilder addAll(Iterator<? extends JaxbContextMember> data) {
     return Optional.ofNullable(data)
         .map(iter -> Spliterators.spliteratorUnknownSize(iter, Spliterator.ORDERED))
         .stream()

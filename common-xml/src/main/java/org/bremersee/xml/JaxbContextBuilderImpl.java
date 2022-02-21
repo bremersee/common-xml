@@ -186,11 +186,12 @@ class JaxbContextBuilderImpl implements JaxbContextBuilder {
   }
 
   @Override
-  public JaxbContextBuilder add(JaxbContextData data) {
+  public JaxbContextBuilder add(JaxbContextMember data) {
     return Optional.ofNullable(data)
+        .map(JaxbContextData::new)
         .map(d -> {
           clearCache();
-          jaxbContextDataMap.put(data.getKey(), data);
+          jaxbContextDataMap.put(d.getKey(), d);
           return this;
         })
         .orElse(this);

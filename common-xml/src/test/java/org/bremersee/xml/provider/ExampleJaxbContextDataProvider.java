@@ -16,10 +16,11 @@
 
 package org.bremersee.xml.provider;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import org.bremersee.xml.JaxbContextData;
 import org.bremersee.xml.JaxbContextDataProvider;
+import org.bremersee.xml.JaxbContextMember;
 import org.bremersee.xml.model4.ObjectFactory;
 
 /**
@@ -30,8 +31,8 @@ import org.bremersee.xml.model4.ObjectFactory;
 public class ExampleJaxbContextDataProvider implements JaxbContextDataProvider {
 
   @Override
-  public Collection<JaxbContextData> getJaxbContextData() {
-    return Arrays.asList(
+  public Collection<JaxbContextMember> getJaxbContextData() {
+    return List.of(
         new JaxbContextData(org.bremersee.xml.model1.ObjectFactory.class.getPackage()),
         new JaxbContextData(
             org.bremersee.xml.model2.ObjectFactory.class.getPackage(),

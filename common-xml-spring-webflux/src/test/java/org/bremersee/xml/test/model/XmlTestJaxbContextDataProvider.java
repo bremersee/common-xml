@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import org.bremersee.xml.JaxbContextData;
 import org.bremersee.xml.JaxbContextDataProvider;
+import org.bremersee.xml.JaxbContextMember;
 
 /**
  * The example jaxb context data provider for the tests.
@@ -29,7 +30,7 @@ import org.bremersee.xml.JaxbContextDataProvider;
 public class XmlTestJaxbContextDataProvider implements JaxbContextDataProvider {
 
   @Override
-  public Collection<JaxbContextData> getJaxbContextData() {
+  public Collection<JaxbContextMember> getJaxbContextData() {
     return List.of(
         new JaxbContextData(
             org.bremersee.xml.test.model.xml2.ObjectFactory.class.getPackage(),
