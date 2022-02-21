@@ -49,7 +49,7 @@
 
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
+      <artifactId>spring-core</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.xml.bind</groupId>
