@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.bremersee.xml.boot.http.codec;
+package org.bremersee.xml.spring.boot.http.codec;
 
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.bremersee.xml.JaxbContextBuilder;
-import org.bremersee.xml.boot.JaxbContextBuilderAutoConfiguration;
+import org.bremersee.xml.spring.boot.JaxbContextBuilderAutoConfiguration;
 import org.bremersee.xml.http.codec.ReactiveJaxbDecoder;
 import org.bremersee.xml.http.codec.ReactiveJaxbEncoder;
 import org.springframework.beans.factory.ObjectProvider;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bremersee.xml.boot.http.codec;
+package org.bremersee.xml.spring.boot.http.codec;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;

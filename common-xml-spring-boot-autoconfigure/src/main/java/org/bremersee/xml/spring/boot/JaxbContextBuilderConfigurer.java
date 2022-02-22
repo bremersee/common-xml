@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bremersee.xml.boot;
+package org.bremersee.xml.spring.boot;
 
 import org.bremersee.xml.JaxbContextBuilder;
 

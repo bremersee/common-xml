@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-package org.bremersee.xml.boot.http;
+package org.bremersee.xml.spring.boot.http;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bremersee.xml.boot.http.converter;
+package org.bremersee.xml.spring.boot.http.converter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

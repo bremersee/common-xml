@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.bremersee.xml.boot.http.converter;
+package org.bremersee.xml.spring.boot.http.converter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bremersee.xml.JaxbContextBuilder;
-import org.bremersee.xml.boot.JaxbContextBuilderAutoConfiguration;
+import org.bremersee.xml.spring.boot.JaxbContextBuilderAutoConfiguration;
 import org.bremersee.xml.http.converter.Jaxb2HttpMessageConverter;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

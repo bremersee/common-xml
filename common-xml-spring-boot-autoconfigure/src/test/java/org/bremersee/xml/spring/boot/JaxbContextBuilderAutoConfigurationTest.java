@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bremersee.xml.boot;
+package org.bremersee.xml.spring.boot;
 
 import java.util.List;
 import org.assertj.core.api.SoftAssertions;
