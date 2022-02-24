@@ -16,10 +16,15 @@
 
 package org.bremersee.xml.spring.boot.http.converter;
 
+import java.util.AbstractCollection;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.bremersee.xml.JaxbContextBuilder;
 import org.bremersee.xml.spring.boot.JaxbContextBuilderAutoConfiguration;
 import org.bremersee.xml.http.converter.Jaxb2HttpMessageConverter;
+import org.bremersee.xml.spring.boot.http.JaxbReadWriteConfigurer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -66,9 +71,29 @@ public class Jaxb2HttpMessageConverterAutoConfiguration {
   @ConditionalOnMissingBean(Jaxb2HttpMessageConverter.class)
   @Bean
   public Jaxb2HttpMessageConverter jaxb2HttpMessageConverter(
-      JaxbContextBuilder jaxbContextBuilder) {
-    log.info("Creating bean {}", Jaxb2HttpMessageConverter.class.getSimpleName());
-    return new Jaxb2HttpMessageConverter(jaxbContextBuilder);
+      JaxbContextBuilder jaxbContextBuilder,
+      ObjectProvider<JaxbReadWriteConfigurer> readWriteConfigurers) {
+
+    Set<Class<?>> ignoreReadingClasses =  readWriteConfigurers
+        .stream()
+        .collect(
+            HashSet::new,
+            (a, b) -> a.addAll(b.getIgnoreReadingClasses()),
+            AbstractCollection::addAll);
+    Set<Class<?>> ignoreWritingClasses =  readWriteConfigurers
+        .stream()
+        .collect(
+            HashSet::new,
+            (a, b) -> a.addAll(b.getIgnoreWritingClasses()),
+            AbstractCollection::addAll);
+    log.info("Creating bean {} with ignoreReadingClasses ({}) and ignoreWritingClasses ({}).",
+        Jaxb2HttpMessageConverter.class.getSimpleName(),
+        ignoreReadingClasses,
+        ignoreWritingClasses);
+    return new Jaxb2HttpMessageConverter(
+        jaxbContextBuilder,
+        ignoreReadingClasses,
+        ignoreWritingClasses);
   }
 
 }

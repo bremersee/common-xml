@@ -16,6 +16,9 @@
 
 package org.bremersee.xml.http.converter;
 
+import static java.util.Objects.isNull;
+
+import java.util.Set;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.MarshalException;
@@ -45,24 +48,48 @@ public class Jaxb2HttpMessageConverter extends AbstractXmlHttpMessageConverter<O
 
   private final JaxbContextBuilder jaxbContextBuilder;
 
+  private final Set<Class<?>> ignoreReadingClasses;
+
+  private final Set<Class<?>> ignoreWritingClasses;
+
   /**
    * Instantiates a new jaxb http message converter.
    *
    * @param jaxbContextBuilder the jaxb context builder
    */
   public Jaxb2HttpMessageConverter(JaxbContextBuilder jaxbContextBuilder) {
+    this(jaxbContextBuilder, null, null);
+  }
+
+  /**
+   * Instantiates a new Jaxb 2 http message converter.
+   *
+   * @param jaxbContextBuilder the jaxb context builder
+   * @param ignoreReadingClasses ignore reading classes
+   * @param ignoreWritingClasses ignore writing classes
+   */
+  public Jaxb2HttpMessageConverter(
+      JaxbContextBuilder jaxbContextBuilder,
+      Set<Class<?>> ignoreReadingClasses,
+      Set<Class<?>> ignoreWritingClasses) {
     Assert.notNull(jaxbContextBuilder, "JaxbContextBuilder must be present.");
     this.jaxbContextBuilder = jaxbContextBuilder;
+    this.ignoreReadingClasses = isNull(ignoreReadingClasses) ? Set.of() : ignoreReadingClasses;
+    this.ignoreWritingClasses = isNull(ignoreWritingClasses) ? Set.of() : ignoreWritingClasses;
   }
 
   @Override
   public boolean canRead(@NonNull Class<?> clazz, @Nullable MediaType mediaType) {
-    return jaxbContextBuilder.canUnmarshal(clazz) && this.canRead(mediaType);
+    return !ignoreReadingClasses.contains(clazz)
+        && jaxbContextBuilder.canUnmarshal(clazz)
+        && this.canRead(mediaType);
   }
 
   @Override
   public boolean canWrite(@NonNull Class<?> clazz, @Nullable MediaType mediaType) {
-    return jaxbContextBuilder.canMarshal(clazz) && this.canWrite(mediaType);
+    return !ignoreWritingClasses.contains(clazz)
+        && jaxbContextBuilder.canMarshal(clazz)
+        && this.canWrite(mediaType);
   }
 
   @Override

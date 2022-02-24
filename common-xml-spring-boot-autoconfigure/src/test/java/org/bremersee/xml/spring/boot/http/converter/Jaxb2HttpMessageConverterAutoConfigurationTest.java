@@ -17,10 +17,19 @@
 package org.bremersee.xml.spring.boot.http.converter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.bremersee.xml.JaxbContextBuilder;
 import org.bremersee.xml.http.converter.Jaxb2HttpMessageConverter;
+import org.bremersee.xml.spring.boot.http.JaxbReadWriteConfigurer;
 import org.junit.jupiter.api.Test;
+import org.mockito.stubbing.Answer;
+import org.springframework.beans.factory.ObjectProvider;
 
 /**
  * The Jaxb 2 http message converter autoconfiguration test.
@@ -45,8 +54,36 @@ class Jaxb2HttpMessageConverterAutoConfigurationTest {
    */
   @Test
   void jaxb2HttpMessageConverter() {
-    Jaxb2HttpMessageConverter actual = target
-        .jaxb2HttpMessageConverter(JaxbContextBuilder.newInstance());
+    List<JaxbReadWriteConfigurer> configurers = List.of(
+        new JaxbReadWriteConfigurer() {
+          @Override
+          public Set<Class<?>> getIgnoreReadingClasses() {
+            return Set.of(IllegalStateException.class);
+          }
+
+          @Override
+          public Set<Class<?>> getIgnoreWritingClasses() {
+            return Set.of(IllegalStateException.class);
+          }
+        },
+        new JaxbReadWriteConfigurer() {
+          @Override
+          public Set<Class<?>> getIgnoreReadingClasses() {
+            return Set.of(BigDecimal.class);
+          }
+
+          @Override
+          public Set<Class<?>> getIgnoreWritingClasses() {
+            return Set.of(BigDecimal.class);
+          }
+        }
+    );
+    //noinspection unchecked
+    ObjectProvider<JaxbReadWriteConfigurer> provider = mock(ObjectProvider.class);
+    when(provider.stream())
+        .then((Answer<Stream<JaxbReadWriteConfigurer>>) invocationOnMock -> configurers.stream());
+    Jaxb2HttpMessageConverter actual = target.jaxb2HttpMessageConverter(
+        JaxbContextBuilder.newInstance(), provider);
     assertThat(actual).isNotNull();
   }
 }

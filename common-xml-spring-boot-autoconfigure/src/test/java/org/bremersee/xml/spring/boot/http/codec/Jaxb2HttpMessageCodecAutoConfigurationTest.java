@@ -23,8 +23,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.bremersee.xml.JaxbContextBuilder;
+import org.bremersee.xml.spring.boot.http.JaxbReadWriteConfigurer;
 import org.junit.jupiter.api.Test;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.codec.CodecConfigurer.CustomCodecs;
 import org.springframework.http.codec.ServerCodecConfigurer;
@@ -42,7 +48,7 @@ class Jaxb2HttpMessageCodecAutoConfigurationTest {
   @Test
   void init() {
     Jaxb2HttpMessageCodecAutoConfiguration target = new Jaxb2HttpMessageCodecAutoConfiguration(
-        objectProvider(JaxbContextBuilder.newInstance()));
+        jaxbContextBuilder(JaxbContextBuilder.newInstance()), readWriteConfigurers());
     target.init();
   }
 
@@ -52,7 +58,7 @@ class Jaxb2HttpMessageCodecAutoConfigurationTest {
   @Test
   void configureHttpMessageCodecs() {
     Jaxb2HttpMessageCodecAutoConfiguration target = new Jaxb2HttpMessageCodecAutoConfiguration(
-        objectProvider(JaxbContextBuilder.newInstance()));
+        jaxbContextBuilder(JaxbContextBuilder.newInstance()), readWriteConfigurers());
 
     ServerCodecConfigurer configurer = mock(ServerCodecConfigurer.class);
     CustomCodecs customCodecs = mock(CustomCodecs.class);
@@ -68,7 +74,7 @@ class Jaxb2HttpMessageCodecAutoConfigurationTest {
   @Test
   void doNotConfigureHttpMessageCodecsBecauseOfMissingJaxbContextBuilder() {
     Jaxb2HttpMessageCodecAutoConfiguration target = new Jaxb2HttpMessageCodecAutoConfiguration(
-        objectProvider(null));
+        jaxbContextBuilder(null), readWriteConfigurers());
 
     ServerCodecConfigurer configurer = mock(ServerCodecConfigurer.class);
 
@@ -76,12 +82,44 @@ class Jaxb2HttpMessageCodecAutoConfigurationTest {
     verify(configurer, never()).customCodecs();
   }
 
-  private static ObjectProvider<JaxbContextBuilder> objectProvider(
+  private static ObjectProvider<JaxbContextBuilder> jaxbContextBuilder(
       JaxbContextBuilder jaxbContextBuilder) {
 
     //noinspection unchecked
     ObjectProvider<JaxbContextBuilder> provider = mock(ObjectProvider.class);
     when(provider.getIfAvailable()).thenReturn(jaxbContextBuilder);
+    return provider;
+  }
+
+  private static ObjectProvider<JaxbReadWriteConfigurer> readWriteConfigurers() {
+    List<JaxbReadWriteConfigurer> configurers = List.of(
+        new JaxbReadWriteConfigurer() {
+          @Override
+          public Set<Class<?>> getIgnoreReadingClasses() {
+            return Set.of(IllegalStateException.class);
+          }
+
+          @Override
+          public Set<Class<?>> getIgnoreWritingClasses() {
+            return Set.of(IllegalStateException.class);
+          }
+        },
+        new JaxbReadWriteConfigurer() {
+          @Override
+          public Set<Class<?>> getIgnoreReadingClasses() {
+            return Set.of(BigDecimal.class);
+          }
+
+          @Override
+          public Set<Class<?>> getIgnoreWritingClasses() {
+            return Set.of(BigDecimal.class);
+          }
+        }
+    );
+    //noinspection unchecked
+    ObjectProvider<JaxbReadWriteConfigurer> provider = mock(ObjectProvider.class);
+    when(provider.stream())
+        .then((Answer<Stream<JaxbReadWriteConfigurer>>) invocationOnMock -> configurers.stream());
     return provider;
   }
 

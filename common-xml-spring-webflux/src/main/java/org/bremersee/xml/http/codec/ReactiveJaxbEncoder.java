@@ -16,8 +16,11 @@
 
 package org.bremersee.xml.http.codec;
 
+import static java.util.Objects.isNull;
+
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.Set;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.MarshalException;
 import javax.xml.bind.Marshaller;
@@ -56,15 +59,31 @@ public class ReactiveJaxbEncoder extends AbstractSingleValueEncoder<Object> {
 
   private final JaxbContextBuilder jaxbContextBuilder;
 
+  private final Set<Class<?>> ignoreWritingClasses;
+
   /**
    * Instantiates a new reactive jaxb encoder.
    *
    * @param jaxbContextBuilder the jaxb context builder
    */
   public ReactiveJaxbEncoder(JaxbContextBuilder jaxbContextBuilder) {
+    this(jaxbContextBuilder, null);
+  }
+
+  /**
+   * Instantiates a new reactive jaxb encoder.
+   *
+   * @param jaxbContextBuilder the jaxb context builder
+   * @param ignoreWritingClasses ignore writing classes
+   */
+  public ReactiveJaxbEncoder(
+      JaxbContextBuilder jaxbContextBuilder,
+      Set<Class<?>> ignoreWritingClasses) {
+
     super(MimeTypeUtils.APPLICATION_XML, MimeTypeUtils.TEXT_XML);
     Assert.notNull(jaxbContextBuilder, "JaxbContextBuilder must be present.");
     this.jaxbContextBuilder = jaxbContextBuilder;
+    this.ignoreWritingClasses = isNull(ignoreWritingClasses) ? Set.of() : ignoreWritingClasses;
   }
 
   @Override
@@ -74,7 +93,8 @@ public class ReactiveJaxbEncoder extends AbstractSingleValueEncoder<Object> {
 
     if (super.canEncode(elementType, mimeType)) {
       final Class<?> outputClass = elementType.toClass();
-      return jaxbContextBuilder.canMarshal(outputClass);
+      return !ignoreWritingClasses.contains(outputClass)
+          && jaxbContextBuilder.canMarshal(outputClass);
     } else {
       return false;
     }

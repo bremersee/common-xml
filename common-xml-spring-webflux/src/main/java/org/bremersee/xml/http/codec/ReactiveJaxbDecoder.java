@@ -16,10 +16,13 @@
 
 package org.bremersee.xml.http.codec;
 
+import static java.util.Objects.isNull;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBElement;
@@ -87,6 +90,8 @@ public class ReactiveJaxbDecoder extends AbstractDecoder<Object> {
 
   private final JaxbContextBuilder jaxbContextBuilder;
 
+  private final Set<Class<?>> ignoreReadingClasses;
+
   private int maxInMemorySize = 256 * 1024;
 
   /**
@@ -95,17 +100,31 @@ public class ReactiveJaxbDecoder extends AbstractDecoder<Object> {
    * @param jaxbContextBuilder the jaxb context builder
    */
   public ReactiveJaxbDecoder(JaxbContextBuilder jaxbContextBuilder) {
+    this(jaxbContextBuilder, null);
+  }
+
+  /**
+   * Instantiates a new Reactive jaxb decoder.
+   *
+   * @param jaxbContextBuilder the jaxb context builder
+   * @param ignoreReadingClasses the ignore reading classes
+   */
+  public ReactiveJaxbDecoder(
+      JaxbContextBuilder jaxbContextBuilder,
+      Set<Class<?>> ignoreReadingClasses) {
+
     super(MimeTypeUtils.APPLICATION_XML, MimeTypeUtils.TEXT_XML,
         new MediaType("application", "*+xml"));
     Assert.notNull(jaxbContextBuilder, "JaxbContextBuilder must be present.");
     this.jaxbContextBuilder = jaxbContextBuilder;
+    this.ignoreReadingClasses = isNull(ignoreReadingClasses) ? Set.of() : ignoreReadingClasses;
   }
 
   /**
    * Set the max number of bytes that can be buffered by this decoder. This is either the size of
    * the entire input when decoding as a whole, or when using async parsing with Aalto XML, it is
    * the size of one top-level XML tree. When the limit is exceeded, {@link
-   * DataBufferLimitException} is raised.
+   * DataBufferLimitException}* is raised.
    *
    * <p>By default this is set to 256K.
    *
@@ -133,7 +152,8 @@ public class ReactiveJaxbDecoder extends AbstractDecoder<Object> {
 
     if (super.canDecode(elementType, mimeType)) {
       final Class<?> outputClass = elementType.getRawClass();
-      return jaxbContextBuilder.canUnmarshal(outputClass);
+      return !ignoreReadingClasses.contains(outputClass)
+          && jaxbContextBuilder.canUnmarshal(outputClass);
     } else {
       return false;
     }
