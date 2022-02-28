@@ -10,11 +10,11 @@
     <version>2.5.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>common-xml-spring-boot-starter</artifactId>
+  <artifactId>common-xml-spring-boot-webflux-starter</artifactId>
 
-  <name>Common Xml Spring Boot Starter</name>
+  <name>Common Xml Spring Boot WebFlux Starter</name>
   <description>
-    This project contains Spring Boot Starter for Xml.
+    This project contains Spring Boot WebFlux Starter for Xml.
   </description>
 
   <developers>
@@ -45,24 +45,18 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>org.bremersee</groupId>
-      <artifactId>common-xml</artifactId>
+      <artifactId>common-xml-spring-boot-starter</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webflux</artifactId>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-runtime</artifactId>
       <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.bremersee</groupId>
-      <artifactId>common-xml-spring-boot-autoconfigure</artifactId>
-      <version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>

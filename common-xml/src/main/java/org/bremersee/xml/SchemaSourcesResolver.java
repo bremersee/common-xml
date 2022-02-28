@@ -39,6 +39,7 @@ import lombok.NoArgsConstructor;
  *
  * @author Christian Bremer
  */
+@SuppressWarnings("SameNameButDifferent")
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 class SchemaSourcesResolver extends SchemaOutputResolver {
 

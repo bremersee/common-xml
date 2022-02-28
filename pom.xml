@@ -27,6 +27,8 @@
     <module>common-xml-spring-webflux</module>
     <module>common-xml-spring-boot-autoconfigure</module>
     <module>common-xml-spring-boot-starter</module>
+    <module>common-xml-spring-boot-web-starter</module>
+    <module>common-xml-spring-boot-webflux-starter</module>
   </modules>
 
   <properties>
