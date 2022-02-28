@@ -21,17 +21,15 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
-import org.bremersee.exception.model.RestApiException;
 import org.bremersee.xml.JaxbContextBuilder;
 import org.bremersee.xml.JaxbContextData;
+import org.bremersee.xml.model6.StandaloneModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,7 +46,7 @@ class Jaxb2HttpMessageConverterTest {
 
   private static final JaxbContextBuilder jaxbContextBuilder = JaxbContextBuilder
       .newInstance()
-      .add(new JaxbContextData(RestApiException.class));
+      .add(new JaxbContextData(StandaloneModel.class));
 
   private Jaxb2HttpMessageConverter target;
 
@@ -67,9 +65,9 @@ class Jaxb2HttpMessageConverterTest {
    */
   @Test
   void canRead(SoftAssertions softly) {
-    softly.assertThat(target.canRead(RestApiException.class, MediaType.APPLICATION_XML))
+    softly.assertThat(target.canRead(StandaloneModel.class, MediaType.APPLICATION_XML))
         .isTrue();
-    softly.assertThat(target.canRead(RestApiException.class, MediaType.APPLICATION_JSON))
+    softly.assertThat(target.canRead(StandaloneModel.class, MediaType.APPLICATION_JSON))
         .isFalse();
     softly.assertThat(target.canRead(Locale.class, MediaType.APPLICATION_XML))
         .isFalse();
@@ -82,9 +80,9 @@ class Jaxb2HttpMessageConverterTest {
    */
   @Test
   void canWrite(SoftAssertions softly) {
-    softly.assertThat(target.canWrite(RestApiException.class, MediaType.APPLICATION_XML))
+    softly.assertThat(target.canWrite(StandaloneModel.class, MediaType.APPLICATION_XML))
         .isTrue();
-    softly.assertThat(target.canWrite(RestApiException.class, MediaType.APPLICATION_JSON))
+    softly.assertThat(target.canWrite(StandaloneModel.class, MediaType.APPLICATION_JSON))
         .isFalse();
     softly.assertThat(target.canWrite(Locale.class, MediaType.APPLICATION_XML))
         .isFalse();
@@ -96,7 +94,7 @@ class Jaxb2HttpMessageConverterTest {
   @Test
   void supports() {
     assertThatExceptionOfType(UnsupportedOperationException.class)
-        .isThrownBy(() -> target.supports(RestApiException.class));
+        .isThrownBy(() -> target.supports(StandaloneModel.class));
   }
 
   /**
@@ -108,14 +106,9 @@ class Jaxb2HttpMessageConverterTest {
   void readFromSource() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_XML);
-    RestApiException expected = RestApiException.builder()
-        .timestamp(OffsetDateTime
-            .parse("2022-02-05T10:52:37.000Z", DateTimeFormatter.ISO_ZONED_DATE_TIME))
-        .application("junit")
-        .message("Read rest api exception fails?")
-        .build();
+    StandaloneModel expected = new StandaloneModel("an_xml_value");
     Object actual = target.readFromSource(
-        RestApiException.class,
+        StandaloneModel.class,
         headers,
         createSource(expected));
     assertThat(actual).isEqualTo(expected);
@@ -137,12 +130,7 @@ class Jaxb2HttpMessageConverterTest {
   void writeToResult() throws Exception {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_XML);
-    RestApiException expected = RestApiException.builder()
-        .timestamp(OffsetDateTime
-            .parse("2022-02-05T10:52:37.000Z", DateTimeFormatter.ISO_ZONED_DATE_TIME))
-        .application("junit")
-        .message("Read rest api exception fails?")
-        .build();
+    StandaloneModel expected = new StandaloneModel("an_xml_value");
     StringWriter stringWriter = new StringWriter();
     target.writeToResult(expected, headers, new StreamResult(stringWriter));
     Object actual = jaxbContextBuilder.buildUnmarshaller()
