@@ -10,10 +10,10 @@
     <version>2.5.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>common-xml-adapter</artifactId>
+  <artifactId>common-xml-modelling</artifactId>
 
-  <name>Common Xml Adapter</name>
-  <description>Common XML Adapter</description>
+  <name>Common Xml Modelling</name>
+  <description>Common XML Modelling</description>
 
   <developers>
     <developer>
