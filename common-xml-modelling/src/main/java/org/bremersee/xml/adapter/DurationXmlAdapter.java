@@ -19,9 +19,9 @@ package org.bremersee.xml.adapter;
 import static org.bremersee.xml.ConverterUtils.durationToXmlDuration;
 import static org.bremersee.xml.ConverterUtils.xmlDurationToDuration;
 
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 import java.time.Duration;
 import java.util.Optional;
-import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.datatype.DatatypeFactory;
 
 /**
