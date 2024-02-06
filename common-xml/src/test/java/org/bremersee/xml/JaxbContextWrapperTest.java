@@ -17,20 +17,19 @@
 package org.bremersee.xml;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.MarshalException;
+import jakarta.xml.bind.UnmarshalException;
+import jakarta.xml.bind.ValidationEventHandler;
+import jakarta.xml.bind.attachment.AttachmentMarshaller;
+import jakarta.xml.bind.attachment.AttachmentUnmarshaller;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.stream.Stream;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.MarshalException;
-import javax.xml.bind.UnmarshalException;
-import javax.xml.bind.ValidationEventHandler;
-import javax.xml.bind.attachment.AttachmentMarshaller;
-import javax.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.validation.Schema;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -319,16 +318,6 @@ class JaxbContextWrapperTest {
     wrapper.setSchemaMode(SchemaMode.EXTERNAL_XSD);
     softly.assertThat(wrapper.getSchemaMode())
         .isEqualTo(SchemaMode.EXTERNAL_XSD);
-  }
-
-  /**
-   * Create validator.
-   */
-  @Test
-  void createValidator() {
-    JaxbContextWrapper wrapper = new JaxbContextWrapper(jaxbContext);
-    assertThatExceptionOfType(UnsupportedOperationException.class)
-        .isThrownBy(wrapper::createValidator);
   }
 
   /**

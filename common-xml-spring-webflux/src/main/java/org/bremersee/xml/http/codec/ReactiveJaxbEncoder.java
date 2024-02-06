@@ -21,9 +21,9 @@ import static java.util.Objects.isNull;
 import java.io.OutputStream;
 import java.util.Map;
 import java.util.Set;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.MarshalException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.MarshalException;
+import jakarta.xml.bind.Marshaller;
 import org.bremersee.xml.JaxbContextBuilder;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.codec.AbstractSingleValueEncoder;
@@ -45,8 +45,8 @@ import reactor.core.publisher.Mono;
 /**
  * Encode from single value to a byte stream containing XML elements.
  *
- * <p>{@link javax.xml.bind.annotation.XmlElements @XmlElements} and
- * {@link javax.xml.bind.annotation.XmlElement @XmlElement} can be used to specify how collections
+ * <p>{@link jakarta.xml.bind.annotation.XmlElements @XmlElements} and
+ * {@link jakarta.xml.bind.annotation.XmlElement @XmlElement} can be used to specify how collections
  * should be marshalled.
  *
  * <p>The encoding parts are taken from {@link org.springframework.http.codec.xml.Jaxb2XmlEncoder}.

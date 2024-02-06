@@ -21,8 +21,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Optional;
 import java.util.stream.Stream;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.springframework.util.Assert;

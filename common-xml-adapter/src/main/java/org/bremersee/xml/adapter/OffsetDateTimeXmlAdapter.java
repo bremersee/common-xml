@@ -21,7 +21,7 @@ import static org.bremersee.xml.ConverterUtils.xmlCalendarToOffsetDateTime;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 

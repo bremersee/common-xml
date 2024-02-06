@@ -21,7 +21,7 @@ import static org.bremersee.xml.ConverterUtils.xmlDurationToDuration;
 
 import java.time.Duration;
 import java.util.Optional;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.datatype.DatatypeFactory;
 
 /**

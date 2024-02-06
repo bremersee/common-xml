@@ -24,7 +24,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Locale;
 import java.util.Optional;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 

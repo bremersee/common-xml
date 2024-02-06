@@ -22,14 +22,14 @@ import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.StreamSupport;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.ValidationEventHandler;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.attachment.AttachmentMarshaller;
-import javax.xml.bind.attachment.AttachmentUnmarshaller;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.ValidationEventHandler;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.attachment.AttachmentMarshaller;
+import jakarta.xml.bind.attachment.AttachmentUnmarshaller;
 import javax.xml.validation.Schema;
 
 /**
@@ -254,7 +254,7 @@ public interface JaxbContextBuilder {
    * Build unmarshaller for the given classes with the specified dependencies-resolver. If
    * dependency resolving is turned off, an unmarshaller of the default context (defined by the
    * added meta-data) will be returned or one that is created with {@link
-   * javax.xml.bind.JAXBContext#newInstance(Class[])}*.
+   * jakarta.xml.bind.JAXBContext#newInstance(Class[])}*.
    *
    * @param classes the classes that should be processed by the unmarshaller
    * @return the unmarshaller
@@ -275,7 +275,7 @@ public interface JaxbContextBuilder {
    * Build marshaller for the given object (POJO) or for the given class or array of classes with
    * the specified dependencies-resolver. If dependency resolving is turned off, a marshaller of the
    * default context (defined by the added meta-data) will be returned or one that is created with
-   * {@link javax.xml.bind.JAXBContext#newInstance(Class[])}.
+   * {@link jakarta.xml.bind.JAXBContext#newInstance(Class[])}.
    *
    * @param value the value (POJO) that should be processed by the marshaller or a single class
    *     or an array of classes
@@ -304,7 +304,7 @@ public interface JaxbContextBuilder {
    * Build jaxb context for the given object (POJO) or for the given class or array of classes with
    * the specified dependency resolver. If dependency resolving is turned off, the default jaxb
    * context (defined by the added meta-data) will be returned or a jaxb context will be created
-   * with {@link javax.xml.bind.JAXBContext#newInstance(Class[])}.
+   * with {@link jakarta.xml.bind.JAXBContext#newInstance(Class[])}.
    *
    * @param value the value (POJO) that should be processed by the jaxb context or a single
    *     class or an array of classes
