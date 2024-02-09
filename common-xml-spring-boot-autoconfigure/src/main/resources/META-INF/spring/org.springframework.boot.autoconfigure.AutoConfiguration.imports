@@ -1,0 +1,3 @@
+org.bremersee.xml.spring.boot.JaxbContextBuilderAutoConfiguration
+org.bremersee.xml.spring.boot.http.codec.Jaxb2HttpMessageCodecAutoConfiguration
+org.bremersee.xml.spring.boot.http.converter.Jaxb2HttpMessageConverterAutoConfiguration

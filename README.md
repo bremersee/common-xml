@@ -29,10 +29,10 @@ model, and you want to support them in your application.
 
 All the packages which contain the model of the xsd files are described with `JaxbContextData` and 
 are summed up in an implementation of `JaxbContextDataProvider`
-(see for example [GarminJaxbContextDataProvider](https://github.com/bremersee/garmin-model/blob/master/src/main/java/org/bremersee/garmin/GarminJaxbContextDataProvider.java)).
+(see for example [GarminJaxbContextDataProvider](https://github.com/bremersee/garmin-model/blob/main/src/main/java/org/bremersee/garmin/GarminJaxbContextDataProvider.java)).
 
 The implementation of the provider will be announced to the service loader by a service 
-[description](https://github.com/bremersee/garmin-model/blob/master/src/main/resources/META-INF/services/org.bremersee.xml.JaxbContextDataProvider).
+[description](https://github.com/bremersee/garmin-model/blob/main/src/main/resources/META-INF/services/org.bremersee.xml.JaxbContextDataProvider).
 
 Then it is very easy to generate the JAXBContext using the `JaxbContextBuilder`:
 

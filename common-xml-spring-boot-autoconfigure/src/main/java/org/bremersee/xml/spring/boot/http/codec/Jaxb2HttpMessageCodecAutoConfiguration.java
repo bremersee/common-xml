@@ -27,13 +27,13 @@ import org.bremersee.xml.http.codec.ReactiveJaxbEncoder;
 import org.bremersee.xml.spring.boot.JaxbContextBuilderAutoConfiguration;
 import org.bremersee.xml.spring.boot.http.JaxbReadWriteConfigurer;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.lang.NonNull;
@@ -49,7 +49,7 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
 @ConditionalOnClass({WebFluxConfigurer.class, JaxbContextBuilder.class})
 @ConditionalOnBean(JaxbContextBuilder.class)
 @AutoConfigureAfter(JaxbContextBuilderAutoConfiguration.class)
-@Configuration
+@AutoConfiguration
 @Slf4j
 public class Jaxb2HttpMessageCodecAutoConfiguration implements WebFluxConfigurer {
 
@@ -87,14 +87,15 @@ public class Jaxb2HttpMessageCodecAutoConfiguration implements WebFluxConfigurer
    */
   @EventListener(ApplicationReadyEvent.class)
   public void init() {
-    log.info("\n"
-            + "*********************************************************************************\n"
-            + "* {}\n"
-            + "*********************************************************************************\n"
-            + "* jaxbContextBuilder = {}\n"
-            + "* ignoreReadingClasses = {}\n"
-            + "* ignoreWritingClasses = {}\n"
-            + "*********************************************************************************",
+    log.info("""
+
+            *********************************************************************************
+            * {}
+            *********************************************************************************
+            * jaxbContextBuilder = {}
+            * ignoreReadingClasses = {}
+            * ignoreWritingClasses = {}
+            *********************************************************************************""",
         ClassUtils.getUserClass(getClass()).getSimpleName(),
         jaxbContextBuilder, ignoreReadingClasses, ignoreWritingClasses);
   }

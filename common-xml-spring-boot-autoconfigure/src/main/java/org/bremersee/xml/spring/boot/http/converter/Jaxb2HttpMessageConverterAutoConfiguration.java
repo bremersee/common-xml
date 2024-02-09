@@ -21,10 +21,11 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.bremersee.xml.JaxbContextBuilder;
-import org.bremersee.xml.spring.boot.JaxbContextBuilderAutoConfiguration;
 import org.bremersee.xml.http.converter.Jaxb2HttpMessageConverter;
+import org.bremersee.xml.spring.boot.JaxbContextBuilderAutoConfiguration;
 import org.bremersee.xml.spring.boot.http.JaxbReadWriteConfigurer;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -33,7 +34,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.util.ClassUtils;
 
@@ -45,7 +45,7 @@ import org.springframework.util.ClassUtils;
 @ConditionalOnWebApplication(type = Type.SERVLET)
 @ConditionalOnClass(JaxbContextBuilder.class)
 @AutoConfigureAfter(JaxbContextBuilderAutoConfiguration.class)
-@Configuration
+@AutoConfiguration
 @Slf4j
 public class Jaxb2HttpMessageConverterAutoConfiguration {
 
@@ -54,10 +54,11 @@ public class Jaxb2HttpMessageConverterAutoConfiguration {
    */
   @EventListener(ApplicationReadyEvent.class)
   public void init() {
-    log.info("\n"
-            + "*********************************************************************************\n"
-            + "* {}\n"
-            + "*********************************************************************************",
+    log.info("""
+
+            *********************************************************************************
+            * {}
+            *********************************************************************************""",
         ClassUtils.getUserClass(getClass()).getSimpleName());
   }
 
@@ -74,13 +75,13 @@ public class Jaxb2HttpMessageConverterAutoConfiguration {
       JaxbContextBuilder jaxbContextBuilder,
       ObjectProvider<JaxbReadWriteConfigurer> readWriteConfigurers) {
 
-    Set<Class<?>> ignoreReadingClasses =  readWriteConfigurers
+    Set<Class<?>> ignoreReadingClasses = readWriteConfigurers
         .stream()
         .collect(
             HashSet::new,
             (a, b) -> a.addAll(b.getIgnoreReadingClasses()),
             AbstractCollection::addAll);
-    Set<Class<?>> ignoreWritingClasses =  readWriteConfigurers
+    Set<Class<?>> ignoreWritingClasses = readWriteConfigurers
         .stream()
         .collect(
             HashSet::new,

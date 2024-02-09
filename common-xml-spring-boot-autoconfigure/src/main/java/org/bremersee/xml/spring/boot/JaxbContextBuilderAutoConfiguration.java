@@ -22,11 +22,11 @@ import java.util.ServiceLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.bremersee.xml.JaxbContextBuilder;
 import org.bremersee.xml.JaxbContextDataProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.util.ClassUtils;
 
@@ -36,7 +36,7 @@ import org.springframework.util.ClassUtils;
  * @author Christian Bremer
  */
 @ConditionalOnClass(JaxbContextBuilder.class)
-@Configuration
+@AutoConfiguration
 @Slf4j
 public class JaxbContextBuilderAutoConfiguration {
 
@@ -45,10 +45,11 @@ public class JaxbContextBuilderAutoConfiguration {
    */
   @EventListener(ApplicationReadyEvent.class)
   public void init() {
-    log.info("\n"
-            + "*********************************************************************************\n"
-            + "* {}\n"
-            + "*********************************************************************************",
+    log.info("""
+
+            *********************************************************************************
+            * {}
+            *********************************************************************************""",
         ClassUtils.getUserClass(getClass()).getSimpleName());
   }
 
