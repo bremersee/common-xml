@@ -19,7 +19,7 @@
  *
  * @author Christian Bremer
  */
-@javax.xml.bind.annotation.XmlSchema(
+@jakarta.xml.bind.annotation.XmlSchema(
     namespace = "http://bremersee.org/xmlschemas/common-xml-test-model-8",
-    elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+    elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package org.bremersee.xml.model8;

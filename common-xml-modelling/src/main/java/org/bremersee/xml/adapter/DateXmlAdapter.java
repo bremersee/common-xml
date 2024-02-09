@@ -16,41 +16,44 @@
 
 package org.bremersee.xml.adapter;
 
-import static org.bremersee.xml.ConverterUtils.millisToXmlCalendar;
-import static org.bremersee.xml.ConverterUtils.xmlCalendarToMillis;
+import static org.bremersee.xml.ConverterUtils.dateToXmlCalendar;
+import static org.bremersee.xml.ConverterUtils.xmlCalendarToDate;
 
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.TimeZone;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
- * The epoch milli xml adapter.
+ * The date xml adapter.
  *
  * @author Christian Bremer
  */
-public class EpochMilliXmlAdapter extends XmlAdapter<String, Long> {
+public class DateXmlAdapter extends XmlAdapter<String, Date> {
 
   private TimeZone timeZone = TimeZone.getTimeZone(ZoneOffset.UTC);
 
   private Locale locale;
 
   /**
-   * Instantiates a new epoch milli xml adapter.
+   * Instantiates a new date xml adapter.
    */
-  public EpochMilliXmlAdapter() {
+  public DateXmlAdapter() {
+    super();
   }
 
   /**
-   * Instantiates a new epoch milli xml adapter.
+   * Instantiates a new date xml adapter.
    *
    * @param timeZone the time zone
    * @param locale the locale
    */
-  public EpochMilliXmlAdapter(TimeZone timeZone, Locale locale) {
+  public DateXmlAdapter(TimeZone timeZone, Locale locale) {
+    super();
     if (timeZone != null) {
       this.timeZone = timeZone;
     }
@@ -58,17 +61,18 @@ public class EpochMilliXmlAdapter extends XmlAdapter<String, Long> {
   }
 
   @Override
-  public Long unmarshal(String v) throws Exception {
+  public Date unmarshal(String v) throws Exception {
     return v == null
         ? null
-        : xmlCalendarToMillis(DatatypeFactory.newInstance().newXMLGregorianCalendar(v));
+        : xmlCalendarToDate(DatatypeFactory.newInstance().newXMLGregorianCalendar(v));
   }
 
   @Override
-  public String marshal(Long v) {
+  public String marshal(Date v) {
     return Optional
-        .ofNullable(millisToXmlCalendar(v, timeZone, locale))
+        .ofNullable(dateToXmlCalendar(v, timeZone, locale))
         .map(XMLGregorianCalendar::toXMLFormat)
         .orElse(null);
   }
+
 }

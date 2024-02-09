@@ -20,7 +20,7 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * The {@link JaxbContextBuilder} throws this exception instead of {@link
- * javax.xml.bind.JAXBException}.
+ * jakarta.xml.bind.JAXBException}.
  *
  * @author Christian Bremer
  */

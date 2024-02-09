@@ -7,12 +7,12 @@
   <parent>
     <groupId>org.bremersee</groupId>
     <artifactId>common-parent</artifactId>
-    <version>2.4.0</version>
+    <version>3.0.0-SNAPSHOT</version>
     <relativePath/>
   </parent>
 
   <artifactId>common-xml-parent</artifactId>
-  <version>2.5.0-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Common Xml Parent Module</name>
@@ -21,7 +21,7 @@
   <url>https://github.com/bremersee/common-xml</url>
 
   <modules>
-    <module>common-xml-adapter</module>
+    <module>common-xml-modelling</module>
     <module>common-xml</module>
     <module>common-xml-spring-web</module>
     <module>common-xml-spring-webflux</module>
