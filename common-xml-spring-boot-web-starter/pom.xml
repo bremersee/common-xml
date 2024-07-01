@@ -7,7 +7,7 @@
   <parent>
     <artifactId>common-xml-parent</artifactId>
     <groupId>org.bremersee</groupId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>common-xml-spring-boot-web-starter</artifactId>
