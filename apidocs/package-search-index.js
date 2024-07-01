@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"org.bremersee.xml"},{"l":"org.bremersee.xml.adapter"}]
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"org.bremersee.xml"},{"l":"org.bremersee.xml.adapter"},{"l":"org.bremersee.xml.http.codec"},{"l":"org.bremersee.xml.http.converter"},{"l":"org.bremersee.xml.spring.boot"},{"l":"org.bremersee.xml.spring.boot.http"},{"l":"org.bremersee.xml.spring.boot.http.codec"},{"l":"org.bremersee.xml.spring.boot.http.converter"}];updateSearchResults();

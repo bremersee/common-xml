@@ -1,0 +1,4 @@
+org.bremersee.xml.spring.boot
+org.bremersee.xml.spring.boot.http
+org.bremersee.xml.spring.boot.http.codec
+org.bremersee.xml.spring.boot.http.converter

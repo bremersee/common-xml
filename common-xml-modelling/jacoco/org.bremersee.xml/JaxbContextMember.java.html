@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JaxbContextMember.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Common Xml Modelling</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml</a> &gt; <span class="el_source">JaxbContextMember.java</span></div><h1>JaxbContextMember.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.bremersee.xml;
+
+import static java.util.Objects.isNull;
+
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+
+/**
+ * The jaxb context member.
+ *
+ * @author Christian Bremer
+ */
+public interface JaxbContextMember {
+
+  /**
+   * By class builder.
+   *
+   * @param clazz the clazz
+   * @return the clazz builder
+   */
+  static ClazzBuilder byClass(Class&lt;?&gt; clazz) {
+<span class="nc" id="L41">    return new ClazzBuilderImpl(clazz);</span>
+  }
+
+  /**
+   * By package builder.
+   *
+   * @param pakkage the pakkage
+   * @return the pakkage builder
+   */
+  static PakkageBuilder byPackage(Package pakkage) {
+<span class="nc" id="L51">    return new PakkageBuilderImpl(pakkage);</span>
+  }
+
+  /**
+   * Gets clazz.
+   *
+   * @return the clazz
+   */
+  Class&lt;?&gt; getClazz();
+
+  /**
+   * Gets clazz element schema location.
+   *
+   * @return the clazz element schema location
+   */
+  default String getClazzElementSchemaLocation() {
+<span class="nc" id="L67">    return null;</span>
+  }
+
+  /**
+   * Gets clazz type schema location.
+   *
+   * @return the clazz type schema location
+   */
+  default String getClazzTypeSchemaLocation() {
+<span class="nc" id="L76">    return null;</span>
+  }
+
+  /**
+   * Gets pakkage.
+   *
+   * @return the pakkage
+   */
+  default Package getPakkage() {
+<span class="nc" id="L85">    return null;</span>
+  }
+
+  /**
+   * Gets pakkage schema location.
+   *
+   * @return the pakkage schema location
+   */
+  default String getPakkageSchemaLocation() {
+<span class="nc" id="L94">    return null;</span>
+  }
+
+  /**
+   * The pakkage builder.
+   */
+  interface PakkageBuilder {
+
+    /**
+     * Schema location.
+     *
+     * @param schemaLocation the schema location
+     * @return the pakkage builder
+     */
+    PakkageBuilder schemaLocation(String schemaLocation);
+
+    /**
+     * Build jaxb context member.
+     *
+     * @return the jaxb context member
+     */
+    JaxbContextMember build();
+  }
+
+  /**
+   * The pakkage builder implementation.
+   */
+  @SuppressWarnings(&quot;SameNameButDifferent&quot;)
+  @EqualsAndHashCode
+  @ToString
+  @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+  class PakkageBuilderImpl implements PakkageBuilder {
+
+    private final Package pakkage;
+
+    private String schemaLocation;
+
+    @Override
+    public PakkageBuilder schemaLocation(String schemaLocation) {
+<span class="nc" id="L133">      this.schemaLocation = schemaLocation;</span>
+<span class="nc" id="L134">      return this;</span>
+    }
+
+    @Override
+    public JaxbContextMember build() {
+<span class="nc bnc" id="L139" title="All 2 branches missed.">      if (isNull(this.pakkage)) {</span>
+<span class="nc" id="L140">        throw new IllegalStateException(&quot;Package of jaxb context must be present.&quot;);</span>
+      }
+<span class="nc" id="L142">      return new JaxbContextMemberImpl(this.pakkage, this.schemaLocation);</span>
+    }
+  }
+
+  /**
+   * The clazz builder.
+   */
+  interface ClazzBuilder {
+
+    /**
+     * Clazz element schema location.
+     *
+     * @param clazzElementSchemaLocation the clazz element schema location
+     * @return the clazz builder
+     */
+    ClazzBuilder clazzElementSchemaLocation(String clazzElementSchemaLocation);
+
+    /**
+     * Clazz type schema location.
+     *
+     * @param clazzTypeSchemaLocation the clazz type schema location
+     * @return the clazz builder
+     */
+    ClazzBuilder clazzTypeSchemaLocation(String clazzTypeSchemaLocation);
+
+    /**
+     * Build jaxb context member.
+     *
+     * @return the jaxb context member
+     */
+    JaxbContextMember build();
+  }
+
+  /**
+   * The clazz builder implementation.
+   */
+  @SuppressWarnings(&quot;SameNameButDifferent&quot;)
+  @EqualsAndHashCode
+  @ToString
+  @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+  class ClazzBuilderImpl implements ClazzBuilder {
+
+    private final Class&lt;?&gt; clazz;
+
+    private String clazzElementSchemaLocation;
+
+    private String clazzTypeSchemaLocation;
+
+    @Override
+    public ClazzBuilder clazzElementSchemaLocation(String clazzElementSchemaLocation) {
+<span class="nc" id="L192">      this.clazzElementSchemaLocation = clazzElementSchemaLocation;</span>
+<span class="nc" id="L193">      return this;</span>
+    }
+
+    @Override
+    public ClazzBuilder clazzTypeSchemaLocation(String clazzTypeSchemaLocation) {
+<span class="nc" id="L198">      this.clazzTypeSchemaLocation = clazzTypeSchemaLocation;</span>
+<span class="nc" id="L199">      return this;</span>
+    }
+
+    @Override
+    public JaxbContextMember build() {
+<span class="nc bnc" id="L204" title="All 2 branches missed.">      if (isNull(this.clazz)) {</span>
+<span class="nc" id="L205">        throw new IllegalStateException(&quot;Class of jaxb context must be present.&quot;);</span>
+      }
+<span class="nc" id="L207">      return new JaxbContextMemberImpl(</span>
+          this.clazz,
+          this.clazzElementSchemaLocation,
+          this.clazzTypeSchemaLocation);
+    }
+  }
+
+  /**
+   * The jaxb context member implementation.
+   */
+  @SuppressWarnings(&quot;SameNameButDifferent&quot;)
+  @Getter
+  @EqualsAndHashCode
+  @ToString
+  class JaxbContextMemberImpl implements JaxbContextMember {
+
+    private final Class&lt;?&gt; clazz;
+
+    private final String clazzElementSchemaLocation;
+
+    private final String clazzTypeSchemaLocation;
+
+    private final Package pakkage;
+
+    private final String pakkageSchemaLocation;
+
+    /**
+     * Instantiates a new jaxb context member.
+     *
+     * @param clazz the clazz
+     * @param clazzElementSchemaLocation the clazz element schema location
+     * @param clazzTypeSchemaLocation the clazz type schema location
+     * @param pakkage the pakkage
+     * @param pakkageSchemaLocation the pakkage schema location
+     */
+    JaxbContextMemberImpl(
+        Class&lt;?&gt; clazz,
+        String clazzElementSchemaLocation,
+        String clazzTypeSchemaLocation,
+        Package pakkage,
+<span class="nc" id="L247">        String pakkageSchemaLocation) {</span>
+<span class="nc" id="L248">      this.clazz = clazz;</span>
+<span class="nc" id="L249">      this.clazzElementSchemaLocation = clazzElementSchemaLocation;</span>
+<span class="nc" id="L250">      this.clazzTypeSchemaLocation = clazzTypeSchemaLocation;</span>
+<span class="nc" id="L251">      this.pakkage = pakkage;</span>
+<span class="nc" id="L252">      this.pakkageSchemaLocation = pakkageSchemaLocation;</span>
+<span class="nc" id="L253">    }</span>
+
+    /**
+     * Instantiates a new jaxb context member.
+     *
+     * @param clazz the clazz
+     * @param clazzElementSchemaLocation the clazz element schema location
+     * @param clazzTypeSchemaLocation the clazz type schema location
+     */
+    JaxbContextMemberImpl(
+        Class&lt;?&gt; clazz,
+        String clazzElementSchemaLocation,
+        String clazzTypeSchemaLocation) {
+<span class="nc" id="L266">      this(clazz, clazzElementSchemaLocation, clazzTypeSchemaLocation, null, null);</span>
+<span class="nc" id="L267">    }</span>
+
+    /**
+     * Instantiates a new jaxb context member.
+     *
+     * @param pakkage the pakkage
+     * @param schemaLocation the schema location
+     */
+    JaxbContextMemberImpl(Package pakkage, String schemaLocation) {
+<span class="nc" id="L276">      this(null, null, null, pakkage, schemaLocation);</span>
+<span class="nc" id="L277">    }</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

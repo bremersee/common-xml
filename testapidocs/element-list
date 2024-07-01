@@ -1,5 +1,7 @@
 org.bremersee.xml
 org.bremersee.xml.adapter
+org.bremersee.xml.http.codec
+org.bremersee.xml.http.converter
 org.bremersee.xml.model1
 org.bremersee.xml.model2
 org.bremersee.xml.model3
@@ -11,3 +13,12 @@ org.bremersee.xml.model7b
 org.bremersee.xml.model7c
 org.bremersee.xml.model8
 org.bremersee.xml.provider
+org.bremersee.xml.spring.boot
+org.bremersee.xml.spring.boot.http.codec
+org.bremersee.xml.spring.boot.http.converter
+org.bremersee.xml.test.app
+org.bremersee.xml.test.model
+org.bremersee.xml.test.model.xml1
+org.bremersee.xml.test.model.xml2
+org.bremersee.xml.test.model.xml3
+org.bremersee.xml.test.model.xml4

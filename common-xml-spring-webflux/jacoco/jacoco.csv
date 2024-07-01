@@ -1,0 +1,4 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Common Xml Spring WebFlux,org.bremersee.xml.http.codec,ReactiveJaxbEncoder,34,108,6,8,7,24,6,8,1,6
+Common Xml Spring WebFlux,org.bremersee.xml.http.codec,ReactiveJaxbDecoder,166,154,17,7,40,30,15,13,5,11
+Common Xml Spring WebFlux,org.bremersee.xml.http.codec,ReactiveJaxbDecoder.SplitHandler,91,0,16,0,22,0,10,0,2,0

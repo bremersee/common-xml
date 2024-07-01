@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JaxbUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Common Xml</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml</a> &gt; <span class="el_source">JaxbUtils.java</span></div><h1>JaxbUtils.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2020-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.bremersee.xml;
+
+import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
+
+import java.util.Optional;
+import java.util.stream.Stream;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlSchema;
+import jakarta.xml.bind.annotation.XmlType;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.Assert;
+
+/**
+ * The jaxb utils.
+ *
+ * @author Christian Bremer
+ */
+@SuppressWarnings(&quot;SameNameButDifferent&quot;)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+abstract class JaxbUtils {
+
+  /**
+   * Gets name space of element.
+   *
+   * @param clazz the class
+   * @return the name space of element
+   */
+  static Optional&lt;String&gt; getNameSpaceOfElement(Class&lt;?&gt; clazz) {
+<span class="fc" id="L50">    return Optional.ofNullable(clazz)</span>
+<span class="fc" id="L51">        .map(c -&gt; c.getAnnotation(XmlRootElement.class))</span>
+<span class="fc" id="L52">        .map(XmlRootElement::namespace)</span>
+<span class="pc bpc" id="L53" title="1 of 4 branches missed.">        .filter(ns -&gt; !ns.isBlank() &amp;&amp; !&quot;##default&quot;.equals(ns))</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        .or(() -&gt; isInJaxbModelPackage(clazz)</span>
+<span class="fc" id="L55">            ? getNameSpace(requireNonNull(clazz).getPackage())</span>
+<span class="fc" id="L56">            : Optional.empty());</span>
+  }
+
+  /**
+   * Gets name space of type.
+   *
+   * @param clazz the class
+   * @return the name space of type
+   */
+  static Optional&lt;String&gt; getNameSpaceOfType(Class&lt;?&gt; clazz) {
+<span class="fc" id="L66">    return Optional.ofNullable(clazz)</span>
+<span class="fc" id="L67">        .map(c -&gt; c.getAnnotation(XmlType.class))</span>
+<span class="fc" id="L68">        .map(XmlType::namespace)</span>
+<span class="pc bpc" id="L69" title="1 of 4 branches missed.">        .filter(ns -&gt; !ns.isBlank() &amp;&amp; !&quot;##default&quot;.equals(ns))</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        .or(() -&gt; isInJaxbModelPackage(clazz)</span>
+<span class="fc" id="L71">            ? getNameSpace(requireNonNull(clazz).getPackage())</span>
+<span class="fc" id="L72">            : Optional.empty());</span>
+  }
+
+  /**
+   * Gets name space.
+   *
+   * @param pakkage the package
+   * @return the name space
+   */
+  static Optional&lt;String&gt; getNameSpace(Package pakkage) {
+<span class="fc" id="L82">    return Optional.ofNullable(pakkage)</span>
+<span class="fc" id="L83">        .map(p -&gt; p.getAnnotation(XmlSchema.class))</span>
+<span class="fc" id="L84">        .map(XmlSchema::namespace)</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        .filter(ns -&gt; !ns.isBlank());</span>
+  }
+
+  /**
+   * Gets schema location.
+   *
+   * @param pakkage the package
+   * @return the schema location
+   */
+  static Optional&lt;String&gt; getSchemaLocation(Package pakkage) {
+<span class="fc" id="L95">    return Optional.ofNullable(pakkage)</span>
+<span class="fc" id="L96">        .map(p -&gt; p.getAnnotation(XmlSchema.class))</span>
+<span class="fc" id="L97">        .map(XmlSchema::location)</span>
+<span class="pc bpc" id="L98" title="1 of 4 branches missed.">        .filter(location -&gt; !location.isBlank() &amp;&amp; !XmlSchema.NO_LOCATION.equals(location));</span>
+  }
+
+  /**
+   * Is in jaxb model package boolean.
+   *
+   * @param clazz the class
+   * @return the boolean
+   */
+  static boolean isInJaxbModelPackage(Class&lt;?&gt; clazz) {
+<span class="pc bpc" id="L108" title="1 of 4 branches missed.">    return nonNull(clazz) &amp;&amp; isJaxbModelPackage(clazz.getPackage());</span>
+  }
+
+  /**
+   * Is jaxb model package boolean.
+   *
+   * @param pakkage the package
+   * @return the boolean
+   */
+  static boolean isJaxbModelPackage(Package pakkage) {
+<span class="fc bfc" id="L118" title="All 4 branches covered.">    return objectFactoryExists(pakkage) || jaxbIndexExists(pakkage);</span>
+  }
+
+  private static boolean objectFactoryExists(Package pakkage) {
+<span class="fc" id="L122">    return Optional.ofNullable(pakkage)</span>
+<span class="fc" id="L123">        .map(p -&gt; {</span>
+          try {
+<span class="fc" id="L125">            Class.forName(pakkage.getName() + &quot;.ObjectFactory&quot;);</span>
+<span class="fc" id="L126">            return true;</span>
+<span class="fc" id="L127">          } catch (ClassNotFoundException e) {</span>
+<span class="fc" id="L128">            return false;</span>
+          }
+        })
+<span class="fc" id="L131">        .orElse(false);</span>
+  }
+
+  private static boolean jaxbIndexExists(Package pakkage) {
+<span class="fc" id="L135">    return Optional.ofNullable(pakkage)</span>
+<span class="fc" id="L136">        .map(Package::getName)</span>
+<span class="fc" id="L137">        .map(p -&gt; p.replaceAll(&quot;[.]&quot;, &quot;/&quot;))</span>
+<span class="fc" id="L138">        .map(path -&gt; path + &quot;/jaxb.index&quot;)</span>
+<span class="fc" id="L139">        .map(resource -&gt; new ClassPathResource(resource).exists())</span>
+<span class="fc" id="L140">        .orElse(false);</span>
+  }
+
+  /**
+   * Find jaxb classes stream.
+   *
+   * @param packageName the package name
+   * @param classLoaders the class loaders
+   * @return the stream
+   */
+  static Stream&lt;Class&lt;?&gt;&gt; findJaxbClasses(String packageName, ClassLoader... classLoaders) {
+<span class="fc" id="L151">    Assert.hasText(packageName, &quot;Package name must be present.&quot;);</span>
+<span class="fc" id="L152">    return new Reflections(packageName)</span>
+<span class="fc" id="L153">        .get(Scanners.SubTypes.of(Scanners.TypesAnnotated</span>
+<span class="fc" id="L154">            .with(XmlRootElement.class, XmlType.class)).asClass(classLoaders))</span>
+<span class="fc" id="L155">        .stream();</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

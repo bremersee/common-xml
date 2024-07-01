@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Jaxb2HttpMessageConverterAutoConfiguration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Common Xml Spring Boot Autoconfiguration</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml.spring.boot.http.converter</a> &gt; <span class="el_source">Jaxb2HttpMessageConverterAutoConfiguration.java</span></div><h1>Jaxb2HttpMessageConverterAutoConfiguration.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.bremersee.xml.spring.boot.http.converter;
+
+import java.util.AbstractCollection;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
+import org.bremersee.xml.JaxbContextBuilder;
+import org.bremersee.xml.http.converter.Jaxb2HttpMessageConverter;
+import org.bremersee.xml.spring.boot.JaxbContextBuilderAutoConfiguration;
+import org.bremersee.xml.spring.boot.http.JaxbReadWriteConfigurer;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
+import org.springframework.util.ClassUtils;
+
+/**
+ * The Jaxb 2 http message converter autoconfiguration.
+ *
+ * @author Christian Bremer
+ */
+@ConditionalOnWebApplication(type = Type.SERVLET)
+@ConditionalOnClass(JaxbContextBuilder.class)
+@AutoConfigureAfter(JaxbContextBuilderAutoConfiguration.class)
+@AutoConfiguration
+<span class="fc" id="L49">@Slf4j</span>
+<span class="fc" id="L50">public class Jaxb2HttpMessageConverterAutoConfiguration {</span>
+
+  /**
+   * Init.
+   */
+  @EventListener(ApplicationReadyEvent.class)
+  public void init() {
+<span class="fc" id="L57">    log.info(&quot;&quot;&quot;</span>
+
+            *********************************************************************************
+            * {}
+            *********************************************************************************&quot;&quot;&quot;,
+<span class="fc" id="L62">        ClassUtils.getUserClass(getClass()).getSimpleName());</span>
+<span class="fc" id="L63">  }</span>
+
+  /**
+   * Creates jaxb http message converter bean.
+   *
+   * @param jaxbContextBuilder the jaxb context builder
+   * @return the jaxb http message converter
+   */
+  @ConditionalOnBean(JaxbContextBuilder.class)
+  @ConditionalOnMissingBean(Jaxb2HttpMessageConverter.class)
+  @Bean
+  public Jaxb2HttpMessageConverter jaxb2HttpMessageConverter(
+      JaxbContextBuilder jaxbContextBuilder,
+      ObjectProvider&lt;JaxbReadWriteConfigurer&gt; readWriteConfigurers) {
+
+<span class="fc" id="L78">    Set&lt;Class&lt;?&gt;&gt; ignoreReadingClasses = readWriteConfigurers</span>
+<span class="fc" id="L79">        .stream()</span>
+<span class="fc" id="L80">        .collect(</span>
+            HashSet::new,
+<span class="fc" id="L82">            (a, b) -&gt; a.addAll(b.getIgnoreReadingClasses()),</span>
+            AbstractCollection::addAll);
+<span class="fc" id="L84">    Set&lt;Class&lt;?&gt;&gt; ignoreWritingClasses = readWriteConfigurers</span>
+<span class="fc" id="L85">        .stream()</span>
+<span class="fc" id="L86">        .collect(</span>
+            HashSet::new,
+<span class="fc" id="L88">            (a, b) -&gt; a.addAll(b.getIgnoreWritingClasses()),</span>
+            AbstractCollection::addAll);
+<span class="fc" id="L90">    log.info(&quot;Creating bean {} with ignoreReadingClasses ({}) and ignoreWritingClasses ({}).&quot;,</span>
+<span class="fc" id="L91">        Jaxb2HttpMessageConverter.class.getSimpleName(),</span>
+        ignoreReadingClasses,
+        ignoreWritingClasses);
+<span class="fc" id="L94">    return new Jaxb2HttpMessageConverter(</span>
+        jaxbContextBuilder,
+        ignoreReadingClasses,
+        ignoreWritingClasses);
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

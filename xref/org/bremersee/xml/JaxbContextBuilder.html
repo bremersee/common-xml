@@ -30,14 +30,14 @@
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> java.util.Spliterator;
 <a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> java.util.Spliterators;
 <a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> java.util.stream.StreamSupport;
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> javax.xml.bind.Marshaller;
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> javax.xml.bind.Unmarshaller;
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> javax.xml.bind.ValidationEventHandler;
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> javax.xml.bind.annotation.XmlRootElement;
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> javax.xml.bind.annotation.XmlType;
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> javax.xml.bind.annotation.adapters.XmlAdapter;
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> javax.xml.bind.attachment.AttachmentMarshaller;
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> javax.xml.bind.attachment.AttachmentUnmarshaller;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> jakarta.xml.bind.Marshaller;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> jakarta.xml.bind.Unmarshaller;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> jakarta.xml.bind.ValidationEventHandler;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> jakarta.xml.bind.annotation.XmlRootElement;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> jakarta.xml.bind.annotation.XmlType;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> jakarta.xml.bind.annotation.adapters.XmlAdapter;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> jakarta.xml.bind.attachment.AttachmentMarshaller;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> jakarta.xml.bind.attachment.AttachmentUnmarshaller;
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> javax.xml.validation.Schema;
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>  
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">/**</em>
@@ -159,7 +159,7 @@
 <a class="jxr_linenumber" name="L151" href="#L151">151</a> <em class="jxr_javadoccomment">   * @param data the data</em>
 <a class="jxr_linenumber" name="L152" href="#L152">152</a> <em class="jxr_javadoccomment">   * @return the jaxb context builder</em>
 <a class="jxr_linenumber" name="L153" href="#L153">153</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L154" href="#L154">154</a>   <a name="JaxbContextBuilder" href="../../../org/bremersee/xml/JaxbContextBuilder.html#JaxbContextBuilder">JaxbContextBuilder</a> add(<a name="JaxbContextData" href="../../../org/bremersee/xml/JaxbContextData.html#JaxbContextData">JaxbContextData</a> data);
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>   <a name="JaxbContextBuilder" href="../../../org/bremersee/xml/JaxbContextBuilder.html#JaxbContextBuilder">JaxbContextBuilder</a> add(<a name="JaxbContextMember" href="../../../org/bremersee/xml/JaxbContextMember.html#JaxbContextMember">JaxbContextMember</a> data);
 <a class="jxr_linenumber" name="L155" href="#L155">155</a> 
 <a class="jxr_linenumber" name="L156" href="#L156">156</a>   <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L157" href="#L157">157</a> <em class="jxr_javadoccomment">   * Add all jaxb context meta-data to the jaxb context builder.</em>
@@ -167,7 +167,7 @@
 <a class="jxr_linenumber" name="L159" href="#L159">159</a> <em class="jxr_javadoccomment">   * @param data the data</em>
 <a class="jxr_linenumber" name="L160" href="#L160">160</a> <em class="jxr_javadoccomment">   * @return the jaxb context builder</em>
 <a class="jxr_linenumber" name="L161" href="#L161">161</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>   <strong class="jxr_keyword">default</strong> <a name="JaxbContextBuilder" href="../../../org/bremersee/xml/JaxbContextBuilder.html#JaxbContextBuilder">JaxbContextBuilder</a> addAll(Iterable&lt;? <strong class="jxr_keyword">extends</strong> JaxbContextData&gt; data) {
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>   <strong class="jxr_keyword">default</strong> <a name="JaxbContextBuilder" href="../../../org/bremersee/xml/JaxbContextBuilder.html#JaxbContextBuilder">JaxbContextBuilder</a> addAll(Iterable&lt;? <strong class="jxr_keyword">extends</strong> JaxbContextMember&gt; data) {
 <a class="jxr_linenumber" name="L163" href="#L163">163</a>     <strong class="jxr_keyword">return</strong> Optional.ofNullable(data)
 <a class="jxr_linenumber" name="L164" href="#L164">164</a>         .map(d -&gt; addAll(d.iterator()))
 <a class="jxr_linenumber" name="L165" href="#L165">165</a>         .orElse(<strong class="jxr_keyword">this</strong>);
@@ -179,7 +179,7 @@
 <a class="jxr_linenumber" name="L171" href="#L171">171</a> <em class="jxr_javadoccomment">   * @param data the data</em>
 <a class="jxr_linenumber" name="L172" href="#L172">172</a> <em class="jxr_javadoccomment">   * @return the jaxb context builder</em>
 <a class="jxr_linenumber" name="L173" href="#L173">173</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>   <strong class="jxr_keyword">default</strong> <a name="JaxbContextBuilder" href="../../../org/bremersee/xml/JaxbContextBuilder.html#JaxbContextBuilder">JaxbContextBuilder</a> addAll(Iterator&lt;? <strong class="jxr_keyword">extends</strong> JaxbContextData&gt; data) {
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>   <strong class="jxr_keyword">default</strong> <a name="JaxbContextBuilder" href="../../../org/bremersee/xml/JaxbContextBuilder.html#JaxbContextBuilder">JaxbContextBuilder</a> addAll(Iterator&lt;? <strong class="jxr_keyword">extends</strong> JaxbContextMember&gt; data) {
 <a class="jxr_linenumber" name="L175" href="#L175">175</a>     <strong class="jxr_keyword">return</strong> Optional.ofNullable(data)
 <a class="jxr_linenumber" name="L176" href="#L176">176</a>         .map(iter -&gt; Spliterators.spliteratorUnknownSize(iter, Spliterator.ORDERED))
 <a class="jxr_linenumber" name="L177" href="#L177">177</a>         .stream()
@@ -262,7 +262,7 @@
 <a class="jxr_linenumber" name="L254" href="#L254">254</a> <em class="jxr_javadoccomment">   * Build unmarshaller for the given classes with the specified dependencies-resolver. If</em>
 <a class="jxr_linenumber" name="L255" href="#L255">255</a> <em class="jxr_javadoccomment">   * dependency resolving is turned off, an unmarshaller of the default context (defined by the</em>
 <a class="jxr_linenumber" name="L256" href="#L256">256</a> <em class="jxr_javadoccomment">   * added meta-data) will be returned or one that is created with {@link</em>
-<a class="jxr_linenumber" name="L257" href="#L257">257</a> <em class="jxr_javadoccomment">   * javax.xml.bind.JAXBContext#newInstance(Class[])}*.</em>
+<a class="jxr_linenumber" name="L257" href="#L257">257</a> <em class="jxr_javadoccomment">   * jakarta.xml.bind.JAXBContext#newInstance(Class[])}*.</em>
 <a class="jxr_linenumber" name="L258" href="#L258">258</a> <em class="jxr_javadoccomment">   *</em>
 <a class="jxr_linenumber" name="L259" href="#L259">259</a> <em class="jxr_javadoccomment">   * @param classes the classes that should be processed by the unmarshaller</em>
 <a class="jxr_linenumber" name="L260" href="#L260">260</a> <em class="jxr_javadoccomment">   * @return the unmarshaller</em>
@@ -283,7 +283,7 @@
 <a class="jxr_linenumber" name="L275" href="#L275">275</a> <em class="jxr_javadoccomment">   * Build marshaller for the given object (POJO) or for the given class or array of classes with</em>
 <a class="jxr_linenumber" name="L276" href="#L276">276</a> <em class="jxr_javadoccomment">   * the specified dependencies-resolver. If dependency resolving is turned off, a marshaller of the</em>
 <a class="jxr_linenumber" name="L277" href="#L277">277</a> <em class="jxr_javadoccomment">   * default context (defined by the added meta-data) will be returned or one that is created with</em>
-<a class="jxr_linenumber" name="L278" href="#L278">278</a> <em class="jxr_javadoccomment">   * {@link javax.xml.bind.JAXBContext#newInstance(Class[])}.</em>
+<a class="jxr_linenumber" name="L278" href="#L278">278</a> <em class="jxr_javadoccomment">   * {@link jakarta.xml.bind.JAXBContext#newInstance(Class[])}.</em>
 <a class="jxr_linenumber" name="L279" href="#L279">279</a> <em class="jxr_javadoccomment">   *</em>
 <a class="jxr_linenumber" name="L280" href="#L280">280</a> <em class="jxr_javadoccomment">   * @param value the value (POJO) that should be processed by the marshaller or a single class</em>
 <a class="jxr_linenumber" name="L281" href="#L281">281</a> <em class="jxr_javadoccomment">   *     or an array of classes</em>
@@ -312,7 +312,7 @@
 <a class="jxr_linenumber" name="L304" href="#L304">304</a> <em class="jxr_javadoccomment">   * Build jaxb context for the given object (POJO) or for the given class or array of classes with</em>
 <a class="jxr_linenumber" name="L305" href="#L305">305</a> <em class="jxr_javadoccomment">   * the specified dependency resolver. If dependency resolving is turned off, the default jaxb</em>
 <a class="jxr_linenumber" name="L306" href="#L306">306</a> <em class="jxr_javadoccomment">   * context (defined by the added meta-data) will be returned or a jaxb context will be created</em>
-<a class="jxr_linenumber" name="L307" href="#L307">307</a> <em class="jxr_javadoccomment">   * with {@link javax.xml.bind.JAXBContext#newInstance(Class[])}.</em>
+<a class="jxr_linenumber" name="L307" href="#L307">307</a> <em class="jxr_javadoccomment">   * with {@link jakarta.xml.bind.JAXBContext#newInstance(Class[])}.</em>
 <a class="jxr_linenumber" name="L308" href="#L308">308</a> <em class="jxr_javadoccomment">   *</em>
 <a class="jxr_linenumber" name="L309" href="#L309">309</a> <em class="jxr_javadoccomment">   * @param value the value (POJO) that should be processed by the jaxb context or a single</em>
 <a class="jxr_linenumber" name="L310" href="#L310">310</a> <em class="jxr_javadoccomment">   *     class or an array of classes</em>
@@ -341,6 +341,6 @@
 <a class="jxr_linenumber" name="L333" href="#L333">333</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2020&#x2013;2022 <a href="https://bremersee.org">bremersee.org</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2020&#x2013;2024 <a href="https://bremersee.org">bremersee.org</a>. All rights reserved.</div>
 </body>
 </html>

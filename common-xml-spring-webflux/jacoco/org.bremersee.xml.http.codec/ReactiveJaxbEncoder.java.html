@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReactiveJaxbEncoder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Common Xml Spring WebFlux</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml.http.codec</a> &gt; <span class="el_source">ReactiveJaxbEncoder.java</span></div><h1>ReactiveJaxbEncoder.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.bremersee.xml.http.codec;
+
+import static java.util.Objects.isNull;
+
+import java.io.OutputStream;
+import java.util.Map;
+import java.util.Set;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.MarshalException;
+import jakarta.xml.bind.Marshaller;
+import org.bremersee.xml.JaxbContextBuilder;
+import org.springframework.core.ResolvableType;
+import org.springframework.core.codec.AbstractSingleValueEncoder;
+import org.springframework.core.codec.CodecException;
+import org.springframework.core.codec.EncodingException;
+import org.springframework.core.codec.Hints;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.log.LogFormatUtils;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.MimeType;
+import org.springframework.util.MimeTypeUtils;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+/**
+ * Encode from single value to a byte stream containing XML elements.
+ *
+ * &lt;p&gt;{@link jakarta.xml.bind.annotation.XmlElements @XmlElements} and
+ * {@link jakarta.xml.bind.annotation.XmlElement @XmlElement} can be used to specify how collections
+ * should be marshalled.
+ *
+ * &lt;p&gt;The encoding parts are taken from {@link org.springframework.http.codec.xml.Jaxb2XmlEncoder}.
+ *
+ * @author Sebastien Deleuze
+ * @author Arjen Poutsma
+ * @author Christian Bremer
+ */
+public class ReactiveJaxbEncoder extends AbstractSingleValueEncoder&lt;Object&gt; {
+
+  private final JaxbContextBuilder jaxbContextBuilder;
+
+  private final Set&lt;Class&lt;?&gt;&gt; ignoreWritingClasses;
+
+  /**
+   * Instantiates a new reactive jaxb encoder.
+   *
+   * @param jaxbContextBuilder the jaxb context builder
+   */
+  public ReactiveJaxbEncoder(JaxbContextBuilder jaxbContextBuilder) {
+<span class="fc" id="L70">    this(jaxbContextBuilder, null);</span>
+<span class="fc" id="L71">  }</span>
+
+  /**
+   * Instantiates a new reactive jaxb encoder.
+   *
+   * @param jaxbContextBuilder the jaxb context builder
+   * @param ignoreWritingClasses ignore writing classes
+   */
+  public ReactiveJaxbEncoder(
+      JaxbContextBuilder jaxbContextBuilder,
+      Set&lt;Class&lt;?&gt;&gt; ignoreWritingClasses) {
+
+<span class="fc" id="L83">    super(MimeTypeUtils.APPLICATION_XML, MimeTypeUtils.TEXT_XML);</span>
+<span class="fc" id="L84">    Assert.notNull(jaxbContextBuilder, &quot;JaxbContextBuilder must be present.&quot;);</span>
+<span class="fc" id="L85">    this.jaxbContextBuilder = jaxbContextBuilder;</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">    this.ignoreWritingClasses = isNull(ignoreWritingClasses) ? Set.of() : ignoreWritingClasses;</span>
+<span class="fc" id="L87">  }</span>
+
+  @Override
+  public boolean canEncode(
+      @NonNull ResolvableType elementType,
+      @Nullable final MimeType mimeType) {
+
+<span class="fc bfc" id="L94" title="All 2 branches covered.">    if (super.canEncode(elementType, mimeType)) {</span>
+<span class="fc" id="L95">      final Class&lt;?&gt; outputClass = elementType.toClass();</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">      return !ignoreWritingClasses.contains(outputClass)</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">          &amp;&amp; jaxbContextBuilder.canMarshal(outputClass);</span>
+    } else {
+<span class="fc" id="L99">      return false;</span>
+    }
+  }
+
+  @NonNull
+  @Override
+  protected Flux&lt;DataBuffer&gt; encode(
+      @NonNull Object value,
+      @NonNull DataBufferFactory bufferFactory,
+      @NonNull ResolvableType valueType,
+      @Nullable MimeType mimeType,
+      @Nullable Map&lt;String, Object&gt; hints) {
+
+    // we're relying on doOnDiscard in base class
+<span class="fc" id="L113">    return Mono.fromCallable(() -&gt; encodeValue(value, bufferFactory, valueType, mimeType, hints))</span>
+<span class="fc" id="L114">        .flux();</span>
+  }
+
+  @NonNull
+  @Override
+  public DataBuffer encodeValue(
+      @NonNull Object value,
+      @NonNull DataBufferFactory bufferFactory,
+      @NonNull ResolvableType valueType,
+      @Nullable MimeType mimeType,
+      @Nullable Map&lt;String, Object&gt; hints) {
+
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">    if (!Hints.isLoggingSuppressed(hints)) {</span>
+<span class="fc" id="L127">      LogFormatUtils.traceDebug(logger, traceOn -&gt; {</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        String formatted = LogFormatUtils.formatValue(value, !traceOn);</span>
+<span class="nc" id="L129">        return Hints.getLogPrefix(hints) + &quot;Encoding [&quot; + formatted + &quot;]&quot;;</span>
+      });
+    }
+
+<span class="fc" id="L133">    boolean release = true;</span>
+<span class="fc" id="L134">    DataBuffer buffer = bufferFactory.allocateBuffer(1024);</span>
+    try {
+<span class="fc" id="L136">      OutputStream outputStream = buffer.asOutputStream();</span>
+<span class="fc" id="L137">      Marshaller marshaller = jaxbContextBuilder.buildMarshaller(value);</span>
+<span class="fc" id="L138">      marshaller.marshal(value, outputStream);</span>
+<span class="fc" id="L139">      release = false;</span>
+<span class="fc" id="L140">      return buffer;</span>
+<span class="nc" id="L141">    } catch (MarshalException ex) {</span>
+<span class="nc" id="L142">      throw new EncodingException(&quot;Could not marshal &quot; + value.getClass() + &quot; to XML&quot;, ex);</span>
+<span class="nc" id="L143">    } catch (JAXBException ex) {</span>
+<span class="nc" id="L144">      throw new CodecException(&quot;Invalid JAXB configuration&quot;, ex);</span>
+    } finally {
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">      if (release) {</span>
+<span class="nc" id="L147">        DataBufferUtils.release(buffer);</span>
+      }
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,2 +1,8 @@
 org.bremersee.xml
 org.bremersee.xml.adapter
+org.bremersee.xml.http.codec
+org.bremersee.xml.http.converter
+org.bremersee.xml.spring.boot
+org.bremersee.xml.spring.boot.http
+org.bremersee.xml.spring.boot.http.codec
+org.bremersee.xml.spring.boot.http.converter

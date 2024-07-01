@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Jaxb2HttpMessageConverter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Common Xml Spring Web</a> &gt; <a href="index.source.html" class="el_package">org.bremersee.xml.http.converter</a> &gt; <span class="el_source">Jaxb2HttpMessageConverter.java</span></div><h1>Jaxb2HttpMessageConverter.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.bremersee.xml.http.converter;
+
+import static java.util.Objects.isNull;
+
+import java.util.Set;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.MarshalException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.PropertyException;
+import jakarta.xml.bind.UnmarshalException;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import org.bremersee.xml.JaxbContextBuilder;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConversionException;
+import org.springframework.http.converter.xml.AbstractXmlHttpMessageConverter;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+
+/**
+ * The jaxb http message converter.
+ *
+ * @author Arjen Poutsma, Juergen Hoeller, Rossen Stoyanchev, Christian Bremer
+ * @see org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter
+ */
+public class Jaxb2HttpMessageConverter extends AbstractXmlHttpMessageConverter&lt;Object&gt; {
+
+  private final JaxbContextBuilder jaxbContextBuilder;
+
+  private final Set&lt;Class&lt;?&gt;&gt; ignoreReadingClasses;
+
+  private final Set&lt;Class&lt;?&gt;&gt; ignoreWritingClasses;
+
+  /**
+   * Instantiates a new jaxb http message converter.
+   *
+   * @param jaxbContextBuilder the jaxb context builder
+   */
+  public Jaxb2HttpMessageConverter(JaxbContextBuilder jaxbContextBuilder) {
+<span class="fc" id="L61">    this(jaxbContextBuilder, null, null);</span>
+<span class="fc" id="L62">  }</span>
+
+  /**
+   * Instantiates a new Jaxb 2 http message converter.
+   *
+   * @param jaxbContextBuilder the jaxb context builder
+   * @param ignoreReadingClasses ignore reading classes
+   * @param ignoreWritingClasses ignore writing classes
+   */
+  public Jaxb2HttpMessageConverter(
+      JaxbContextBuilder jaxbContextBuilder,
+      Set&lt;Class&lt;?&gt;&gt; ignoreReadingClasses,
+<span class="fc" id="L74">      Set&lt;Class&lt;?&gt;&gt; ignoreWritingClasses) {</span>
+<span class="fc" id="L75">    Assert.notNull(jaxbContextBuilder, &quot;JaxbContextBuilder must be present.&quot;);</span>
+<span class="fc" id="L76">    this.jaxbContextBuilder = jaxbContextBuilder;</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">    this.ignoreReadingClasses = isNull(ignoreReadingClasses) ? Set.of() : ignoreReadingClasses;</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    this.ignoreWritingClasses = isNull(ignoreWritingClasses) ? Set.of() : ignoreWritingClasses;</span>
+<span class="fc" id="L79">  }</span>
+
+  @Override
+  public boolean canRead(@NonNull Class&lt;?&gt; clazz, @Nullable MediaType mediaType) {
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">    return !ignoreReadingClasses.contains(clazz)</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">        &amp;&amp; jaxbContextBuilder.canUnmarshal(clazz)</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">        &amp;&amp; this.canRead(mediaType);</span>
+  }
+
+  @Override
+  public boolean canWrite(@NonNull Class&lt;?&gt; clazz, @Nullable MediaType mediaType) {
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">    return !ignoreWritingClasses.contains(clazz)</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">        &amp;&amp; jaxbContextBuilder.canMarshal(clazz)</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        &amp;&amp; this.canWrite(mediaType);</span>
+  }
+
+  @Override
+  protected boolean supports(@NonNull Class&lt;?&gt; clazz) {
+<span class="fc" id="L97">    throw new UnsupportedOperationException();</span>
+  }
+
+  @NonNull
+  @Override
+  protected Object readFromSource(
+      @NonNull Class&lt;?&gt; clazz,
+      @NonNull HttpHeaders headers,
+      @NonNull Source source) throws Exception {
+
+    try {
+      // processSource of Jaxb2RootElementHttpMessageConverter causes MalformedUrlException
+<span class="fc" id="L109">      Unmarshaller unmarshaller = jaxbContextBuilder.buildUnmarshaller(clazz);</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">      if (clazz.isAnnotationPresent(XmlRootElement.class)) {</span>
+<span class="fc" id="L111">        return unmarshaller.unmarshal(source);</span>
+      } else {
+<span class="nc" id="L113">        JAXBElement&lt;?&gt; jaxbElement = unmarshaller.unmarshal(source, clazz);</span>
+<span class="nc" id="L114">        return jaxbElement.getValue();</span>
+      }
+<span class="nc" id="L116">    } catch (UnmarshalException unmarshalException) {</span>
+<span class="nc" id="L117">      throw unmarshalException;</span>
+<span class="nc" id="L118">    } catch (JAXBException jaxbException) {</span>
+<span class="nc" id="L119">      throw new HttpMessageConversionException(&quot;Invalid JAXB setup: &quot;</span>
+<span class="nc" id="L120">          + jaxbException.getMessage(), jaxbException);</span>
+    }
+  }
+
+  @Override
+  protected void writeToResult(
+      @NonNull Object o,
+      HttpHeaders headers,
+      @NonNull Result result) throws Exception {
+
+    try {
+<span class="fc" id="L131">      Marshaller marshaller = jaxbContextBuilder.buildMarshaller(o);</span>
+<span class="fc" id="L132">      this.setCharset(headers.getContentType(), marshaller);</span>
+<span class="fc" id="L133">      marshaller.marshal(o, result);</span>
+<span class="nc" id="L134">    } catch (MarshalException marshalException) {</span>
+<span class="nc" id="L135">      throw marshalException;</span>
+<span class="nc" id="L136">    } catch (JAXBException jaxbException) {</span>
+<span class="nc" id="L137">      throw new HttpMessageConversionException(&quot;Invalid JAXB setup: &quot;</span>
+<span class="nc" id="L138">          + jaxbException.getMessage(), jaxbException);</span>
+<span class="fc" id="L139">    }</span>
+<span class="fc" id="L140">  }</span>
+
+  private void setCharset(
+      @Nullable MediaType contentType,
+      Marshaller marshaller) throws PropertyException {
+
+<span class="pc bpc" id="L146" title="2 of 4 branches missed.">    if (contentType != null &amp;&amp; contentType.getCharset() != null) {</span>
+<span class="nc" id="L147">      marshaller.setProperty(&quot;jaxb.encoding&quot;, contentType.getCharset().name());</span>
+    }
+<span class="fc" id="L149">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

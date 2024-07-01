@@ -1,0 +1,11 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+Common Xml Modelling,org.bremersee.xml.adapter,DurationXmlAdapter,0,21,0,2,0,7,0,4,0,3
+Common Xml Modelling,org.bremersee.xml.adapter,InstantXmlAdapter,0,42,1,3,0,15,1,5,0,4
+Common Xml Modelling,org.bremersee.xml.adapter,OffsetDateTimeXmlAdapter,0,21,0,2,0,8,0,4,0,3
+Common Xml Modelling,org.bremersee.xml.adapter,DateXmlAdapter,0,44,1,3,0,15,1,5,0,4
+Common Xml Modelling,org.bremersee.xml.adapter,EpochMilliXmlAdapter,0,44,1,3,0,15,1,5,0,4
+Common Xml Modelling,org.bremersee.xml,JaxbContextMember.JaxbContextMemberImpl,34,0,0,0,11,0,3,0,3,0
+Common Xml Modelling,org.bremersee.xml,JaxbContextMember.ClazzBuilderImpl,29,0,2,0,7,0,4,0,3,0
+Common Xml Modelling,org.bremersee.xml,JaxbContextMember.PakkageBuilderImpl,22,0,2,0,5,0,3,0,2,0
+Common Xml Modelling,org.bremersee.xml,JaxbContextMember,18,0,0,0,6,0,6,0,6,0
+Common Xml Modelling,org.bremersee.xml,ConverterUtils,20,357,3,35,5,97,3,36,0,20
