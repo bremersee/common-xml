@@ -4,13 +4,14 @@ pipeline {
   }
   environment {
     CODECOV_TOKEN = credentials('common-xml-codecov-token')
+    TEST = true
     DEPLOY = true
     SNAPSHOT_SITE = true
     RELEASE_SITE = true
-    DEPLOY_FEATURE = false
+    DEPLOY_FEATURE = true
   }
   tools {
-    jdk 'jdk11'
+    jdk 'jdk17'
     maven 'm3'
   }
   options {
@@ -25,9 +26,7 @@ pipeline {
     }
     stage('Test') {
       when {
-        not {
-          branch 'feature/*'
-        }
+        environment name: 'TEST', value: 'true'
       }
       steps {
         sh 'mvn -B clean test'
@@ -47,7 +46,7 @@ pipeline {
           environment name: 'DEPLOY', value: 'true'
           anyOf {
             branch 'develop'
-            branch 'master'
+            branch 'main'
           }
         }
       }
@@ -58,8 +57,11 @@ pipeline {
     stage('Snapshot Site') {
       when {
         allOf {
-          branch 'develop'
           environment name: 'SNAPSHOT_SITE', value: 'true'
+          anyOf {
+            branch 'develop'
+            branch 'feature/*'
+          }
         }
       }
       steps {
@@ -74,7 +76,7 @@ pipeline {
     stage('Release Site') {
       when {
         allOf {
-          branch 'master'
+          branch 'main'
           environment name: 'RELEASE_SITE', value: 'true'
         }
       }

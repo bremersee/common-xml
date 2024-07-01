@@ -7,23 +7,34 @@
   <parent>
     <groupId>org.bremersee</groupId>
     <artifactId>common-parent</artifactId>
-    <version>2.4.0</version>
+    <version>3.0.0</version>
     <relativePath/>
   </parent>
 
-  <artifactId>common-xml</artifactId>
-  <version>2.4.0</version>
-  <packaging>jar</packaging>
+  <artifactId>common-xml-parent</artifactId>
+  <version>3.0.1</version>
+  <packaging>pom</packaging>
 
-  <name>common-xml</name>
-  <description>Common XML Processing</description>
+  <name>Common Xml Parent Module</name>
+  <description>Common XML Processing Project</description>
   <inceptionYear>2020</inceptionYear>
   <url>https://github.com/bremersee/common-xml</url>
 
+  <modules>
+    <module>common-xml-modelling</module>
+    <module>common-xml</module>
+    <module>common-xml-spring-web</module>
+    <module>common-xml-spring-webflux</module>
+    <module>common-xml-spring-boot-autoconfigure</module>
+    <module>common-xml-spring-boot-starter</module>
+    <module>common-xml-spring-boot-web-starter</module>
+    <module>common-xml-spring-boot-webflux-starter</module>
+  </modules>
+
   <properties>
     <github.repo>common-xml</github.repo>
-    <gh-pages-staging-dir>${project.build.directory}/staging</gh-pages-staging-dir>
-    <inceptionYear>2020</inceptionYear>
+    <!--suppress UnresolvedMavenProperty -->
+    <gh-pages-staging-dir>${maven.multiModuleProjectDirectory}/target/staging</gh-pages-staging-dir>
   </properties>
 
   <developers>
@@ -75,42 +86,5 @@
       </url>
     </site>
   </distributionManagement>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.reflections</groupId>
-      <artifactId>reflections</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jaxb-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jaxb</groupId>
-      <artifactId>jaxb-runtime</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
 
 </project>

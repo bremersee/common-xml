@@ -1,6 +1,6 @@
 # Common XML Processing
 
-[![codecov](https://codecov.io/gh/bremersee/common-xml/branch/master/graph/badge.svg)](https://codecov.io/gh/bremersee/common-xml)
+[![codecov](https://codecov.io/gh/bremersee/common-xml/branch/develop/graph/badge.svg)](https://codecov.io/gh/bremersee/common-xml)
 
 This library contains
 
@@ -17,7 +17,7 @@ This library contains
 
 - [Release](https://bremersee.github.io/common-xml/index.html)
 
-- [Snapshot](https://nexus.bremersee.org/repository/maven-sites/common-xml/2.4.0-SNAPSHOT/index.html)
+- [Snapshot](https://nexus.bremersee.org/repository/maven-sites/common-xml/3.0.1-SNAPSHOT/index.html)
 
 ## Usage of JaxbContextBuilder
 
@@ -29,16 +29,16 @@ model, and you want to support them in your application.
 
 All the packages which contain the model of the xsd files are described with `JaxbContextData` and 
 are summed up in an implementation of `JaxbContextDataProvider`
-(see for example [GarminJaxbContextDataProvider](https://github.com/bremersee/garmin-model/blob/master/src/main/java/org/bremersee/garmin/GarminJaxbContextDataProvider.java)).
+(see for example [GarminJaxbContextDataProvider](https://github.com/bremersee/garmin-model/blob/main/src/main/java/org/bremersee/garmin/GarminJaxbContextDataProvider.java)).
 
 The implementation of the provider will be announced to the service loader by a service 
-[description](https://github.com/bremersee/garmin-model/blob/master/src/main/resources/META-INF/services/org.bremersee.xml.JaxbContextDataProvider).
+[description](https://github.com/bremersee/garmin-model/blob/main/src/main/resources/META-INF/services/org.bremersee.xml.JaxbContextDataProvider).
 
 Then it is very easy to generate the JAXBContext using the `JaxbContextBuilder`:
 
 ```java
 import java.util.ServiceLoader;
-import javax.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBContext;
 
 public class Example {
 
@@ -60,22 +60,23 @@ If such provider is not present, it is possible to add the packages in different
 them:
 
 ```java
-import javax.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBContext;
 
 public class Example {
 
   public static void main(String[] args) {
     JAXBContext jaxbContext = JaxbContextBuilder
         .newInstance()
-        .add("org.example.model.foo:org.example.model.bar")
-        .add(new JaxbContextData("org.example.model.foobar"))
+        .add(new JaxbContextData(org.example.model.foo.Model.class.getPackage()))
+        .add(new JaxbContextData(org.example.model.bar.Model.class.getPackage()))
+        .add(new JaxbContextData(org.example.model.foobar.ModelWithXmlRootAnnotation.class))    
         .buildJaxbContext();
   }
 }
 ```
 
 Important is that the packages, which contain the model, have a `package-info.java` annotated with
-`@javax.xml.bind.annotation.XmlSchema` and an `ObjectFactory.java` class. Packages that were 
+`@jakarta.xml.bind.annotation.XmlSchema` and an `ObjectFactory.java` class. Packages that were 
 generated with XJC normally have these. 
 
 ### Single model class
@@ -84,8 +85,8 @@ The JaxbContextBuilder also supports model classes, which are not organized in a
 have to be annotated with `@XmlRootElement`:
 
 ```java
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 public class Example {
   
@@ -121,7 +122,7 @@ unnecessary name space declarations and schema locations.
 ```java
 import java.io.StringWriter;
 import java.util.ServiceLoader;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import org.bremersee.garmin.gpx.v3.model.ext.DisplayColorT;
 import org.bremersee.garmin.gpx.v3.model.ext.TrackExtension;
 import org.bremersee.xml.JaxbContextBuilder;
@@ -159,7 +160,7 @@ that are necessary:
 ```java
 import java.io.StringWriter;
 import java.util.ServiceLoader;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import org.bremersee.garmin.gpx.v3.model.ext.DisplayColorT;
 import org.bremersee.garmin.gpx.v3.model.ext.TrackExtension;
 import org.bremersee.xml.JaxbContextBuilder;
@@ -202,7 +203,7 @@ This dependency resolving can be turned off by setting the resolver to null:
 ```java
 import java.io.StringWriter;
 import java.util.ServiceLoader;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import org.bremersee.garmin.gpx.v3.model.ext.DisplayColorT;
 import org.bremersee.garmin.gpx.v3.model.ext.TrackExtension;
 import org.bremersee.xml.JaxbContextBuilder;
@@ -255,13 +256,13 @@ It may be useful to create elements for objects that can contain any element:
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlValue;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAnyElement;
+import jakarta.xml.bind.annotation.XmlElementWrapper;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlValue;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
