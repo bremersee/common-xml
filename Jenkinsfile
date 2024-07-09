@@ -5,8 +5,8 @@ pipeline {
   environment {
     CODECOV_TOKEN = credentials('common-xml-codecov-token')
     TEST = true
-    DEPLOY = false
-    SNAPSHOT_SITE = false
+    DEPLOY = true
+    SNAPSHOT_SITE = true
     RELEASE_SITE = true
     DEPLOY_FEATURE = true
   }
@@ -47,6 +47,7 @@ pipeline {
           anyOf {
             branch 'develop'
             branch 'main'
+            branch 'bugfix/*'
           }
         }
       }
@@ -61,6 +62,7 @@ pipeline {
           anyOf {
             branch 'develop'
             branch 'feature/*'
+            branch 'bugfix/*'
           }
         }
       }
