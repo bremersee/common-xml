@@ -60,9 +60,10 @@ public class Jaxb2HttpMessageCodecAutoConfiguration implements WebFluxConfigurer
   private final Set<Class<?>> ignoreWritingClasses;
 
   /**
-   * Instantiates a new Jaxb 2 http message codec auto configuration.
+   * Instantiates a new Jaxb 2 http message codec autoconfiguration.
    *
    * @param jaxbContextBuilder the jaxb context builder
+   * @param readWriteConfigurers the read write configurers
    */
   public Jaxb2HttpMessageCodecAutoConfiguration(
       ObjectProvider<JaxbContextBuilder> jaxbContextBuilder,

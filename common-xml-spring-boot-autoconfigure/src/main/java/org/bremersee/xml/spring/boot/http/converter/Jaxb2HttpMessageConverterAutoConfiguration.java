@@ -66,6 +66,7 @@ public class Jaxb2HttpMessageConverterAutoConfiguration {
    * Creates jaxb http message converter bean.
    *
    * @param jaxbContextBuilder the jaxb context builder
+   * @param readWriteConfigurers the read write configurers
    * @return the jaxb http message converter
    */
   @ConditionalOnBean(JaxbContextBuilder.class)
