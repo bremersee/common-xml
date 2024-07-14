@@ -1,11 +1,11 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-<title>/srv/jenkins/workspace/common-xml_main/common-xml-spring-boot-autoconfigure/src/main/java/org/bremersee/xml/spring/boot/http/codec/Jaxb2HttpMessageCodecAutoConfiguration.java xref</title>
+<title>Jaxb2HttpMessageCodecAutoConfiguration xref</title>
 <link type="text/css" rel="stylesheet" href="../../../../../../../stylesheet.css" />
 </head>
 <body>
-<div id="overview"><a href="../../../../../../../../apidocs/org/bremersee/xml/spring/boot/http/codec">View Javadoc</a></div><pre>
+<div id="overview"><a href="../../../../../../../../apidocs/org/bremersee/xml/spring/boot/http/codec/Jaxb2HttpMessageCodecAutoConfiguration.html">View Javadoc</a></div><pre>
 <a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_comment">/*</em>
 <a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_comment"> * Copyright 2020 the original author or authors.</em>
 <a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_comment"> *</em>
@@ -68,62 +68,63 @@
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Set&lt;Class&lt;?&gt;&gt; ignoreWritingClasses;
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>  
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>    <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <em class="jxr_javadoccomment">   * Instantiates a new Jaxb 2 http message codec auto configuration.</em>
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <em class="jxr_javadoccomment">   * Instantiates a new Jaxb 2 http message codec autoconfiguration.</em>
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>  <em class="jxr_javadoccomment">   *</em>
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>  <em class="jxr_javadoccomment">   * @param jaxbContextBuilder the jaxb context builder</em>
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>  <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>    <strong class="jxr_keyword">public</strong> Jaxb2HttpMessageCodecAutoConfiguration(
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>        ObjectProvider&lt;JaxbContextBuilder&gt; jaxbContextBuilder,
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>        ObjectProvider&lt;JaxbReadWriteConfigurer&gt; readWriteConfigurers) {
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <strong class="jxr_keyword">this</strong>.jaxbContextBuilder = jaxbContextBuilder.getIfAvailable();
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">this</strong>.ignoreReadingClasses = readWriteConfigurers
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>          .stream()
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>          .collect(
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>              HashSet::<strong class="jxr_keyword">new</strong>,
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>              (a, b) -&gt; a.addAll(b.getIgnoreReadingClasses()),
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>              AbstractCollection::addAll);
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>      <strong class="jxr_keyword">this</strong>.ignoreWritingClasses = readWriteConfigurers
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>          .stream()
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>          .collect(
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>              HashSet::<strong class="jxr_keyword">new</strong>,
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>              (a, b) -&gt; a.addAll(b.getIgnoreWritingClasses()),
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>              AbstractCollection::addAll);
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>    }
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>  
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>    <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>  <em class="jxr_javadoccomment">   * Init.</em>
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>  <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>    @EventListener(ApplicationReadyEvent.<strong class="jxr_keyword">class</strong>)
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> init() {
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>      log.info(<span class="jxr_string">""</span><span class="jxr_string">"
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>  
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>              *********************************************************************************
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>              * {}
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>              *********************************************************************************
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>              * jaxbContextBuilder = {}
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>              * ignoreReadingClasses = {}
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>              * ignoreWritingClasses = {}
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>              *********************************************************************************<span class="jxr_string">""</span><span class="jxr_string">",
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>          ClassUtils.getUserClass(getClass()).getSimpleName(),
-<a class="jxr_linenumber" name="L100" href="#L100">100</a>         jaxbContextBuilder, ignoreReadingClasses, ignoreWritingClasses);
-<a class="jxr_linenumber" name="L101" href="#L101">101</a>   }
-<a class="jxr_linenumber" name="L102" href="#L102">102</a> 
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>   @Override
-<a class="jxr_linenumber" name="L104" href="#L104">104</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> configureHttpMessageCodecs(@NonNull ServerCodecConfigurer configurer) {
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>     <strong class="jxr_keyword">if</strong> (Objects.nonNull(jaxbContextBuilder)) {
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>       log.info(<span class="jxr_string">"Registering jaxb encoder and decoder."</span>);
-<a class="jxr_linenumber" name="L107" href="#L107">107</a>       configurer
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>           .customCodecs()
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>           .registerWithDefaultConfig(<strong class="jxr_keyword">new</strong> <a name="ReactiveJaxbEncoder" href="../../../../../../../org/bremersee/xml/http/codec/ReactiveJaxbEncoder.html#ReactiveJaxbEncoder">ReactiveJaxbEncoder</a>(
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>               jaxbContextBuilder, ignoreWritingClasses));
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>       configurer
-<a class="jxr_linenumber" name="L112" href="#L112">112</a>           .customCodecs()
-<a class="jxr_linenumber" name="L113" href="#L113">113</a>           .registerWithDefaultConfig(<strong class="jxr_keyword">new</strong> <a name="ReactiveJaxbDecoder" href="../../../../../../../org/bremersee/xml/http/codec/ReactiveJaxbDecoder.html#ReactiveJaxbDecoder">ReactiveJaxbDecoder</a>(
-<a class="jxr_linenumber" name="L114" href="#L114">114</a>               jaxbContextBuilder, ignoreReadingClasses));
-<a class="jxr_linenumber" name="L115" href="#L115">115</a>     }
-<a class="jxr_linenumber" name="L116" href="#L116">116</a>   }
-<a class="jxr_linenumber" name="L117" href="#L117">117</a> 
-<a class="jxr_linenumber" name="L118" href="#L118">118</a> }
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  <em class="jxr_javadoccomment">   * @param readWriteConfigurers the read write configurers</em>
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>    <strong class="jxr_keyword">public</strong> Jaxb2HttpMessageCodecAutoConfiguration(
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>        ObjectProvider&lt;JaxbContextBuilder&gt; jaxbContextBuilder,
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>        ObjectProvider&lt;JaxbReadWriteConfigurer&gt; readWriteConfigurers) {
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">this</strong>.jaxbContextBuilder = jaxbContextBuilder.getIfAvailable();
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">this</strong>.ignoreReadingClasses = readWriteConfigurers
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          .stream()
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          .collect(
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>              HashSet::<strong class="jxr_keyword">new</strong>,
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>              (a, b) -&gt; a.addAll(b.getIgnoreReadingClasses()),
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>              AbstractCollection::addAll);
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <strong class="jxr_keyword">this</strong>.ignoreWritingClasses = readWriteConfigurers
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>          .stream()
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>          .collect(
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>              HashSet::<strong class="jxr_keyword">new</strong>,
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>              (a, b) -&gt; a.addAll(b.getIgnoreWritingClasses()),
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>              AbstractCollection::addAll);
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>    }
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>    <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  <em class="jxr_javadoccomment">   * Init.</em>
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>    @EventListener(ApplicationReadyEvent.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> init() {
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      log.info(<span class="jxr_string">""</span><span class="jxr_string">"
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>              *********************************************************************************
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>              * {}
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>              *********************************************************************************
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>              * jaxbContextBuilder = {}
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>              * ignoreReadingClasses = {}
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>              * ignoreWritingClasses = {}
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>              *********************************************************************************<span class="jxr_string">""</span><span class="jxr_string">",
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>         ClassUtils.getUserClass(getClass()).getSimpleName(),
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         jaxbContextBuilder, ignoreReadingClasses, ignoreWritingClasses);
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>   }
+<a class="jxr_linenumber" name="L103" href="#L103">103</a> 
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>   @Override
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> configureHttpMessageCodecs(@NonNull ServerCodecConfigurer configurer) {
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>     <strong class="jxr_keyword">if</strong> (Objects.nonNull(jaxbContextBuilder)) {
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>       log.info(<span class="jxr_string">"Registering jaxb encoder and decoder."</span>);
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>       configurer
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>           .customCodecs()
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>           .registerWithDefaultConfig(<strong class="jxr_keyword">new</strong> <a name="ReactiveJaxbEncoder" href="../../../../../../../org/bremersee/xml/http/codec/ReactiveJaxbEncoder.html#ReactiveJaxbEncoder">ReactiveJaxbEncoder</a>(
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>               jaxbContextBuilder, ignoreWritingClasses));
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>       configurer
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>           .customCodecs()
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>           .registerWithDefaultConfig(<strong class="jxr_keyword">new</strong> <a name="ReactiveJaxbDecoder" href="../../../../../../../org/bremersee/xml/http/codec/ReactiveJaxbDecoder.html#ReactiveJaxbDecoder">ReactiveJaxbDecoder</a>(
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>               jaxbContextBuilder, ignoreReadingClasses));
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>     }
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>   }
+<a class="jxr_linenumber" name="L118" href="#L118">118</a> 
+<a class="jxr_linenumber" name="L119" href="#L119">119</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020&#x2013;2024 <a href="https://bremersee.org">bremersee.org</a>. All rights reserved.</div>

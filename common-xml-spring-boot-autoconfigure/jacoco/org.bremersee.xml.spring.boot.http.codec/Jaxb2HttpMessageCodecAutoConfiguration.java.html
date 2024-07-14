@@ -60,34 +60,35 @@ public class Jaxb2HttpMessageCodecAutoConfiguration implements WebFluxConfigurer
   private final Set&lt;Class&lt;?&gt;&gt; ignoreWritingClasses;
 
   /**
-   * Instantiates a new Jaxb 2 http message codec auto configuration.
+   * Instantiates a new Jaxb 2 http message codec autoconfiguration.
    *
    * @param jaxbContextBuilder the jaxb context builder
+   * @param readWriteConfigurers the read write configurers
    */
   public Jaxb2HttpMessageCodecAutoConfiguration(
       ObjectProvider&lt;JaxbContextBuilder&gt; jaxbContextBuilder,
-<span class="fc" id="L69">      ObjectProvider&lt;JaxbReadWriteConfigurer&gt; readWriteConfigurers) {</span>
-<span class="fc" id="L70">    this.jaxbContextBuilder = jaxbContextBuilder.getIfAvailable();</span>
-<span class="fc" id="L71">    this.ignoreReadingClasses = readWriteConfigurers</span>
-<span class="fc" id="L72">        .stream()</span>
-<span class="fc" id="L73">        .collect(</span>
+<span class="fc" id="L70">      ObjectProvider&lt;JaxbReadWriteConfigurer&gt; readWriteConfigurers) {</span>
+<span class="fc" id="L71">    this.jaxbContextBuilder = jaxbContextBuilder.getIfAvailable();</span>
+<span class="fc" id="L72">    this.ignoreReadingClasses = readWriteConfigurers</span>
+<span class="fc" id="L73">        .stream()</span>
+<span class="fc" id="L74">        .collect(</span>
             HashSet::new,
-<span class="fc" id="L75">            (a, b) -&gt; a.addAll(b.getIgnoreReadingClasses()),</span>
+<span class="fc" id="L76">            (a, b) -&gt; a.addAll(b.getIgnoreReadingClasses()),</span>
             AbstractCollection::addAll);
-<span class="fc" id="L77">    this.ignoreWritingClasses = readWriteConfigurers</span>
-<span class="fc" id="L78">        .stream()</span>
-<span class="fc" id="L79">        .collect(</span>
+<span class="fc" id="L78">    this.ignoreWritingClasses = readWriteConfigurers</span>
+<span class="fc" id="L79">        .stream()</span>
+<span class="fc" id="L80">        .collect(</span>
             HashSet::new,
-<span class="fc" id="L81">            (a, b) -&gt; a.addAll(b.getIgnoreWritingClasses()),</span>
+<span class="fc" id="L82">            (a, b) -&gt; a.addAll(b.getIgnoreWritingClasses()),</span>
             AbstractCollection::addAll);
-<span class="fc" id="L83">  }</span>
+<span class="fc" id="L84">  }</span>
 
   /**
    * Init.
    */
   @EventListener(ApplicationReadyEvent.class)
   public void init() {
-<span class="fc" id="L90">    log.info(&quot;&quot;&quot;</span>
+<span class="fc" id="L91">    log.info(&quot;&quot;&quot;</span>
 
             *********************************************************************************
             * {}
@@ -96,24 +97,24 @@ public class Jaxb2HttpMessageCodecAutoConfiguration implements WebFluxConfigurer
             * ignoreReadingClasses = {}
             * ignoreWritingClasses = {}
             *********************************************************************************&quot;&quot;&quot;,
-<span class="fc" id="L99">        ClassUtils.getUserClass(getClass()).getSimpleName(),</span>
+<span class="fc" id="L100">        ClassUtils.getUserClass(getClass()).getSimpleName(),</span>
         jaxbContextBuilder, ignoreReadingClasses, ignoreWritingClasses);
-<span class="fc" id="L101">  }</span>
+<span class="fc" id="L102">  }</span>
 
   @Override
   public void configureHttpMessageCodecs(@NonNull ServerCodecConfigurer configurer) {
-<span class="fc bfc" id="L105" title="All 2 branches covered.">    if (Objects.nonNull(jaxbContextBuilder)) {</span>
-<span class="fc" id="L106">      log.info(&quot;Registering jaxb encoder and decoder.&quot;);</span>
-<span class="fc" id="L107">      configurer</span>
-<span class="fc" id="L108">          .customCodecs()</span>
-<span class="fc" id="L109">          .registerWithDefaultConfig(new ReactiveJaxbEncoder(</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">    if (Objects.nonNull(jaxbContextBuilder)) {</span>
+<span class="fc" id="L107">      log.info(&quot;Registering jaxb encoder and decoder.&quot;);</span>
+<span class="fc" id="L108">      configurer</span>
+<span class="fc" id="L109">          .customCodecs()</span>
+<span class="fc" id="L110">          .registerWithDefaultConfig(new ReactiveJaxbEncoder(</span>
               jaxbContextBuilder, ignoreWritingClasses));
-<span class="fc" id="L111">      configurer</span>
-<span class="fc" id="L112">          .customCodecs()</span>
-<span class="fc" id="L113">          .registerWithDefaultConfig(new ReactiveJaxbDecoder(</span>
+<span class="fc" id="L112">      configurer</span>
+<span class="fc" id="L113">          .customCodecs()</span>
+<span class="fc" id="L114">          .registerWithDefaultConfig(new ReactiveJaxbDecoder(</span>
               jaxbContextBuilder, ignoreReadingClasses));
     }
-<span class="fc" id="L116">  }</span>
+<span class="fc" id="L117">  }</span>
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

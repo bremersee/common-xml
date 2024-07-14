@@ -74,38 +74,39 @@
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>  <em class="jxr_javadoccomment">   * Creates jaxb http message converter bean.</em>
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>  <em class="jxr_javadoccomment">   *</em>
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>  <em class="jxr_javadoccomment">   * @param jaxbContextBuilder the jaxb context builder</em>
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <em class="jxr_javadoccomment">   * @return the jaxb http message converter</em>
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>    @ConditionalOnBean(JaxbContextBuilder.<strong class="jxr_keyword">class</strong>)
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>    @ConditionalOnMissingBean(Jaxb2HttpMessageConverter.<strong class="jxr_keyword">class</strong>)
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>    @Bean
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>    <strong class="jxr_keyword">public</strong> Jaxb2HttpMessageConverter jaxb2HttpMessageConverter(
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>        JaxbContextBuilder jaxbContextBuilder,
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>        ObjectProvider&lt;JaxbReadWriteConfigurer&gt; readWriteConfigurers) {
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>      Set&lt;Class&lt;?&gt;&gt; ignoreReadingClasses = readWriteConfigurers
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>          .stream()
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>          .collect(
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>              HashSet::<strong class="jxr_keyword">new</strong>,
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>              (a, b) -&gt; a.addAll(b.getIgnoreReadingClasses()),
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>              AbstractCollection::addAll);
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>      Set&lt;Class&lt;?&gt;&gt; ignoreWritingClasses = readWriteConfigurers
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>          .stream()
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>          .collect(
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>              HashSet::<strong class="jxr_keyword">new</strong>,
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>              (a, b) -&gt; a.addAll(b.getIgnoreWritingClasses()),
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>              AbstractCollection::addAll);
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>      log.info(<span class="jxr_string">"Creating bean {} with ignoreReadingClasses ({}) and ignoreWritingClasses ({})."</span>,
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>          Jaxb2HttpMessageConverter.<strong class="jxr_keyword">class</strong>.getSimpleName(),
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>          ignoreReadingClasses,
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>          ignoreWritingClasses);
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>      <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Jaxb2HttpMessageConverter(
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>          jaxbContextBuilder,
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>          ignoreReadingClasses,
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>          ignoreWritingClasses);
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>    }
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>  
-<a class="jxr_linenumber" name="L100" href="#L100">100</a> }
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <em class="jxr_javadoccomment">   * @param readWriteConfigurers the read write configurers</em>
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <em class="jxr_javadoccomment">   * @return the jaxb http message converter</em>
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>    @ConditionalOnBean(JaxbContextBuilder.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>    @ConditionalOnMissingBean(Jaxb2HttpMessageConverter.<strong class="jxr_keyword">class</strong>)
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>    @Bean
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>    <strong class="jxr_keyword">public</strong> Jaxb2HttpMessageConverter jaxb2HttpMessageConverter(
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>        JaxbContextBuilder jaxbContextBuilder,
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>        ObjectProvider&lt;JaxbReadWriteConfigurer&gt; readWriteConfigurers) {
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      Set&lt;Class&lt;?&gt;&gt; ignoreReadingClasses = readWriteConfigurers
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>          .stream()
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          .collect(
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>              HashSet::<strong class="jxr_keyword">new</strong>,
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>              (a, b) -&gt; a.addAll(b.getIgnoreReadingClasses()),
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>              AbstractCollection::addAll);
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      Set&lt;Class&lt;?&gt;&gt; ignoreWritingClasses = readWriteConfigurers
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>          .stream()
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>          .collect(
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>              HashSet::<strong class="jxr_keyword">new</strong>,
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>              (a, b) -&gt; a.addAll(b.getIgnoreWritingClasses()),
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>              AbstractCollection::addAll);
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      log.info(<span class="jxr_string">"Creating bean {} with ignoreReadingClasses ({}) and ignoreWritingClasses ({})."</span>,
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          Jaxb2HttpMessageConverter.<strong class="jxr_keyword">class</strong>.getSimpleName(),
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>          ignoreReadingClasses,
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          ignoreWritingClasses);
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>      <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Jaxb2HttpMessageConverter(
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>          jaxbContextBuilder,
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          ignoreReadingClasses,
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>          ignoreWritingClasses);
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>    }
+<a class="jxr_linenumber" name="L100" href="#L100">100</a> 
+<a class="jxr_linenumber" name="L101" href="#L101">101</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020&#x2013;2024 <a href="https://bremersee.org">bremersee.org</a>. All rights reserved.</div>
