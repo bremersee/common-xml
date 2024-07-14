@@ -1,6 +1,6 @@
 # Common XML Processing
 
-[![codecov](https://codecov.io/gh/bremersee/common-xml/branch/develop/graph/badge.svg)](https://codecov.io/gh/bremersee/common-xml)
+[![codecov](https://codecov.io/gh/bremersee/common-xml/branch/main/graph/badge.svg)](https://codecov.io/gh/bremersee/common-xml)
 
 This library contains
 
@@ -17,7 +17,7 @@ This library contains
 
 - [Release](https://bremersee.github.io/common-xml/index.html)
 
-- [Snapshot](https://nexus.bremersee.org/repository/maven-sites/common-xml/3.1.0-SNAPSHOT/index.html)
+- [Snapshot](https://nexus.bremersee.org/repository/maven-sites/common-xml/3.2.0-SNAPSHOT/index.html)
 
 ## Usage of JaxbContextBuilder
 
