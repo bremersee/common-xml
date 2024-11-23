@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.bremersee</groupId>
     <artifactId>common-xml-parent</artifactId>
-    <version>3.1.0</version>
+    <version>3.1.1</version>
   </parent>
 
   <artifactId>common-xml</artifactId>
