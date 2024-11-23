@@ -132,4 +132,5 @@ class JaxbUtilsTest {
     softly.assertThat(JaxbUtils.findJaxbClasses(DateXmlAdapter.class.getPackageName()))
         .isEmpty();
   }
+
 }
