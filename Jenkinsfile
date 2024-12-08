@@ -34,7 +34,10 @@ pipeline {
       post {
         always {
           junit '**/surefire-reports/*.xml'
-          recordCoverage(tools: [[parser: 'JACOCO', pattern: '**/coverage-reports/*.exec']])
+          recordCoverage(
+              tools: [[parser: 'JACOCO', pattern: '**/coverage-reports/*.exec']],
+              sourceCodeRetention: 'LAST_BUILD'
+          )
 //          jacoco(
 //              execPattern: '**/coverage-reports/*.exec'
 //          )
