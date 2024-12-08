@@ -5,8 +5,8 @@ pipeline {
   environment {
     CODECOV_TOKEN = credentials('common-xml-codecov-token')
     TEST = true
-    DEPLOY = true
-    SNAPSHOT_SITE = true
+    DEPLOY = false
+    SNAPSHOT_SITE = false
     RELEASE_SITE = true
     DEPLOY_FEATURE = true
   }
@@ -34,7 +34,7 @@ pipeline {
       post {
         always {
           junit '**/surefire-reports/*.xml'
-          recordCoverage(tools: [[parser: 'JACOCO']])
+          recordCoverage(tools: [[parser: 'JACOCO', pattern: '**/coverage-reports/*.exec']])
 //          jacoco(
 //              execPattern: '**/coverage-reports/*.exec'
 //          )
