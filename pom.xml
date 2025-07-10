@@ -7,12 +7,12 @@
   <parent>
     <groupId>org.bremersee</groupId>
     <artifactId>common-parent</artifactId>
-    <version>3.1.2</version>
+    <version>3.2.0</version>
     <relativePath/>
   </parent>
 
   <artifactId>common-xml-parent</artifactId>
-  <version>3.1.1</version>
+  <version>3.2.0</version>
   <packaging>pom</packaging>
 
   <name>Common Xml Parent Module</name>
